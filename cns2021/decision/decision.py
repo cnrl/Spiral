@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-learning/rewards.py                                                           |
+decision/decision.py                                                          |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -21,3 +21,38 @@ code.                                                                         |
                                                                               |
 ==============================================================================.
 """
+
+from abc import ABC, abstractmethod
+
+
+class AbstractDecision(ABC):
+    """
+    Abstract class to define decision making strategy.
+
+    Make sure to implement the abstract methods in your child class.
+    """
+
+    @abstractmethod
+    def compute(self, **kwargs) -> None:
+        """
+        Infer the decision to be made.
+
+        Returns
+        -------
+        None
+            It should return the decision result.
+
+        """
+        pass
+
+    @abstractmethod
+    def update(self, **kwargs) -> None:
+        """
+        Update the variables after making the decision.
+
+        Returns
+        -------
+        None
+
+        """
+        pass

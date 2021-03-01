@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-decision/__init__.py                                                          |
+network/__init__.py                                                           |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -21,3 +21,10 @@ code.                                                                         |
                                                                               |
 ==============================================================================.
 """
+
+from .network import Network
+from . import (
+    neural_populations,
+    connections,
+    monitors,
+)

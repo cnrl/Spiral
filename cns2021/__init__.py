@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-utils.py                                                                      |
+__init__.py                                                                   |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -21,3 +21,16 @@ code.                                                                         |
                                                                               |
 ==============================================================================.
 """
+
+from pathlib import Path
+
+from . import (
+    utils,
+    network,
+    learning,
+    encoding,
+    decision,
+    plotting,
+)
+
+ROOT_DIR = Path(__file__).parents[0].parents[0]

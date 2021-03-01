@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-decision/decision.py                                                          |
+utils.py                                                                      |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -20,4 +20,8 @@ cratch and learn the basics. Follow the documents and comments to complete the|
 code.                                                                         |
                                                                               |
 ==============================================================================.
+"""
+
+"""
+Use this module to implement any required utility function.
 """

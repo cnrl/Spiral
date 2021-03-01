@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-encoding/__init__.py                                                          |
+encoding/encoders.py                                                          |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -21,3 +21,55 @@ code.                                                                         |
                                                                               |
 ==============================================================================.
 """
+
+from abc import ABC, abstractmethod
+from typing import Optional
+
+import torch
+
+
+class AbstractEncoder(ABC):
+    """
+    Abstract class to define encoding mechanism.
+
+    The computation procedure should be implemented in the `__call__` method.
+
+    Arguments
+    ---------
+    time : int
+        Length of encoded tensor.
+    dt : float, Optional
+        Simulation timestep. The default is 1.0.
+    device : str, Optional
+        The device to do the comutations. The default is "cpu".
+
+    """
+
+    def __init__(
+        self,
+        time: int,
+        dt: Optional[float] = 1.0,
+        device: Optional[str] = "cpu",
+        **kwargs
+    ) -> None:
+        self.time = time
+        self.dt = dt
+        self.device = device
+
+    @abstractmethod
+    def __call__(self, data: torch.Tensor) -> None:
+        """
+        Compute the encoded tensor of the given data.
+
+        Parameters
+        ----------
+        data : torch.Tensor
+            The data tensor to encode.
+
+        Returns
+        -------
+        None
+            It should return the encoded tensor.
+
+        """
+        pass

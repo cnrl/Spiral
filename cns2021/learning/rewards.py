@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-network/__init__.py                                                           |
+learning/rewards.py                                                           |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -21,3 +21,38 @@ code.                                                                         |
                                                                               |
 ==============================================================================.
 """
+
+from abc import ABC, abstractmethod
+
+
+class AbstractReward(ABC):
+    """
+    Abstract class to define reward function.
+
+    Make sure to implement the abstract methods in your child class.
+    """
+
+    @abstractmethod
+    def compute(self, **kwargs) -> None:
+        """
+        Compute the reward.
+
+        Returns
+        -------
+        None
+            It should return the computed reward value.
+
+        """
+        pass
+
+    @abstractmethod
+    def update(self, **kwargs) -> None:
+        """
+        Update the internal variables.
+
+        Returns
+        -------
+        None
+
+        """
+        pass

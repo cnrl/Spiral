@@ -184,8 +184,7 @@ class NeuralPopulation(torch.nn.Module):
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        NeuralPopulation
 
         """
         self.learning = mode

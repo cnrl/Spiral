@@ -5,7 +5,7 @@ CNS2021 PROJECT TEMPLATE
 
 ==============================================================================.
                                                                               |
-network/monitors.py                                                           |
+plotting/plotting.py                                                          |
                                                                               |
 Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
                                                                               |
@@ -20,4 +20,10 @@ cratch and learn the basics. Follow the documents and comments to complete the|
 code.                                                                         |
                                                                               |
 ==============================================================================.
+"""
+
+"""
+Implement this module in any way you are comfortable with. You are free to use
+any visualization library you like. Providing live plotting and animations is
+also a bonus.
 """
