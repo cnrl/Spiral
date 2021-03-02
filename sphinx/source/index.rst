@@ -11,6 +11,10 @@ Welcome to CNSProject's documentation!
    :caption: Contents:
 
    Getting Started <README.md>
+   Phase 1 <Phase1.md>
+   Phase 2 <Phase2.md>
+   Phase 3 <Phase3.md>
+   Phase 4 <Phase4.md>
 
 
 Indices and tables
