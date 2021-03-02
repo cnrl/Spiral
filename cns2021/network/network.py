@@ -24,8 +24,8 @@ class Network(torch.nn.Module):
     learning: bool, Optional
         Whether to allow weight update and learning. The default is True.
     reward : AbstractReward, Optional
-        The class to allow reward modifications in case of reward-modulated lea
-        rning. The default is None.
+        The class to allow reward modifications in case of reward-modulated
+        learning. The default is None.
     decision: AbstractDecision, Optional
         The class to enable decision making. The default is None.
 
@@ -81,8 +81,8 @@ class Network(torch.nn.Module):
         post: str
     ) -> None:
         """
-        Add a connection between neural populations to the network. The referen
-        ce name will be in the format `{pre}_to_{post}`.
+        Add a connection between neural populations to the network. The\
+        reference name will be in the format `{pre}_to_{post}`.
 
         Parameters
         ----------
@@ -143,8 +143,8 @@ class Network(torch.nn.Module):
         time : int
             Simulation time.
         inputs : Dict[str, torch.Tensor], optional
-            Mapping of input layer names to their input spike tensors. The def
-            ault is {}.
+            Mapping of input layer names to their input spike tensors. The\
+            default is {}.
         one_step : bool, optional
             Whether to propagate the inputs all the way through the network in\
             a single simulation step. The default is False.
@@ -152,17 +152,17 @@ class Network(torch.nn.Module):
         Keyword Arguments
         -----------------
         clamp : Dict[str, torch.Tensor]
-            Mapping of layer names to boolean masks if neurons should be clampe
-            d to spiking.
+            Mapping of layer names to boolean masks if neurons should be clamped
+            to spiking.
         unclamp : Dict[str, torch.Tensor]
-            Mapping of layer names to boolean masks if neurons should be clampe
-            d not to spiking.
+            Mapping of layer names to boolean masks if neurons should be clamped
+            not to spiking.
         masks : Dict[str, torch.Tensor]
-            Mapping of connection names to boolean masks of the weights to clam
-            p to zero.
+            Mapping of connection names to boolean masks of the weights to clamp
+            to zero.
 
-        Note: you can pass the reward and decision arguments as keyword argume
-        ents to this function.
+        Note: you can pass the reward and decision arguments as keyword\
+        argumeents to this function.
 
         Returns
         -------

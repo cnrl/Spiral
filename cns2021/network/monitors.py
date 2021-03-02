@@ -64,8 +64,8 @@ class Monitor:
 
     def record(self) -> None:
         """
-        Append the current value of the recorded state variables to the record
-        ing.
+        Append the current value of the recorded state variables to the\
+        recording.
 
         Returns
         -------

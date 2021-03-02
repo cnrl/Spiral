@@ -25,8 +25,8 @@ class AbstractConnection(ABC, torch.nn.Module):
     post : NeuralPopulation
         The post-synaptic neural population.
     lr : float or (float, float), Optional
-        The learning rate for training procedure. If a tuple is given, the fir
-        st value defines potentiation learning rate and the second one depicts\
+        The learning rate for training procedure. If a tuple is given, the first
+        value defines potentiation learning rate and the second one depicts\
         the depression learning rate. The default is None.
     weight_decay : float, Optional
         Define rate of decay in synaptic strength. The default is 0.0.
@@ -34,15 +34,15 @@ class AbstractConnection(ABC, torch.nn.Module):
     Keyword Arguments
     -----------------
     learning_rule : LearningRule
-        Define the learning rule by which the network will be trained. The def
-        ault is NoOp (see learning/learning_rules.py for more details).
+        Define the learning rule by which the network will be trained. The\
+        default is NoOp (see learning/learning_rules.py for more details).
     wmin : float
         The minimum possible synaptic strength. The default is 0.0.
     wmax : float
         The maximum possible synaptic strength. The default is 1.0.
     norm : float
-        Define a normalization on input signals to a population. If `None`, th
-        ere is no normalization. The default is None.
+        Define a normalization on input signals to a population. If `None`,\
+        there is no normalization. The default is None.
 
     """
 
@@ -141,8 +141,8 @@ class DenseConnection(AbstractConnection):
     """
     Specify a fully-connected synapse between neural populations.
 
-    Implement the dense connection pattern following the abstract connection t
-    emplate.
+    Implement the dense connection pattern following the abstract connection\
+    template.
     """
 
     def __init__(
@@ -170,8 +170,8 @@ class DenseConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given th
-        e activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
@@ -226,8 +226,8 @@ class RandomConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given th
-        e activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
@@ -253,8 +253,8 @@ class ConvolutionalConnection(AbstractConnection):
     """
     Specify a convolutional synaptic connection between neural populations.
 
-    Implement the convolutional connection pattern following the abstract conn
-    ection template.
+    Implement the convolutional connection pattern following the abstract\
+    connection template.
     """
 
     def __init__(
@@ -284,8 +284,8 @@ class ConvolutionalConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given th
-        e activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
@@ -314,8 +314,8 @@ class PoolingConnection(AbstractConnection):
     Implement the pooling connection pattern following the abstract connection\
     template. Consider a parameter for defining the type of pooling.
 
-    Note: The pooling operation does not support learning. You might need to m
-    ake some modifications in the defined structure of this class.
+    Note: The pooling operation does not support learning. You might need to\
+    make some modifications in the defined structure of this class.
     """
 
     def __init__(
@@ -345,8 +345,8 @@ class PoolingConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given th
-        e activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
