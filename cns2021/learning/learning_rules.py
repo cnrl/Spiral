@@ -125,3 +125,80 @@ class NoOp(LearningRule):
 
         """
         super().update()
+
+
+class STDP(LearningRule):
+    """
+    Spike-Time Dependent Plasticity learning rule.
+
+    Implement the dynamics of STDP learning rule.You might need to implement d-
+    ifferent update rules based on type of connection.
+    """
+
+    def __init__(
+        self,
+        connection: AbstractConnection,
+        lr: Optional[Union[float, Sequence[float]]] = None,
+        weight_decay: float = 0.,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            connection=connection,
+            lr=lr,
+            weight_decay=weight_decay,
+            **kwargs
+        )
+        """
+        TODO.
+
+        Consider the additional required parameters and fill the body accordin-
+        gly.
+        """
+
+    def update(self, **kwargs) -> None:
+        """
+        TODO.
+
+        Implement the dynamics and updating rule. You might need to call the p-
+        arent method.
+        """
+        pass
+
+
+class RSTDP(LearningRule):
+    """
+    Reward-modulated Spike-Time Dependent Plasticity learning rule.
+
+    Implement the dynamics of RSTDP learning rule. You might need to implement
+    different update rules based on type of connection.
+    """
+
+    def __init__(
+        self,
+        connection: AbstractConnection,
+        lr: Optional[Union[float, Sequence[float]]] = None,
+        weight_decay: float = 0.,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            connection=connection,
+            lr=lr,
+            weight_decay=weight_decay,
+            **kwargs
+        )
+        """
+        TODO.
+
+        Consider the additional required parameters and fill the body accordin-
+        gly.
+        """
+
+    def update(self, **kwargs) -> None:
+        """
+        TODO.
+
+        Implement the dynamics and updating rule. You might need to call the p-
+        arent method. Make sure to consider the reward value as a given keyword
+        argument.
+        """
+        pass

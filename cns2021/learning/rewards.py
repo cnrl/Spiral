@@ -56,3 +56,10 @@ class AbstractReward(ABC):
 
         """
         pass
+
+
+"""
+TODO.
+
+Define your reward functions here.
+"""

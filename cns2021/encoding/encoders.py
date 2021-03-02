@@ -73,3 +73,38 @@ class AbstractEncoder(ABC):
 
         """
         pass
+
+
+class Intensity2LatencyEncoder(AbstractEncoder):
+    """
+    Intensity to Latency coding.
+
+    Implement the intensity to latency coding.
+    """
+
+    def __init__(
+        self,
+        time: int,
+        dt: Optional[float] = 1.0,
+        device: Optional[str] = "cpu",
+        **kwargs
+    ) -> None:
+        super().__init__(
+            time=time,
+            dt=dt,
+            device=device,
+            **kwargs
+        )
+        """
+        TODO.
+
+        Add other attributes if needed and fill the body accordingly.
+        """
+
+    def __call__(self, data: torch.Tensor) -> None:
+        """
+        TODO.
+
+        Implement the computation for coding the data. Return resulting tensor.
+        """
+        pass

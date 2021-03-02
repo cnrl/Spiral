@@ -154,6 +154,10 @@ class Network(torch.nn.Module):
         Simulate network for a specific time duration with the possible given \
         input.
 
+        TODO.
+
+        Implement the body of this method.
+
         Parameters
         ----------
         time : int
@@ -183,14 +187,11 @@ class Network(torch.nn.Module):
         Returns
         -------
         None
-            DESCRIPTION.
 
         """
         clamps = kwargs.get("clamp", {})
         unclamps = kwargs.get("unclamp", {})
         masks = kwargs.get("masks", {})
-
-        # TODO Implement the simulation of the network.
 
     def reset_state_variables(self) -> None:
         """
