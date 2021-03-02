@@ -1,7 +1,4 @@
 """
-network/monitors.py
-===================
-
 Module for monitoring objects.
 """
 
@@ -67,7 +64,7 @@ class Monitor:
 
     def record(self) -> None:
         """
-        Append the current value of the recorded state variables to the record\
+        Append the current value of the recorded state variables to the record
         ing.
 
         Returns

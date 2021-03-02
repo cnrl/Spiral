@@ -35,6 +35,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.githubpages',
     'recommonmark',
+    'sphinx.ext.napoleon',
     'sphinx_rtd_theme',
 ]
 

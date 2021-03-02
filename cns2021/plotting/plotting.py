@@ -1,12 +1,10 @@
 """
-plotting/plotting.py
-====================
-
 Module for visualization and plotting.
+
 TODO.
 
-Implement this module in any way you are comfortable with. You are free to use
-any visualization library you like. Providing live plotting and animations is
+Implement this module in any way you are comfortable with. You are free to use\
+any visualization library you like. Providing live plotting and animations is\
 also a bonus. The visualizations you will definitely need are as follows:
 
 1. F-I curve.

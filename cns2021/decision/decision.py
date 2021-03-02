@@ -1,12 +1,9 @@
 """
-decision/decision.py
-====================
-
 Module for decision making.
 
 TODO.
 
-1. Implement the dynamics of decision making. You are free to define your stru-
+1. Implement the dynamics of decision making. You are free to define your stru
    cture here.
 2. Make sure to implement winner-take-all mechanism.
 """

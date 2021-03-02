@@ -1,7 +1,4 @@
 """
-network/connections.py
-======================
-
 Module for connections between neural populations.
 """
 
@@ -11,14 +8,14 @@ from typing import Optional, Union, Sequence
 import torch
 
 from .neural_populations import NeuralPopulation
-from ..learning.learning_rules import LearningRule, NoOp
+# from ..learning.learning_rules import LearningRule, NoOp
 
 
 class AbstractConnection(ABC, torch.nn.Module):
     """
     Abstract class for implementing connections.
 
-    Make sure to implement the `compute`, `update`, and `reset_state_variables`
+    Make sure to implement the `compute`, `update`, and `reset_state_variables`\
     methods in your child class.
 
     Arguments
@@ -27,24 +24,24 @@ class AbstractConnection(ABC, torch.nn.Module):
         The pre-synaptic neural population.
     post : NeuralPopulation
         The post-synaptic neural population.
-    learning_rule : LearningRule, Optional
-        Define the learning rule by which the network will be trained. The def\
-        ault is NoOp (see learning/learning_rules.py for more details).
     lr : float or (float, float), Optional
-        The learning rate for training procedure. If a tuple is given, the fir\
-        st value defines potentiation learning rate and the second one depicts
+        The learning rate for training procedure. If a tuple is given, the fir
+        st value defines potentiation learning rate and the second one depicts\
         the depression learning rate. The default is None.
     weight_decay : float, Optional
         Define rate of decay in synaptic strength. The default is 0.0.
 
     Keyword Arguments
     -----------------
+    learning_rule : LearningRule
+        Define the learning rule by which the network will be trained. The def
+        ault is NoOp (see learning/learning_rules.py for more details).
     wmin : float
         The minimum possible synaptic strength. The default is 0.0.
     wmax : float
         The maximum possible synaptic strength. The default is 1.0.
     norm : float
-        Define a normalization on input signals to a population. If `None`, th\
+        Define a normalization on input signals to a population. If `None`, th
         ere is no normalization. The default is None.
 
     """
@@ -53,8 +50,7 @@ class AbstractConnection(ABC, torch.nn.Module):
         self,
         pre: NeuralPopulation,
         post: NeuralPopulation,
-        learning_rule: LearningRule = NoOp,
-        lr: Optional[Union[float, Sequence[float]]] = None,
+        lr: Union[float, Sequence[float]] = None,
         weight_decay: float = 0.0,
         **kwargs
     ) -> None:
@@ -69,6 +65,10 @@ class AbstractConnection(ABC, torch.nn.Module):
         self.post = post
 
         self.weight_decay = weight_decay
+
+        from ..learning.learning_rule import NoOp
+
+        learning_rule = kwargs.get('learning_rule', NoOp)
 
         self.learning_rule = learning_rule(
             connection=self,
@@ -141,7 +141,7 @@ class DenseConnection(AbstractConnection):
     """
     Specify a fully-connected synapse between neural populations.
 
-    Implement the dense connection pattern following the abstract connection t\
+    Implement the dense connection pattern following the abstract connection t
     emplate.
     """
 
@@ -149,16 +149,13 @@ class DenseConnection(AbstractConnection):
         self,
         pre: NeuralPopulation,
         post: NeuralPopulation,
-        learning_rule: LearningRule = NoOp,
-        lr: Optional[Union[float, Sequence[float]]] = None,
+        lr: Union[float, Sequence[float]] = None,
         weight_decay: float = 0.0,
         **kwargs
     ) -> None:
         super().__init__(
             pre=pre,
             post=post,
-            learning_rule=learning_rule,
-            lr=lr,
             weight_decay=weight_decay,
             **kwargs
         )
@@ -173,8 +170,8 @@ class DenseConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given th
+        e activity of the pre-synaptic population.
         """
         pass
 
@@ -182,7 +179,7 @@ class DenseConnection(AbstractConnection):
         """
         TODO.
 
-        Update the connection weights based on the learning rule computations.
+        Update the connection weights based on the learning rule computations.\
         You might need to call the parent method.
         """
         pass
@@ -200,7 +197,7 @@ class RandomConnection(AbstractConnection):
     """
     Specify a random synaptic connection between neural populations.
 
-    Implement the random connection pattern following the abstract connection
+    Implement the random connection pattern following the abstract connection\
     template.
     """
 
@@ -208,16 +205,13 @@ class RandomConnection(AbstractConnection):
         self,
         pre: NeuralPopulation,
         post: NeuralPopulation,
-        learning_rule: LearningRule = NoOp,
-        lr: Optional[Union[float, Sequence[float]]] = None,
+        lr: Union[float, Sequence[float]] = None,
         weight_decay: float = 0.0,
         **kwargs
     ) -> None:
         super().__init__(
             pre=pre,
             post=post,
-            learning_rule=learning_rule,
-            lr=lr,
             weight_decay=weight_decay,
             **kwargs
         )
@@ -232,8 +226,8 @@ class RandomConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given th
+        e activity of the pre-synaptic population.
         """
         pass
 
@@ -241,7 +235,7 @@ class RandomConnection(AbstractConnection):
         """
         TODO.
 
-        Update the connection weights based on the learning rule computations.
+        Update the connection weights based on the learning rule computations.\
         You might need to call the parent method.
         """
         pass
@@ -259,7 +253,7 @@ class ConvolutionalConnection(AbstractConnection):
     """
     Specify a convolutional synaptic connection between neural populations.
 
-    Implement the convolutional connection pattern following the abstract conn\
+    Implement the convolutional connection pattern following the abstract conn
     ection template.
     """
 
@@ -267,8 +261,7 @@ class ConvolutionalConnection(AbstractConnection):
         self,
         pre: NeuralPopulation,
         post: NeuralPopulation,
-        learning_rule: LearningRule = NoOp,
-        lr: Optional[Union[float, Sequence[float]]] = None,
+        lr: Union[float, Sequence[float]] = None,
         weight_decay: float = 0.0,
         **kwargs
     ) -> None:
@@ -291,8 +284,8 @@ class ConvolutionalConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given th
+        e activity of the pre-synaptic population.
         """
         pass
 
@@ -318,10 +311,10 @@ class PoolingConnection(AbstractConnection):
     """
     Specify a pooling synaptic connection between neural populations.
 
-    Implement the pooling connection pattern following the abstract connection
+    Implement the pooling connection pattern following the abstract connection\
     template. Consider a parameter for defining the type of pooling.
 
-    Note: The pooling operation does not support learning. You might need to m\
+    Note: The pooling operation does not support learning. You might need to m
     ake some modifications in the defined structure of this class.
     """
 
@@ -329,8 +322,7 @@ class PoolingConnection(AbstractConnection):
         self,
         pre: NeuralPopulation,
         post: NeuralPopulation,
-        learning_rule: LearningRule = NoOp,
-        lr: Optional[Union[float, Sequence[float]]] = None,
+        lr: Union[float, Sequence[float]] = None,
         weight_decay: float = 0.0,
         **kwargs
     ) -> None:
@@ -353,8 +345,8 @@ class PoolingConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
+        Implement the computation of post-synaptic population activity given th
+        e activity of the pre-synaptic population.
         """
         pass
 
@@ -362,7 +354,7 @@ class PoolingConnection(AbstractConnection):
         """
         TODO.
 
-        Update the connection weights based on the learning rule computations.
+        Update the connection weights based on the learning rule computations.\
         You might need to call the parent method.
 
         Note: You should be careful with this method.

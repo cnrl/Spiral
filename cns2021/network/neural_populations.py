@@ -1,7 +1,4 @@
 """
-network/neural_populations.py
-=============================
-
 Module for neuronal dynamics and populations.
 """
 
@@ -165,7 +162,7 @@ class NeuralPopulation(torch.nn.Module):
         Parameters
         ----------
         mode : bool, optional
-            Mode of training. `True` turns on the training while `False` turns \
+            Mode of training. `True` turns on the training while `False` turns\
             it off. The default is True.
 
         Returns
@@ -253,7 +250,7 @@ class LIFPopulation(NeuralPopulation):
     """
     Layer of Leaky Integrate and Fire neurons.
 
-    Implement LIF neural dynamics(Parameters of the model must be modifiable).
+    Implement LIF neural dynamics(Parameters of the model must be modifiable).\
     Follow the template structure of NeuralPopulation class for consistency.
     """
 
@@ -288,7 +285,7 @@ class LIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        1. Make use of other methods to fill the body. This is the main method
+        1. Make use of other methods to fill the body. This is the main method\
            responsible for one step of neuron simulation.
         2. You might need to call the method from parent class.
         """
@@ -298,8 +295,8 @@ class LIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the neural dynamics for computing the potential of LIF neuro-
-        ns. The method can either make changes to attributes directly or return
+        Implement the neural dynamics for computing the potential of LIF neuro
+        ns. The method can either make changes to attributes directly or return\
         the result for further use.
         """
         pass
@@ -308,7 +305,7 @@ class LIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the spike condition. The method can either make changes to a-
+        Implement the spike condition. The method can either make changes to a
         ttributes directly or return the result for further use.
         """
         pass
@@ -318,8 +315,8 @@ class LIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the refractory and reset conditions. The method can either m-
-        ake changes to attributes directly or return the computed value for fu-
+        Implement the refractory and reset conditions. The method can either m
+        ake changes to attributes directly or return the computed value for fu
         rther use.
         """
         pass
@@ -329,7 +326,7 @@ class LIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the dynamics of decays. You might need to call the method fr-
+        Implement the dynamics of decays. You might need to call the method fr
         om parent class.
         """
         pass
@@ -339,7 +336,7 @@ class ELIFPopulation(NeuralPopulation):
     """
     Layer of Exponential Leaky Integrate and Fire neurons.
 
-    Implement ELIF neural dynamics(Parameters of the model must be modifiable).
+    Implement ELIF neural dynamics(Parameters of the model must be modifiable).\
     Follow the template structure of NeuralPopulation class for consistency.
 
     Note: You can use LIFPopulation as parent class as well.
@@ -376,7 +373,7 @@ class ELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        1. Make use of other methods to fill the body. This is the main method
+        1. Make use of other methods to fill the body. This is the main method\
            responsible for one step of neuron simulation.
         2. You might need to call the method from parent class.
         """
@@ -386,7 +383,7 @@ class ELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the neural dynamics for computing the potential of LIF neuro-
+        Implement the neural dynamics for computing the potential of LIF neuro
         ns. The method can either make changes to attributes directly or return
         the result for further use.
         """
@@ -396,7 +393,7 @@ class ELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the spike condition. The method can either make changes to a-
+        Implement the spike condition. The method can either make changes to a
         ttributes directly or return the result for further use.
         """
         pass
@@ -406,8 +403,8 @@ class ELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the refractory and reset conditions. The method can either m-
-        ake changes to attributes directly or return the computed value for fu-
+        Implement the refractory and reset conditions. The method can either m
+        ake changes to attributes directly or return the computed value for fu
         rther use.
         """
         pass
@@ -417,7 +414,7 @@ class ELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the dynamics of decays. You might need to call the method fr-
+        Implement the dynamics of decays. You might need to call the method fr
         om parent class.
         """
         pass
@@ -427,8 +424,8 @@ class AdaptiveELIFPopulation(NeuralPopulation):
     """
     Layer of Adaptive Exponential Leaky Integrate and Fire neurons.
 
-    Implement adaptive ELIF neural dynamics(Parameters of the model must be mo-
-    difiable). Follow the template structure of NeuralPopulation class for con-
+    Implement adaptive ELIF neural dynamics(Parameters of the model must be mo
+    difiable). Follow the template structure of NeuralPopulation class for con
     sistency.
 
     Note: You can use ELIFPopulation as parent class as well.
@@ -465,7 +462,7 @@ class AdaptiveELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        1. Make use of other methods to fill the body. This is the main method
+        1. Make use of other methods to fill the body. This is the main method\
            responsible for one step of neuron simulation.
         2. You might need to call the method from parent class.
         """
@@ -475,7 +472,7 @@ class AdaptiveELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the neural dynamics for computing the potential of LIF neuro-
+        Implement the neural dynamics for computing the potential of LIF neuro
         ns. The method can either make changes to attributes directly or return
         the result for further use.
         """
@@ -485,7 +482,7 @@ class AdaptiveELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the spike condition. The method can either make changes to a-
+        Implement the spike condition. The method can either make changes to a
         ttributes directly or return the result for further use.
         """
         pass
@@ -495,8 +492,8 @@ class AdaptiveELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the refractory and reset conditions. The method can either m-
-        ake changes to attributes directly or return the computed value for fu-
+        Implement the refractory and reset conditions. The method can either m
+        ake changes to attributes directly or return the computed value for fu
         rther use.
         """
         pass
@@ -506,7 +503,7 @@ class AdaptiveELIFPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the dynamics of decays. You might need to call the method fr-
+        Implement the dynamics of decays. You might need to call the method fr
         om parent class.
         """
         pass
@@ -516,8 +513,8 @@ class HHPopulation(NeuralPopulation):
     """
     Layer of Hodgkin-Huxley neurons.
 
-    Implement Hodgkin-Huxley neural dynamics(Parameters of the model must be m-
-    odifiable). Follow the template structure of NeuralPopulation class for co-
+    Implement Hodgkin-Huxley neural dynamics(Parameters of the model must be m
+    odifiable). Follow the template structure of NeuralPopulation class for co
     nsistency.
     """
 
@@ -552,7 +549,7 @@ class HHPopulation(NeuralPopulation):
         """
         TODO.
 
-        1. Make use of other methods to fill the body. This is the main method
+        1. Make use of other methods to fill the body. This is the main method\
            responsible for one step of neuron simulation.
         2. You might need to call the method from parent class.
         """
@@ -562,8 +559,8 @@ class HHPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the neural dynamics for computing the potential of LIF neuro-
-        ns. The method can either make changes to attributes directly or return
+        Implement the neural dynamics for computing the potential of LIF neuro
+        ns. The method can either make changes to attributes directly or return\
         the result for further use.
         """
         pass
@@ -572,7 +569,7 @@ class HHPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the spike condition. The method can either make changes to a-
+        Implement the spike condition. The method can either make changes to a
         ttributes directly or return the result for further use.
         """
         pass
@@ -582,8 +579,8 @@ class HHPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the refractory and reset conditions. The method can either m-
-        ake changes to attributes directly or return the computed value for fu-
+        Implement the refractory and reset conditions. The method can either m
+        ake changes to attributes directly or return the computed value for fu
         rther use.
         """
         pass
@@ -593,7 +590,7 @@ class HHPopulation(NeuralPopulation):
         """
         TODO.
 
-        Implement the dynamics of decays. You might need to call the method fr-
+        Implement the dynamics of decays. You might need to call the method fr
         om parent class.
         """
         pass

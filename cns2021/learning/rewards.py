@@ -1,7 +1,4 @@
 """
-learning/rewards.py
-===================
-
 Module for reward dynamics.
 
 TODO.

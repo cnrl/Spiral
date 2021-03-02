@@ -1,1 +1,4 @@
-from . import learning_rules, rewards
+from . import (
+    learning_rules,
+    rewards,
+)

@@ -1,7 +1,4 @@
 """
-network/network.py
-==================
-
 Module for spiking neural network construction and simulation.
 """
 
@@ -12,7 +9,7 @@ import torch
 from .neural_populations import NeuralPopulation
 from .connections import AbstractConnection
 from .monitors import Monitor
-from ..learning.reward import AbstractReward
+from ..learning.rewards import AbstractReward
 from ..decision.decision import AbstractDecision
 
 
@@ -27,7 +24,7 @@ class Network(torch.nn.Module):
     learning: bool, Optional
         Whether to allow weight update and learning. The default is True.
     reward : AbstractReward, Optional
-        The class to allow reward modifications in case of reward-modulated lea\
+        The class to allow reward modifications in case of reward-modulated lea
         rning. The default is None.
     decision: AbstractDecision, Optional
         The class to enable decision making. The default is None.
@@ -84,7 +81,7 @@ class Network(torch.nn.Module):
         post: str
     ) -> None:
         """
-        Add a connection between neural populations to the network. The referen\
+        Add a connection between neural populations to the network. The referen
         ce name will be in the format `{pre}_to_{post}`.
 
         Parameters
@@ -134,7 +131,7 @@ class Network(torch.nn.Module):
         **kwargs
     ) -> None:
         """
-        Simulate network for a specific time duration with the possible given \
+        Simulate network for a specific time duration with the possible given\
         input.
 
         TODO.
@@ -146,25 +143,25 @@ class Network(torch.nn.Module):
         time : int
             Simulation time.
         inputs : Dict[str, torch.Tensor], optional
-            Mapping of input layer names to their input spike tensors. The def\
+            Mapping of input layer names to their input spike tensors. The def
             ault is {}.
         one_step : bool, optional
-            Whether to propagate the inputs all the way through the network in
+            Whether to propagate the inputs all the way through the network in\
             a single simulation step. The default is False.
 
         Keyword Arguments
         -----------------
         clamp : Dict[str, torch.Tensor]
-            Mapping of layer names to boolean masks if neurons should be clamped
-            to spiking.
+            Mapping of layer names to boolean masks if neurons should be clampe
+            d to spiking.
         unclamp : Dict[str, torch.Tensor]
-            Mapping of layer names to boolean masks if neurons should be clamped
-            not to spiking.
+            Mapping of layer names to boolean masks if neurons should be clampe
+            d not to spiking.
         masks : Dict[str, torch.Tensor]
-            Mapping of connection names to boolean masks of the weights to clamp
-            to zero.
+            Mapping of connection names to boolean masks of the weights to clam
+            p to zero.
 
-        Note: you can pass the reward and decision arguments as keyword argume\
+        Note: you can pass the reward and decision arguments as keyword argume
         ents to this function.
 
         Returns
@@ -201,7 +198,7 @@ class Network(torch.nn.Module):
         Parameters
         ----------
         mode : bool, optional
-            Mode of training. `True` turns on the training while `False` turns
+            Mode of training. `True` turns on the training while `False` turns\
             it off. The default is True.
 
         Returns

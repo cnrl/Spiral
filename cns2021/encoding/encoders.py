@@ -1,7 +1,4 @@
 """
-encoding/encoders.py
-====================
-
 Module for encoding data into spike.
 """
 

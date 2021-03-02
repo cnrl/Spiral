@@ -1,7 +1,4 @@
 """
-learning/learning_rules.py
-==========================
-
 Module for learning rules.
 """
 
@@ -23,8 +20,8 @@ class LearningRule(ABC):
     connection : AbstractConnection
         The connection on which the learning rule is applied.
     lr : float or sequence of float, Optional
-        The learning rate for training procedure. If a tuple is given, the fir\
-        st value defines potentiation learning rate and the second one depicts
+        The learning rate for training procedure. If a tuple is given, the fir
+        st value defines potentiation learning rate and the second one depicts\
         the depression learning rate. The default is None.
     weight_decay : float
         Define rate of decay in synaptic strength. The default is 0.0.
@@ -75,8 +72,8 @@ class NoOp(LearningRule):
     connection : AbstractConnection
         The connection on which the learning rule is applied.
     lr : float or sequence of float, Optional
-        The learning rate for training procedure. If a tuple is given, the fir\
-        st value defines potentiation learning rate and the second one depicts
+        The learning rate for training procedure. If a tuple is given, the fir
+        st value defines potentiation learning rate and the second one depicts\
         the depression learning rate. The default is None.
     weight_decay : float
         Define rate of decay in synaptic strength. The default is 0.0.
@@ -99,7 +96,7 @@ class NoOp(LearningRule):
 
     def update(self, **kwargs) -> None:
         """
-        Only take care about synaptic decay and possible range of synaptic we\
+        Only take care about synaptic decay and possible range of synaptic we
         ights.
 
         Returns
@@ -114,7 +111,7 @@ class STDP(LearningRule):
     """
     Spike-Time Dependent Plasticity learning rule.
 
-    Implement the dynamics of STDP learning rule.You might need to implement d\
+    Implement the dynamics of STDP learning rule.You might need to implement d
     ifferent update rules based on type of connection.
     """
 
@@ -134,7 +131,7 @@ class STDP(LearningRule):
         """
         TODO.
 
-        Consider the additional required parameters and fill the body accordin\
+        Consider the additional required parameters and fill the body accordin
         gly.
         """
 
@@ -142,7 +139,7 @@ class STDP(LearningRule):
         """
         TODO.
 
-        Implement the dynamics and updating rule. You might need to call the p\
+        Implement the dynamics and updating rule. You might need to call the p
         arent method.
         """
         pass
@@ -152,7 +149,7 @@ class RSTDP(LearningRule):
     """
     Reward-modulated Spike-Time Dependent Plasticity learning rule.
 
-    Implement the dynamics of RSTDP learning rule. You might need to implement
+    Implement the dynamics of RSTDP learning rule. You might need to implement\
     different update rules based on type of connection.
     """
 
@@ -172,7 +169,7 @@ class RSTDP(LearningRule):
         """
         TODO.
 
-        Consider the additional required parameters and fill the body accordin\
+        Consider the additional required parameters and fill the body accordin
         gly.
         """
 
@@ -180,8 +177,8 @@ class RSTDP(LearningRule):
         """
         TODO.
 
-        Implement the dynamics and updating rule. You might need to call the p\
-        arent method. Make sure to consider the reward value as a given keyword
-        argument.
+        Implement the dynamics and updating rule. You might need to call the p
+        arent method. Make sure to consider the reward value as a given keywor
+        d argument.
         """
         pass
