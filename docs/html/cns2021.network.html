@@ -1,0 +1,1060 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>cns2021.network package &mdash; CNSProject  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> CNSProject
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HW1.html">HW1</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CNSProject</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>cns2021.network package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/cns2021.network.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="cns2021-network-package">
+<h1>cns2021.network package<a class="headerlink" href="#cns2021-network-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-cns2021.network.connections">
+<span id="cns2021-network-connections-module"></span><h2>cns2021.network.connections module<a class="headerlink" href="#module-cns2021.network.connections" title="Permalink to this headline">¶</a></h2>
+<p>Module for connections between neural populations.</p>
+<dl class="py class">
+<dt id="cns2021.network.connections.AbstractConnection">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.connections.</span></code><code class="sig-name descname"><span class="pre">AbstractConnection</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.connections.AbstractConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Abstract class for implementing connections.</p>
+<p>Make sure to implement the <cite>compute</cite>, <cite>update</cite>, and <cite>reset_state_variables</cite>    methods in your child class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pre</strong> (<a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><em>NeuralPopulation</em></a>) – The pre-synaptic neural population.</p></li>
+<li><p><strong>post</strong> (<a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><em>NeuralPopulation</em></a>) – The post-synaptic neural population.</p></li>
+<li><p><strong>lr</strong> (<em>float</em><em> or </em><em>(</em><em>float</em><em>, </em><em>float</em><em>)</em><em>, </em><em>Optional</em>) – The learning rate for training procedure. If a tuple is given, the first
+value defines potentiation learning rate and the second one depicts        the depression learning rate. The default is None.</p></li>
+<li><p><strong>weight_decay</strong> (<em>float</em><em>, </em><em>Optional</em>) – Define rate of decay in synaptic strength. The default is 0.0.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>learning_rule</strong> (<a class="reference internal" href="cns2021.learning.html#cns2021.learning.learning_rules.LearningRule" title="cns2021.learning.learning_rules.LearningRule"><em>LearningRule</em></a>) – Define the learning rule by which the network will be trained. The        default is NoOp (see learning/learning_rules.py for more details).</p></li>
+<li><p><strong>wmin</strong> (<em>float</em>) – The minimum possible synaptic strength. The default is 0.0.</p></li>
+<li><p><strong>wmax</strong> (<em>float</em>) – The maximum possible synaptic strength. The default is 1.0.</p></li>
+<li><p><strong>norm</strong> (<em>float</em>) – Define a normalization on input signals to a population. If <cite>None</cite>,        there is no normalization. The default is None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cns2021.network.connections.AbstractConnection.compute">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.AbstractConnection.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the post-synaptic neural population activity based on the given        spikes of the pre-synaptic population.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>s</strong> (<em>torch.Tensor</em>) – The pre-synaptic spikes tensor.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.AbstractConnection.reset_state_variables">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.AbstractConnection.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset all internal state variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.connections.AbstractConnection.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.connections.AbstractConnection.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.AbstractConnection.update">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.AbstractConnection.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute connection’s learning rule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Keyword Arguments</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>learning</strong> (<em>bool</em>) – Whether learning is enabled or not. The default is True.</p></li>
+<li><p><strong>mask</strong> (<em>torch.ByteTensor</em>) – Define a mask to determine which weights to clamp to zero.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.connections.ConvolutionalConnection">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.connections.</span></code><code class="sig-name descname"><span class="pre">ConvolutionalConnection</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.connections.ConvolutionalConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.connections.AbstractConnection</span></code></a></p>
+<p>Specify a convolutional synaptic connection between neural populations.</p>
+<p>Implement the convolutional connection pattern following the abstract    connection template.</p>
+<dl class="py method">
+<dt id="cns2021.network.connections.ConvolutionalConnection.compute">
+<code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.ConvolutionalConnection.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the computation of post-synaptic population activity given the
+activity of the pre-synaptic population.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.ConvolutionalConnection.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.ConvolutionalConnection.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Reset all the state variables of the connection.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.connections.ConvolutionalConnection.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.connections.ConvolutionalConnection.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.ConvolutionalConnection.update">
+<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.ConvolutionalConnection.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Update the connection weights based on the learning rule computations.
+You might need to call the parent method.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.connections.DenseConnection">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.connections.</span></code><code class="sig-name descname"><span class="pre">DenseConnection</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.connections.DenseConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.connections.AbstractConnection</span></code></a></p>
+<p>Specify a fully-connected synapse between neural populations.</p>
+<p>Implement the dense connection pattern following the abstract connection    template.</p>
+<dl class="py method">
+<dt id="cns2021.network.connections.DenseConnection.compute">
+<code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.DenseConnection.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the computation of post-synaptic population activity given the
+activity of the pre-synaptic population.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.DenseConnection.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.DenseConnection.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Reset all the state variables of the connection.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.connections.DenseConnection.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.connections.DenseConnection.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.DenseConnection.update">
+<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.DenseConnection.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Update the connection weights based on the learning rule computations.        You might need to call the parent method.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.connections.PoolingConnection">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.connections.</span></code><code class="sig-name descname"><span class="pre">PoolingConnection</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.connections.PoolingConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.connections.AbstractConnection</span></code></a></p>
+<p>Specify a pooling synaptic connection between neural populations.</p>
+<p>Implement the pooling connection pattern following the abstract connection    template. Consider a parameter for defining the type of pooling.</p>
+<p>Note: The pooling operation does not support learning. You might need to    make some modifications in the defined structure of this class.</p>
+<dl class="py method">
+<dt id="cns2021.network.connections.PoolingConnection.compute">
+<code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.PoolingConnection.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the computation of post-synaptic population activity given the
+activity of the pre-synaptic population.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.PoolingConnection.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.PoolingConnection.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Reset all the state variables of the connection.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.connections.PoolingConnection.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.connections.PoolingConnection.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.PoolingConnection.update">
+<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.PoolingConnection.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Update the connection weights based on the learning rule computations.        You might need to call the parent method.</p>
+<p>Note: You should be careful with this method.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.connections.RandomConnection">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.connections.</span></code><code class="sig-name descname"><span class="pre">RandomConnection</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pre</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.connections.RandomConnection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.connections.AbstractConnection</span></code></a></p>
+<p>Specify a random synaptic connection between neural populations.</p>
+<p>Implement the random connection pattern following the abstract connection    template.</p>
+<dl class="py method">
+<dt id="cns2021.network.connections.RandomConnection.compute">
+<code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.RandomConnection.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the computation of post-synaptic population activity given the
+activity of the pre-synaptic population.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.RandomConnection.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.RandomConnection.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Reset all the state variables of the connection.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.connections.RandomConnection.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.connections.RandomConnection.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.connections.RandomConnection.update">
+<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.connections.RandomConnection.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Update the connection weights based on the learning rule computations.        You might need to call the parent method.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cns2021.network.monitors">
+<span id="cns2021-network-monitors-module"></span><h2>cns2021.network.monitors module<a class="headerlink" href="#module-cns2021.network.monitors" title="Permalink to this headline">¶</a></h2>
+<p>Module for monitoring objects.</p>
+<dl class="py class">
+<dt id="cns2021.network.monitors.Monitor">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.monitors.</span></code><code class="sig-name descname"><span class="pre">Monitor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><span class="pre">cns2021.network.connections.AbstractConnection</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_variables</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.monitors.Monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Record desired state variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><em>NeuralPopulation</em></a><em> or </em><a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><em>AbstractConnection</em></a>) – The object, states of which is desired to record.</p></li>
+<li><p><strong>state_variables</strong> (<em>Iterable of str</em>) – Name of variables of interest.</p></li>
+<li><p><strong>time</strong> (<em>int</em><em>, </em><em>Optional</em>) – pre-allocated memory for variable recording. The default is 0.</p></li>
+<li><p><strong>device</strong> (<em>str</em><em>, </em><em>Optional</em>) – The device to run the monitor. The default is “cpu”.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cns2021.network.monitors.Monitor.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.Tensor</span><a class="headerlink" href="#cns2021.network.monitors.Monitor.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return recording to user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>variable</strong> (<em>str</em>) – The requested variable.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>logs</strong> – The recording log of the requested variable.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.monitors.Monitor.record">
+<code class="sig-name descname"><span class="pre">record</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.monitors.Monitor.record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append the current value of the recorded state variables to the        recording.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.monitors.Monitor.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.monitors.Monitor.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset all internal state variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cns2021.network.network">
+<span id="cns2021-network-network-module"></span><h2>cns2021.network.network module<a class="headerlink" href="#module-cns2021.network.network" title="Permalink to this headline">¶</a></h2>
+<p>Module for spiking neural network construction and simulation.</p>
+<dl class="py class">
+<dt id="cns2021.network.network.Network">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.network.</span></code><code class="sig-name descname"><span class="pre">Network</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reward</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cns2021.learning.html#cns2021.learning.rewards.AbstractReward" title="cns2021.learning.rewards.AbstractReward"><span class="pre">cns2021.learning.rewards.AbstractReward</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decision</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cns2021.decision.html#cns2021.decision.decision.AbstractDecision" title="cns2021.decision.decision.AbstractDecision"><span class="pre">cns2021.decision.decision.AbstractDecision</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.network.Network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>The class responsible for creating a neural network and its simulation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>float</em><em>, </em><em>Optional</em>) – Specify simulation timestep. The default is 1.0.</p></li>
+<li><p><strong>learning</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Whether to allow weight update and learning. The default is True.</p></li>
+<li><p><strong>reward</strong> (<a class="reference internal" href="cns2021.learning.html#cns2021.learning.rewards.AbstractReward" title="cns2021.learning.rewards.AbstractReward"><em>AbstractReward</em></a><em>, </em><em>Optional</em>) – The class to allow reward modifications in case of reward-modulated
+learning. The default is None.</p></li>
+<li><p><strong>decision</strong> (<a class="reference internal" href="cns2021.decision.html#cns2021.decision.decision.AbstractDecision" title="cns2021.decision.decision.AbstractDecision"><em>AbstractDecision</em></a><em>, </em><em>Optional</em>) – The class to enable decision making. The default is None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cns2021.network.network.Network.add_connection">
+<code class="sig-name descname"><span class="pre">add_connection</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><span class="pre">cns2021.network.connections.AbstractConnection</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">post</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.network.Network.add_connection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a connection between neural populations to the network. The        reference name will be in the format <cite>{pre}_to_{post}</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>connection</strong> (<a class="reference internal" href="#cns2021.network.connections.AbstractConnection" title="cns2021.network.connections.AbstractConnection"><em>AbstractConnection</em></a>) – The connection to be added.</p></li>
+<li><p><strong>pre</strong> (<em>str</em>) – Reference name of pre-synaptic population.</p></li>
+<li><p><strong>post</strong> (<em>str</em>) – Reference name of post-synaptic population.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.network.Network.add_layer">
+<code class="sig-name descname"><span class="pre">add_layer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.network.Network.add_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a neural population to the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layer</strong> (<a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><em>NeuralPopulation</em></a>) – The neural population to be added.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the layer for further referencing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.network.Network.add_monitor">
+<code class="sig-name descname"><span class="pre">add_monitor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">monitor</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#cns2021.network.monitors.Monitor" title="cns2021.network.monitors.Monitor"><span class="pre">cns2021.network.monitors.Monitor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.network.Network.add_monitor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a monitor on a network object to the network.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>monitor</strong> (<a class="reference internal" href="#cns2021.network.monitors.Monitor" title="cns2021.network.monitors.Monitor"><em>Monitor</em></a>) – The monitor instance to be added.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Name of the monitor instance for further referencing.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.network.Network.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.network.Network.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset all internal state variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.network.Network.run">
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">one_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.network.Network.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate network for a specific time duration with the possible given        input.</p>
+<p>TODO.</p>
+<p>Implement the body of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>int</em>) – Simulation time.</p></li>
+<li><p><strong>inputs</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em><em>, </em><em>optional</em>) – Mapping of input layer names to their input spike tensors. The            default is {}.</p></li>
+<li><p><strong>one_step</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to propagate the inputs all the way through the network in            a single simulation step. The default is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>clamp</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Mapping of layer names to boolean masks if neurons should be clamped
+to spiking.</p></li>
+<li><p><strong>unclamp</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Mapping of layer names to boolean masks if neurons should be clamped
+not to spiking.</p></li>
+<li><p><strong>masks</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Mapping of connection names to boolean masks of the weights to clamp
+to zero.</p></li>
+<li><p><strong>Note</strong> (<em>you can pass the reward and decision arguments as keyword        argumeents to this function.</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.network.Network.train">
+<code class="sig-name descname"><span class="pre">train</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">torch.nn.Moudle</span><a class="headerlink" href="#cns2021.network.network.Network.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the population’s training mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mode</strong> (<em>bool</em><em>, </em><em>optional</em>) – Mode of training. <cite>True</cite> turns on the training while <cite>False</cite> turns            it off. The default is True.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>torch.nn.Module</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.network.Network.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.network.Network.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cns2021.network.neural_populations">
+<span id="cns2021-network-neural-populations-module"></span><h2>cns2021.network.neural_populations module<a class="headerlink" href="#module-cns2021.network.neural_populations" title="Permalink to this headline">¶</a></h2>
+<p>Module for neuronal dynamics and populations.</p>
+<dl class="py class">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.neural_populations.</span></code><code class="sig-name descname"><span class="pre">AdaptiveELIFPopulation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additive_spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_inhibitory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></code></a></p>
+<p>Layer of Adaptive Exponential Leaky Integrate and Fire neurons.</p>
+<p>Implement adaptive ELIF neural dynamics(Parameters of the model must be    modifiable). Follow the template structure of NeuralPopulation class for    consistency.</p>
+<p>Note: You can use ELIFPopulation as parent class as well.</p>
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation.compute_decay">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_decay</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation.compute_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the dynamics of decays. You might need to call the method from
+parent class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation.compute_potential">
+<code class="sig-name descname"><span class="pre">compute_potential</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the neural dynamics for computing the potential of adaptive        ELIF neurons. The method can either make changes to attributes directly        or return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation.compute_spike">
+<code class="sig-name descname"><span class="pre">compute_spike</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation.compute_spike" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the spike condition. The method can either make changes to        attributes directly or return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation.forward">
+<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<ol class="arabic simple">
+<li><p>Make use of other methods to fill the body. This is the main method           responsible for one step of neuron simulation.</p></li>
+<li><p>You might need to call the method from parent class.</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation.refractory_and_reset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">refractory_and_reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation.refractory_and_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the refractory and reset conditions. The method can either        make changes to attributes directly or return the computed value for        further use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.neural_populations.AdaptiveELIFPopulation.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.neural_populations.AdaptiveELIFPopulation.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.neural_populations.ELIFPopulation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.neural_populations.</span></code><code class="sig-name descname"><span class="pre">ELIFPopulation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additive_spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_inhibitory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></code></a></p>
+<p>Layer of Exponential Leaky Integrate and Fire neurons.</p>
+<p>Implement ELIF neural dynamics(Parameters of the model must be modifiable).    Follow the template structure of NeuralPopulation class for consistency.</p>
+<p>Note: You can use LIFPopulation as parent class as well.</p>
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.ELIFPopulation.compute_decay">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_decay</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation.compute_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the dynamics of decays. You might need to call the method from
+parent class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.ELIFPopulation.compute_potential">
+<code class="sig-name descname"><span class="pre">compute_potential</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the neural dynamics for computing the potential of ELIF        neurons. The method can either make changes to attributes directly or        return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.ELIFPopulation.compute_spike">
+<code class="sig-name descname"><span class="pre">compute_spike</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation.compute_spike" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the spike condition. The method can either make changes to
+attributes directly or return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.ELIFPopulation.forward">
+<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<ol class="arabic simple">
+<li><p>Make use of other methods to fill the body. This is the main method           responsible for one step of neuron simulation.</p></li>
+<li><p>You might need to call the method from parent class.</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.ELIFPopulation.refractory_and_reset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">refractory_and_reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation.refractory_and_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the refractory and reset conditions. The method can either        make changes to attributes directly or return the computed value for        further use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.neural_populations.ELIFPopulation.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.neural_populations.ELIFPopulation.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.neural_populations.HHPopulation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.neural_populations.</span></code><code class="sig-name descname"><span class="pre">HHPopulation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additive_spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_inhibitory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></code></a></p>
+<p>Layer of Hodgkin-Huxley neurons.</p>
+<p>Implement Hodgkin-Huxley neural dynamics(Parameters of the model must be    modifiable). Follow the template structure of NeuralPopulation class for    consistency.</p>
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.HHPopulation.compute_decay">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_decay</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation.compute_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the dynamics of decays. You might need to call the method from
+parent class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.HHPopulation.compute_potential">
+<code class="sig-name descname"><span class="pre">compute_potential</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the neural dynamics for computing the potential of H&amp;H        neurons. The method can either make changes to attributes directly or        return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.HHPopulation.compute_spike">
+<code class="sig-name descname"><span class="pre">compute_spike</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation.compute_spike" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the spike condition. The method can either make changes to        attributes directly or return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.HHPopulation.forward">
+<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<ol class="arabic simple">
+<li><p>Make use of other methods to fill the body. This is the main method           responsible for one step of neuron simulation.</p></li>
+<li><p>You might need to call the method from parent class.</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.HHPopulation.refractory_and_reset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">refractory_and_reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation.refractory_and_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the refractory and reset conditions. The method can either        make changes to attributes directly or return the computed value for        further use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.neural_populations.HHPopulation.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.neural_populations.HHPopulation.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.neural_populations.InputPopulation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.neural_populations.</span></code><code class="sig-name descname"><span class="pre">InputPopulation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additive_spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.neural_populations.InputPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></code></a></p>
+<p>Neural population for user-defined spike pattern.</p>
+<p>This class is implemented for future usage. Extend it if needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<em>Iterable of int</em>) – Define the topology of neurons in the population.</p></li>
+<li><p><strong>spike_trace</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Specify whether to record spike traces. The default is True.</p></li>
+<li><p><strong>additive_spike_trace</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Specify whether to record spike traces additively. The default is True.</p></li>
+<li><p><strong>tau_s</strong> (<em>float</em><em> or </em><em>torch.Tensor</em><em>, </em><em>Optional</em>) – Time constant of spike trace decay. The default is 15.0.</p></li>
+<li><p><strong>trace_scale</strong> (<em>float</em><em> or </em><em>torch.Tensor</em><em>, </em><em>Optional</em>) – The scaling factor of spike traces. The default is 1.0.</p></li>
+<li><p><strong>learning</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Define the training mode. The default is True.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.InputPopulation.forward">
+<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.InputPopulation.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate the neural population for a single step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>traces</strong> (<em>torch.Tensor</em>) – Input spike trace.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.InputPopulation.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.InputPopulation.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset all internal state variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.neural_populations.InputPopulation.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.neural_populations.InputPopulation.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.neural_populations.LIFPopulation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.neural_populations.</span></code><code class="sig-name descname"><span class="pre">LIFPopulation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additive_spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_inhibitory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><code class="xref py py-class docutils literal notranslate"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></code></a></p>
+<p>Layer of Leaky Integrate and Fire neurons.</p>
+<p>Implement LIF neural dynamics(Parameters of the model must be modifiable).    Follow the template structure of NeuralPopulation class for consistency.</p>
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.LIFPopulation.compute_decay">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_decay</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation.compute_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the dynamics of decays. You might need to call the method from
+parent class.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.LIFPopulation.compute_potential">
+<code class="sig-name descname"><span class="pre">compute_potential</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the neural dynamics for computing the potential of LIF        neurons. The method can either make changes to attributes directly or        return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.LIFPopulation.compute_spike">
+<code class="sig-name descname"><span class="pre">compute_spike</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation.compute_spike" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the spike condition. The method can either make changes to        attributes directly or return the result for further use.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.LIFPopulation.forward">
+<code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<ol class="arabic simple">
+<li><p>Make use of other methods to fill the body. This is the main method           responsible for one step of neuron simulation.</p></li>
+<li><p>You might need to call the method from parent class.</p></li>
+</ol>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.LIFPopulation.refractory_and_reset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">refractory_and_reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation.refractory_and_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the refractory and reset conditions. The method can either        make changes to attributes directly or return the computed value for        further use.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.neural_populations.LIFPopulation.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.neural_populations.LIFPopulation.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cns2021.network.neural_populations.NeuralPopulation">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.network.neural_populations.</span></code><code class="sig-name descname"><span class="pre">NeuralPopulation</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additive_spike_trace</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau_s</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">15.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_inhibitory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Base class for implementing neural populations.</p>
+<p>Make sure to implement the abstract methods in your child class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape</strong> (<em>Iterable of int</em>) – Define the topology of neurons in the population.</p></li>
+<li><p><strong>spike_trace</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Specify whether to record spike traces. The default is True.</p></li>
+<li><p><strong>additive_spike_trace</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Specify whether to record spike traces additively. The default is True.</p></li>
+<li><p><strong>tau_s</strong> (<em>float</em><em> or </em><em>torch.Tensor</em><em>, </em><em>Optional</em>) – Time constant of spike trace decay. The default is 15.0.</p></li>
+<li><p><strong>trace_scale</strong> (<em>float</em><em> or </em><em>torch.Tensor</em><em>, </em><em>Optional</em>) – The scaling factor of spike traces. The default is 1.0.</p></li>
+<li><p><strong>is_inhibitory</strong> (<em>False</em><em>, </em><em>Optional</em>) – Whether the neurons are inhibitory or excitatory. The default is False.</p></li>
+<li><p><strong>learning</strong> (<em>bool</em><em>, </em><em>Optional</em>) – Define the training mode. The default is True.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.compute_decay">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_decay</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.compute_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the decays.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.compute_potential">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_potential</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.compute_potential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the potential of neurons in the population.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.compute_spike">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute_spike</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.compute_spike" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the spike tensor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.forward">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">forward</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">torch.Tensor</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate the neural population for a single step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>traces</strong> (<em>torch.Tensor</em>) – Input spike trace.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.refractory_and_reset">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">refractory_and_reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.refractory_and_reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refractor and reset the neurons.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.reset_state_variables">
+<code class="sig-name descname"><span class="pre">reset_state_variables</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.reset_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset all internal state variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.train">
+<code class="sig-name descname"><span class="pre">train</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation"><span class="pre">cns2021.network.neural_populations.NeuralPopulation</span></a><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the population’s training mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mode</strong> (<em>bool</em><em>, </em><em>optional</em>) – Mode of training. <cite>True</cite> turns on the training while <cite>False</cite> turns            it off. The default is True.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#cns2021.network.neural_populations.NeuralPopulation" title="cns2021.network.neural_populations.NeuralPopulation">NeuralPopulation</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cns2021.network.neural_populations.NeuralPopulation.training">
+<code class="sig-name descname"><span class="pre">training</span></code><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#cns2021.network.neural_populations.NeuralPopulation.training" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cns2021.network">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cns2021.network" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Ashena G. Mohammadi, Alireza Nadafian, Mohammad Ganjtabesh.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

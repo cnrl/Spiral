@@ -1,0 +1,45 @@
+cns2021.network package
+=======================
+
+Submodules
+----------
+
+cns2021.network.connections module
+----------------------------------
+
+.. automodule:: cns2021.network.connections
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cns2021.network.monitors module
+-------------------------------
+
+.. automodule:: cns2021.network.monitors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cns2021.network.network module
+------------------------------
+
+.. automodule:: cns2021.network.network
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cns2021.network.neural\_populations module
+------------------------------------------
+
+.. automodule:: cns2021.network.neural_populations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: cns2021.network
+   :members:
+   :undoc-members:
+   :show-inheritance:

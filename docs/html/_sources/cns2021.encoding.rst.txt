@@ -1,0 +1,21 @@
+cns2021.encoding package
+========================
+
+Submodules
+----------
+
+cns2021.encoding.encoders module
+--------------------------------
+
+.. automodule:: cns2021.encoding.encoders
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: cns2021.encoding
+   :members:
+   :undoc-members:
+   :show-inheritance:
