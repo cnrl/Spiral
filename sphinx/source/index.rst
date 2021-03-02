@@ -10,11 +10,23 @@ Welcome to CNSProject's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+Project Manual
+==============
+.. toctree::
+   :maxdepth: 2
+
    Getting Started <README.md>
    Phase 1 <Phase1.md>
    Phase 2 <Phase2.md>
    Phase 3 <Phase3.md>
    Phase 4 <Phase4.md>
+
+Template Documentation
+======================
+.. toctree::
+   :maxdepth: 2
+
+   modules.rst
 
 
 Indices and tables
