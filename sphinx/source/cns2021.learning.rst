@@ -1,0 +1,29 @@
+cns2021.learning package
+========================
+
+Submodules
+----------
+
+cns2021.learning.learning\_rules module
+---------------------------------------
+
+.. automodule:: cns2021.learning.learning_rules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+cns2021.learning.rewards module
+-------------------------------
+
+.. automodule:: cns2021.learning.rewards
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: cns2021.learning
+   :members:
+   :undoc-members:
+   :show-inheritance:

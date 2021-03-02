@@ -1,25 +1,8 @@
 """
-==============================================================================.
+network/neural_populations.py
+=============================
 
-CNS2021 PROJECT TEMPLATE
-
-==============================================================================.
-                                                                              |
-network/neural_populations.py                                                 |
-                                                                              |
-Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
-                                                                              |
-This program is free software:  you can redistribute it and/or modify it under|
-the terms of the  GNU General Public License as published by the Free Software|
-Foundation, either version 3 of the License, or(at your option) any later ver-|
-sion.                                                                         |
-                                                                              |
-This file has been provided for educational purpose.  The aim of this template|
-is to help students with developing a Spiking Neural Network framework from s-|
-cratch and learn the basics. Follow the documents and comments to complete the|
-code.                                                                         |
-                                                                              |
-==============================================================================.
+Module for neuronal dynamics and populations.
 """
 
 from functools import reduce
@@ -48,6 +31,8 @@ class NeuralPopulation(torch.nn.Module):
         Time constant of spike trace decay. The default is 15.0.
     trace_scale : float or torch.Tensor, Optional
         The scaling factor of spike traces. The default is 1.0.
+    is_inhibitory : False, Optional
+        Whether the neurons are inhibitory or excitatory. The default is False.
     learning : bool, Optional
         Define the training mode. The default is True.
 
@@ -60,6 +45,7 @@ class NeuralPopulation(torch.nn.Module):
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 15.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
@@ -179,7 +165,7 @@ class NeuralPopulation(torch.nn.Module):
         Parameters
         ----------
         mode : bool, optional
-            Mode of training. `True` turns on the training while `False` turns
+            Mode of training. `True` turns on the training while `False` turns \
             it off. The default is True.
 
         Returns
@@ -278,6 +264,7 @@ class LIFPopulation(NeuralPopulation):
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
@@ -365,6 +352,7 @@ class ELIFPopulation(NeuralPopulation):
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
@@ -453,6 +441,7 @@ class AdaptiveELIFPopulation(NeuralPopulation):
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
@@ -539,6 +528,7 @@ class HHPopulation(NeuralPopulation):
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:

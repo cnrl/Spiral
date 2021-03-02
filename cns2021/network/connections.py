@@ -1,25 +1,8 @@
 """
-==============================================================================.
+network/connections.py
+======================
 
-CNS2021 PROJECT TEMPLATE
-
-==============================================================================.
-                                                                              |
-network/connections.py                                                        |
-                                                                              |
-Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
-                                                                              |
-This program is free software:  you can redistribute it and/or modify it under|
-the terms of the  GNU General Public License as published by the Free Software|
-Foundation, either version 3 of the License, or(at your option) any later ver-|
-sion.                                                                         |
-                                                                              |
-This file has been provided for educational purpose.  The aim of this template|
-is to help students with developing a Spiking Neural Network framework from s-|
-cratch and learn the basics. Follow the documents and comments to complete the|
-code.                                                                         |
-                                                                              |
-==============================================================================.
+Module for connections between neural populations.
 """
 
 from abc import ABC, abstractmethod
@@ -45,10 +28,10 @@ class AbstractConnection(ABC, torch.nn.Module):
     post : NeuralPopulation
         The post-synaptic neural population.
     learning_rule : LearningRule, Optional
-        Define the learning rule by which the network will be trained. The def-
+        Define the learning rule by which the network will be trained. The def\
         ault is NoOp (see learning/learning_rules.py for more details).
     lr : float or (float, float), Optional
-        The learning rate for training procedure. If a tuple is given, the fir-
+        The learning rate for training procedure. If a tuple is given, the fir\
         st value defines potentiation learning rate and the second one depicts
         the depression learning rate. The default is None.
     weight_decay : float, Optional
@@ -61,7 +44,7 @@ class AbstractConnection(ABC, torch.nn.Module):
     wmax : float
         The maximum possible synaptic strength. The default is 1.0.
     norm : float
-        Define a normalization on input signals to a population. If `None`, th-
+        Define a normalization on input signals to a population. If `None`, th\
         ere is no normalization. The default is None.
 
     """
@@ -100,13 +83,13 @@ class AbstractConnection(ABC, torch.nn.Module):
     @abstractmethod
     def compute(self, s: torch.Tensor) -> None:
         """
-        Compute the pre-synaptic neural population activity based on the given\
-        spikes of the post-synaptic population.
+        Compute the post-synaptic neural population activity based on the given\
+        spikes of the pre-synaptic population.
 
         Parameters
         ----------
         s : torch.Tensor
-            The post-synaptic spikes tensor.
+            The pre-synaptic spikes tensor.
 
         Returns
         -------
@@ -158,7 +141,7 @@ class DenseConnection(AbstractConnection):
     """
     Specify a fully-connected synapse between neural populations.
 
-    Implement the dense connection pattern following the abstract connection t-
+    Implement the dense connection pattern following the abstract connection t\
     emplate.
     """
 
@@ -190,8 +173,8 @@ class DenseConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of pre-synaptic population activity given the
-        activity of the post-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
@@ -249,8 +232,8 @@ class RandomConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of pre-synaptic population activity given the
-        activity of the post-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
@@ -276,7 +259,7 @@ class ConvolutionalConnection(AbstractConnection):
     """
     Specify a convolutional synaptic connection between neural populations.
 
-    Implement the convolutional connection pattern following the abstract conn-
+    Implement the convolutional connection pattern following the abstract conn\
     ection template.
     """
 
@@ -308,8 +291,8 @@ class ConvolutionalConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of pre-synaptic population activity given the
-        activity of the post-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 
@@ -338,7 +321,7 @@ class PoolingConnection(AbstractConnection):
     Implement the pooling connection pattern following the abstract connection
     template. Consider a parameter for defining the type of pooling.
 
-    Note: The pooling operation does not support learning. You might need to m-
+    Note: The pooling operation does not support learning. You might need to m\
     ake some modifications in the defined structure of this class.
     """
 
@@ -370,8 +353,8 @@ class PoolingConnection(AbstractConnection):
         """
         TODO.
 
-        Implement the computation of pre-synaptic population activity given the
-        activity of the post-synaptic population.
+        Implement the computation of post-synaptic population activity given the
+        activity of the pre-synaptic population.
         """
         pass
 

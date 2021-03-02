@@ -1,25 +1,8 @@
 """
-==============================================================================.
+network/network.py
+==================
 
-CNS2021 PROJECT TEMPLATE
-
-==============================================================================.
-                                                                              |
-network/network.py                                                            |
-                                                                              |
-Copyright (C) 2020-2021 CNRL <cnrl.ut.ac.ir>                                  |
-                                                                              |
-This program is free software:  you can redistribute it and/or modify it under|
-the terms of the  GNU General Public License as published by the Free Software|
-Foundation, either version 3 of the License, or(at your option) any later ver-|
-sion.                                                                         |
-                                                                              |
-This file has been provided for educational purpose.  The aim of this template|
-is to help students with developing a Spiking Neural Network framework from s-|
-cratch and learn the basics. Follow the documents and comments to complete the|
-code.                                                                         |
-                                                                              |
-==============================================================================.
+Module for spiking neural network construction and simulation.
 """
 
 from typing import Optional, Dict
@@ -44,8 +27,8 @@ class Network(torch.nn.Module):
     learning: bool, Optional
         Whether to allow weight update and learning. The default is True.
     reward : AbstractReward, Optional
-        The class to allow reward modifications in case of reward-modulated le-
-        arning. The default is None.
+        The class to allow reward modifications in case of reward-modulated lea\
+        rning. The default is None.
     decision: AbstractDecision, Optional
         The class to enable decision making. The default is None.
 
@@ -101,8 +84,8 @@ class Network(torch.nn.Module):
         post: str
     ) -> None:
         """
-        Add a connection between neural populations to the network. The refer-\
-        ence name will be in the format `{pre}_to_{post}`.
+        Add a connection between neural populations to the network. The referen\
+        ce name will be in the format `{pre}_to_{post}`.
 
         Parameters
         ----------
@@ -163,7 +146,7 @@ class Network(torch.nn.Module):
         time : int
             Simulation time.
         inputs : Dict[str, torch.Tensor], optional
-            Mapping of input layer names to their input spike tensors. The def-
+            Mapping of input layer names to their input spike tensors. The def\
             ault is {}.
         one_step : bool, optional
             Whether to propagate the inputs all the way through the network in
@@ -172,16 +155,16 @@ class Network(torch.nn.Module):
         Keyword Arguments
         -----------------
         clamp : Dict[str, torch.Tensor]
-            Mapping of layer names to boolean masks if neurons should be clamp-
-            ed to spiking.
+            Mapping of layer names to boolean masks if neurons should be clamped
+            to spiking.
         unclamp : Dict[str, torch.Tensor]
-            Mapping of layer names to boolean masks if neurons should be clamp-
-            ed not to spiking.
+            Mapping of layer names to boolean masks if neurons should be clamped
+            not to spiking.
         masks : Dict[str, torch.Tensor]
-            Mapping of connection names to boolean masks of the weights to cla-
-            mp to zero.
+            Mapping of connection names to boolean masks of the weights to clamp
+            to zero.
 
-        Note: you can pass the reward and decision arguments as keyword argume-
+        Note: you can pass the reward and decision arguments as keyword argume\
         ents to this function.
 
         Returns
