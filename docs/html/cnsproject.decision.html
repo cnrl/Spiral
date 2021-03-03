@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>cns2021.decision package &mdash; CNSProject  documentation</title>
+  <title>decision package &mdash; CNSProject  documentation</title>
   
 
   
@@ -38,7 +38,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cns2021.encoding package" href="cns2021.encoding.html" />
+    <link rel="next" title="encoding package" href="cnsproject.encoding.html" />
     <link rel="prev" title="Project Template" href="modules.html" /> 
 </head>
 
@@ -93,16 +93,16 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Project Template</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">cns2021.decision package</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">decision package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-cns2021.decision.decision">cns2021.decision.decision module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-cns2021.decision">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cnsproject.decision.decision">cnsproject.decision.decision module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cnsproject.decision">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="cns2021.encoding.html">cns2021.encoding package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cns2021.learning.html">cns2021.learning package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cns2021.network.html">cns2021.network package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cns2021.plotting.html">cns2021.plotting package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cnsproject.encoding.html">encoding package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cnsproject.learning.html">learning package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cnsproject.network.html">network package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cnsproject.plotting.html">plotting package</a></li>
 </ul>
 </li>
 </ul>
@@ -155,13 +155,13 @@
         
           <li><a href="modules.html">Project Template</a> &raquo;</li>
         
-      <li>cns2021.decision package</li>
+      <li>decision package</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/cns2021.decision.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/cnsproject.decision.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -174,13 +174,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="cns2021-decision-package">
-<h1>cns2021.decision package<a class="headerlink" href="#cns2021-decision-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="decision-package">
+<h1>decision package<a class="headerlink" href="#decision-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cns2021.decision.decision">
-<span id="cns2021-decision-decision-module"></span><h2>cns2021.decision.decision module<a class="headerlink" href="#module-cns2021.decision.decision" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cnsproject.decision.decision">
+<span id="cnsproject-decision-decision-module"></span><h2>cnsproject.decision.decision module<a class="headerlink" href="#module-cnsproject.decision.decision" title="Permalink to this headline">¶</a></h2>
 <p>Module for decision making.</p>
 <p>TODO.</p>
 <ol class="arabic simple">
@@ -189,14 +189,14 @@ structure here.</p></li>
 <li><p>Make sure to implement winner-take-all mechanism.</p></li>
 </ol>
 <dl class="py class">
-<dt id="cns2021.decision.decision.AbstractDecision">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cns2021.decision.decision.</span></code><code class="sig-name descname"><span class="pre">AbstractDecision</span></code><a class="headerlink" href="#cns2021.decision.decision.AbstractDecision" title="Permalink to this definition">¶</a></dt>
+<dt id="cnsproject.decision.decision.AbstractDecision">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnsproject.decision.decision.</span></code><code class="sig-name descname"><span class="pre">AbstractDecision</span></code><a class="headerlink" href="#cnsproject.decision.decision.AbstractDecision" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>Abstract class to define decision making strategy.</p>
 <p>Make sure to implement the abstract methods in your child class.</p>
 <dl class="py method">
-<dt id="cns2021.decision.decision.AbstractDecision.compute">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.decision.decision.AbstractDecision.compute" title="Permalink to this definition">¶</a></dt>
+<dt id="cnsproject.decision.decision.AbstractDecision.compute">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnsproject.decision.decision.AbstractDecision.compute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Infer the decision to be made.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -209,8 +209,8 @@ structure here.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cns2021.decision.decision.AbstractDecision.update">
-<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cns2021.decision.decision.AbstractDecision.update" title="Permalink to this definition">¶</a></dt>
+<dt id="cnsproject.decision.decision.AbstractDecision.update">
+<em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnsproject.decision.decision.AbstractDecision.update" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update the variables after making the decision.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -225,8 +225,8 @@ structure here.</p></li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-cns2021.decision">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cns2021.decision" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cnsproject.decision">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cnsproject.decision" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -236,7 +236,7 @@ structure here.</p></li>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="cns2021.encoding.html" class="btn btn-neutral float-right" title="cns2021.encoding package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="cnsproject.encoding.html" class="btn btn-neutral float-right" title="encoding package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="modules.html" class="btn btn-neutral float-left" title="Project Template" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
