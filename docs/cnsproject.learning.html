@@ -86,7 +86,7 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="phases.html">Project Phases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="phases.html">Project Phases (Spring 2021)</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">Project Template</a><ul class="current">
@@ -247,6 +247,21 @@ weights.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt id="cnsproject.learning.learning_rules.STDP">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnsproject.learning.learning_rules.</span></code><code class="sig-name descname"><span class="pre">STDP</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="cnsproject.network.html#cnsproject.network.connections.AbstractConnection" title="cnsproject.network.connections.AbstractConnection"><span class="pre">cnsproject.network.connections.AbstractConnection</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnsproject.learning.learning_rules.STDP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cnsproject.learning.learning_rules.LearningRule" title="cnsproject.learning.learning_rules.LearningRule"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnsproject.learning.learning_rules.LearningRule</span></code></a></p>
+<p>Spike-Time Dependent Plasticity learning rule.</p>
+<p>Implement the dynamics of STDP learning rule.You might need to implement    different update rules based on type of connection.</p>
+<dl class="py method">
+<dt id="cnsproject.learning.learning_rules.STDP.update">
+<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnsproject.learning.learning_rules.STDP.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO.</p>
+<p>Implement the dynamics and updating rule. You might need to call the        parent method.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="cnsproject.learning.learning_rules.RSTDP">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnsproject.learning.learning_rules.</span></code><code class="sig-name descname"><span class="pre">RSTDP</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="cnsproject.network.html#cnsproject.network.connections.AbstractConnection" title="cnsproject.network.connections.AbstractConnection"><span class="pre">cnsproject.network.connections.AbstractConnection</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnsproject.learning.learning_rules.RSTDP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cnsproject.learning.learning_rules.LearningRule" title="cnsproject.learning.learning_rules.LearningRule"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnsproject.learning.learning_rules.LearningRule</span></code></a></p>
@@ -259,21 +274,6 @@ weights.</p>
 <p>Implement the dynamics and updating rule. You might need to call the
 parent method. Make sure to consider the reward value as a given keyword
 argument.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="cnsproject.learning.learning_rules.STDP">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">cnsproject.learning.learning_rules.</span></code><code class="sig-name descname"><span class="pre">STDP</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">connection</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="cnsproject.network.html#cnsproject.network.connections.AbstractConnection" title="cnsproject.network.connections.AbstractConnection"><span class="pre">cnsproject.network.connections.AbstractConnection</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_decay</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cnsproject.learning.learning_rules.STDP" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cnsproject.learning.learning_rules.LearningRule" title="cnsproject.learning.learning_rules.LearningRule"><code class="xref py py-class docutils literal notranslate"><span class="pre">cnsproject.learning.learning_rules.LearningRule</span></code></a></p>
-<p>Spike-Time Dependent Plasticity learning rule.</p>
-<p>Implement the dynamics of STDP learning rule.You might need to implement    different update rules based on type of connection.</p>
-<dl class="py method">
-<dt id="cnsproject.learning.learning_rules.STDP.update">
-<code class="sig-name descname"><span class="pre">update</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnsproject.learning.learning_rules.STDP.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO.</p>
-<p>Implement the dynamics and updating rule. You might need to call the        parent method.</p>
 </dd></dl>
 
 </dd></dl>
