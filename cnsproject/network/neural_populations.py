@@ -14,14 +14,15 @@ class NeuralPopulation(torch.nn.Module):
     """
     Base class for implementing neural populations.
 
-    Make sure to implement the abstract methods in your child class.
+    Make sure to implement the abstract methods in your child class. Note that this template\
+    will give you homogeneous neural populations in terms of excitations and inhibitions. You\
+    can modify this by removing `is_inhibitory` and adding another attribute which defines the\
+    percentage of inhibitory/excitatory neurons.
 
     Arguments
     ---------
     shape : Iterable of int
-        Define the topology of neurons in the population. Use (n,) if the population has no shape.
-    inhibitory_rate : float, Optional
-        Rate of inhibitory neurons in the population. The value is in range [0, 1].
+        Define the topology of neurons in the population.
     spike_trace : bool, Optional
         Specify whether to record spike traces. The default is True.
     additive_spike_trace : bool, Optional
@@ -40,11 +41,11 @@ class NeuralPopulation(torch.nn.Module):
     def __init__(
         self,
         shape: Iterable[int],
-        inhibitory_rate: float = 0.,
         spike_trace: bool = True,
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 15.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
@@ -52,7 +53,6 @@ class NeuralPopulation(torch.nn.Module):
 
         self.shape = shape
         self.n = reduce(mul, self.shape)
-        self.inhibitory_rate = inhibitory_rate
         self.spike_trace = spike_trace
         self.additive_spike_trace = additive_spike_trace
 
@@ -65,6 +65,7 @@ class NeuralPopulation(torch.nn.Module):
 
             self.register_buffer("trace_decay", torch.empty_like(tau_s))
 
+        self.is_inhibitory = is_inhibitory
         self.learning = learning
 
         self.register_buffer("s", torch.ByteTensor())
@@ -217,7 +218,6 @@ class InputPopulation(NeuralPopulation):
             tau_s=tau_s,
             trace_scale=trace_scale,
             learning=learning,
-            **kwargs
         )
 
     def forward(self, traces: torch.Tensor) -> None:
@@ -261,23 +261,22 @@ class LIFPopulation(NeuralPopulation):
     def __init__(
         self,
         shape: Iterable[int],
-        inhibitory_rate: float = 0.,
         spike_trace: bool = True,
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
         super().__init__(
             shape=shape,
-            inhibitory_rate=inhibitory_rate,
             spike_trace=spike_trace,
             additive_spike_trace=additive_spike_trace,
             tau_s=tau_s,
             trace_scale=trace_scale,
+            is_inhibitory=is_inhibitory,
             learning=learning,
-            **kwargs
         )
 
         """
@@ -351,23 +350,22 @@ class ELIFPopulation(NeuralPopulation):
     def __init__(
         self,
         shape: Iterable[int],
-        inhibitory_rate: float = 0.,
         spike_trace: bool = True,
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
         super().__init__(
             shape=shape,
-            inhibitory_rate=inhibitory_rate,
             spike_trace=spike_trace,
             additive_spike_trace=additive_spike_trace,
             tau_s=tau_s,
             trace_scale=trace_scale,
+            is_inhibitory=is_inhibitory,
             learning=learning,
-            **kwargs
         )
 
         """
@@ -442,23 +440,22 @@ class AELIFPopulation(NeuralPopulation):
     def __init__(
         self,
         shape: Iterable[int],
-        inhibitory_rate: float = 0.,
         spike_trace: bool = True,
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 10.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_inhibitory: bool = False,
         learning: bool = True,
         **kwargs
     ) -> None:
         super().__init__(
             shape=shape,
-            inhibitory_rate=inhibitory_rate,
             spike_trace=spike_trace,
             additive_spike_trace=additive_spike_trace,
             tau_s=tau_s,
             trace_scale=trace_scale,
+            is_inhibitory=is_inhibitory,
             learning=learning,
-            **kwargs
         )
 
         """
