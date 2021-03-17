@@ -14,6 +14,25 @@ class Monitor:
     """
     Record desired state variables.
 
+    Examples
+    --------
+    >>> from network.neural_populations import LIFPopulation
+    >>> from network.monitors import Monitor
+    >>> neuron = LIF(shape=(1,))
+    Now, assume there are two variables `s` and `v` in LIFPopulation which indicate spikes
+    and voltages respectively.
+    >>> monitor = Monitor(neuron, state_variables=["s", "v"])
+    >>> time = 10  # time of simulation
+    >>> for t in range(time):
+    ...     # compute input spike trace and call `neuron.foward(input_trace)`
+    ...     monitor.record()
+    `monitor.record()` should be called within the simulation process. The state variables of
+    the given object are so recorded in the simulation timestep and is kept in the recording.
+    >>> s = monitor.get("s")
+    >>> v = monitor.get("v")
+    `s` and `v` hold the tensor of spikes and voltages during the simulation. Their shape would
+    be `(time, **neuron.shape)`.
+
     Arguments
     ---------
     obj : NeuralPopulation or AbstractConnection

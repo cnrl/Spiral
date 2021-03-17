@@ -17,6 +17,28 @@ class Network(torch.nn.Module):
     """
     The class responsible for creating a neural network and its simulation.
 
+    Examples
+    --------
+    >>> from network.neural_populations import LIFPopulation
+    >>> from network.connections import DenseConnection
+    >>> from network.monitors import Monitor
+    >>> from network import Network
+    >>> inp = InputPopulation(shape=(10,))
+    >>> out = LIFPopulation(shape=(2,))
+    >>> synapse = DenseConnection(inp, out)
+    >>> net = Network(learning=False)
+    >>> net.add_layer(inp, "input")
+    >>> net.add_layer(out, "output")
+    >>> net.add_connection(synapse, "input", "output")
+    >>> out_m = Monitor(out, state_variables=["s", "v"])
+    >>> syn_m = Monitor(synapse, state_variables=["w"])  # `w` indicates synaptic weights
+    >>> net.add_monitor(out_m, "output")
+    >>> net.add_monitor(syn_m, "synapse")
+    >>> net.run(10)
+    Here, we create a simple network with two layers and dense connection. We aim to monitor
+    the synaptic weights and output layer's spikes and voltages. We simulate the network for
+    10 miliseconds.
+
     Arguments
     ---------
     dt : float, Optional
