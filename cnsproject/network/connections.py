@@ -66,7 +66,7 @@ class AbstractConnection(ABC, torch.nn.Module):
 
         self.weight_decay = weight_decay
 
-        from ..learning.learning_rule import NoOp
+        from ..learning.learning_rules import NoOp
 
         learning_rule = kwargs.get('learning_rule', NoOp)
 
