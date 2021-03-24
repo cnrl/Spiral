@@ -3,7 +3,7 @@ Module for connections between neural populations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Sequence
+from typing import Union, Sequence
 
 import torch
 
@@ -156,6 +156,7 @@ class DenseConnection(AbstractConnection):
         super().__init__(
             pre=pre,
             post=post,
+            lr=lr,
             weight_decay=weight_decay,
             **kwargs
         )
@@ -212,6 +213,7 @@ class RandomConnection(AbstractConnection):
         super().__init__(
             pre=pre,
             post=post,
+            lr=lr,
             weight_decay=weight_decay,
             **kwargs
         )
@@ -268,7 +270,6 @@ class ConvolutionalConnection(AbstractConnection):
         super().__init__(
             pre=pre,
             post=post,
-            learning_rule=learning_rule,
             lr=lr,
             weight_decay=weight_decay,
             **kwargs
@@ -329,7 +330,6 @@ class PoolingConnection(AbstractConnection):
         super().__init__(
             pre=pre,
             post=post,
-            learning_rule=learning_rule,
             lr=lr,
             weight_decay=weight_decay,
             **kwargs
