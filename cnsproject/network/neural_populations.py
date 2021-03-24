@@ -57,7 +57,7 @@ class NeuralPopulation(torch.nn.Module):
         self.additive_spike_trace = additive_spike_trace
 
         if self.spike_trace:
-            self.register_buffer("traces", torch.Tensor())
+            self.register_buffer("traces", torch.zeros(*self.shape))
             self.register_buffer("tau_s", torch.tensor(tau_s))
 
             if self.additive_spike_trace:
@@ -68,7 +68,7 @@ class NeuralPopulation(torch.nn.Module):
         self.is_inhibitory = is_inhibitory
         self.learning = learning
 
-        self.register_buffer("s", torch.ByteTensor())
+        self.register_buffer("s", torch.zeros(*self.shape, dtype=torch.bool))
         self.dt = None
 
     @abstractmethod
