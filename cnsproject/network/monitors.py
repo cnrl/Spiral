@@ -92,8 +92,7 @@ class Monitor:
 
         """
         for var in self.state_variables:
-            data = getattr(self.obj, var)
-            data.unsqueeze_(0)
+            data = getattr(self.obj, var).unsqueeze(0)
             self.recording[var].append(
                 torch.empty_like(data, device=self.device).copy_(
                     data, non_blocking=True
