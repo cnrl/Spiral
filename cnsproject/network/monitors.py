@@ -23,6 +23,8 @@ class Monitor:
     and voltages respectively.
     >>> monitor = Monitor(neuron, state_variables=["s", "v"])
     >>> time = 10  # time of simulation
+    >>> dt = 1.0  # time resolution
+    >>> monitor.set_time_steps(time, dt)  # record the whole simulation
     >>> for t in range(time):
     ...     # compute input spike trace and call `neuron.foward(input_trace)`
     ...     monitor.record()
@@ -39,12 +41,6 @@ class Monitor:
         The object, states of which is desired to record.
     state_variables : Iterable of str
         Name of variables of interest.
-    dt : float
-        Simulation time resolution.
-        Make sure to define it.
-    time : int, Optional
-        Pre-allocated memory for variable recording. Represents the simulation time we intend to\
-        record. If 0, Only records one time step at each point. The default is 0.
     device : str, Optional
         The device to run the monitor. The default is "cpu".
 
@@ -54,19 +50,30 @@ class Monitor:
         self,
         obj: Union[NeuralPopulation, AbstractConnection],
         state_variables: Iterable[str],
-        dt: float,
-        time: Optional[int] = 0,
         device: Optional[str] = "cpu",
     ) -> None:
         self.obj = obj
         self.state_variables = state_variables
-        self.dt = dt
-        self.time = time
-        self.time_steps = int(self.time / self.dt)
+        self.time_steps = 0
         self.device = device
 
         self.recording = []
-        self.reset_state_variables()
+
+    def set_time_steps(self, time: int, dt: float):
+        """
+        Set number of time steps to record.
+
+        Parameters
+        ----------
+        time : int, Optional
+            Pre-allocated memory for variable recording. Represents the simulation time we intend to\
+            record. If 0, Only records one time step at each point. The default is 0.
+        dt : float
+            Simulation time resolution.
+            Make sure to define it.
+
+        """
+        self.time_steps = int(time / dt)
 
     def get(self, variable: str) -> torch.Tensor:
         """
@@ -84,7 +91,7 @@ class Monitor:
 
         """
         logs = torch.cat(self.recording[variable], 0)
-        if self.time == 0:
+        if self.time_steps == 0:
             self.recording[variable] = []
         return logs
 
@@ -105,7 +112,7 @@ class Monitor:
                     data, non_blocking=True
                 )
             )
-            if self.time > 0:
+            if self.time_steps > 0:
                 self.recording[var].pop(0)
 
     def reset_state_variables(self) -> None:
@@ -117,7 +124,7 @@ class Monitor:
         None
 
         """
-        if self.time == 0:
+        if self.time_steps == 0:
             self.recording = {var: [] for var in self.state_variables}
         else:
             self.recording = {
