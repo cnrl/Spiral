@@ -17,7 +17,42 @@ class NeuralPopulation(torch.nn.Module):
     Make sure to implement the abstract methods in your child class. Note that this template\
     will give you homogeneous neural populations in terms of excitations and inhibitions. You\
     can modify this by removing `is_inhibitory` and adding another attribute which defines the\
-    percentage of inhibitory/excitatory neurons.
+    percentage of inhibitory/excitatory neurons or use a boolean tensor with the same shape as\
+    the population, defining which neurons are inhibitory.
+
+    The most important attribute of each neural population is its `shape` which indicates the\
+    number and/or architecture of the neurons in it. When there are connected populations, each\
+    pre-synaptic population will have an impact on the post-synaptic one in case of spike. This\
+    spike might be persistent for some duration of time and with some decaying magnitude. To\
+    handle this coincidence, four attributes are defined:
+    - `spike_trace` is a boolean indicating whether to record the spike trace in each time step.
+    - `additive_spike_trace` would indicate whether to save the accumulated traces up to the\
+        current time step.
+    - `tau_s` will show the duration by which the spike trace persists by a decaying manner.
+    - `trace_scale` is responsible for the scale of each spike at the following time steps.\
+        Its value is only considered if `additive_spike_trace` is set to `True`.
+
+    Make sure to call `reset_state_variables` before starting the simulation to allocate\
+    and/or reset the state variables such as `s` (spikes tensor) and `traces` (trace of spikes).\
+    Also do not forget to set the time resolution (dt) for the simulation.
+
+    Each simulation step is defined in `forward` method. You can use the utility methods (i.e.\
+    `compute_potential`, `compute_spike`, `refractory_and_reset`, and `compute_decay`) to break\
+    the differential equations into smaller code blocks and call them within `forward`. Make\
+    sure to call methods `forward` and `compute_decay` of `NeuralPopulation` in child class\
+    methods; As it provides the computation of spike traces (not necessary if you are not\
+    considering the traces). The `forward` method can either work with current or spike trace.\
+    You can easily work with any of them you wish. When there are connected populations, you\
+    might need to consider how to convert the pre-synaptic spikes into current or how to\
+    change the `forward` block to support spike traces as input.
+
+    There are two more points to be considered further:
+    1) Note that parameters of the neuron are not specified in child classes. You have to\
+        define them as attributes of the corresponding class (i.e. in __init__) with suitable\
+        naming.
+    2) In case you want to make simulations on `cuda`, make sure to transfer the tensors\
+        to the desired device by defining a `device` attribute or handling the issue from\
+        upstream code.
 
     Arguments
     ---------
@@ -57,6 +92,8 @@ class NeuralPopulation(torch.nn.Module):
         self.additive_spike_trace = additive_spike_trace
 
         if self.spike_trace:
+            # You can use `torch.Tensor()` instead of `torch.zeros(*shape)` if `reset_state_variables`
+            # is intended to be called before every simulation.
             self.register_buffer("traces", torch.zeros(*self.shape))
             self.register_buffer("tau_s", torch.tensor(tau_s))
 
@@ -68,6 +105,8 @@ class NeuralPopulation(torch.nn.Module):
         self.is_inhibitory = is_inhibitory
         self.learning = learning
 
+        # You can use `torch.Tensor()` instead of `torch.zeros(*shape, dtype=torch.bool)` if \
+        # `reset_state_variables` is intended to be called before every simulation.
         self.register_buffer("s", torch.zeros(*self.shape, dtype=torch.bool))
         self.dt = None
 
