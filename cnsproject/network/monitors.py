@@ -14,6 +14,21 @@ class Monitor:
     """
     Record desired state variables.
 
+    You can record variables of different SNN objects using an instance of this class. For\
+    this purpose, you pass the object as `obj` and provide a list of string name of variables\
+    you intend to record as `state_variables`. All the recordings will reside on cpu unless\
+    you change the `device` value to `cuda`.
+
+    To save the variables at each time step, you should call `record` method at the desired\
+    step. By default, number of timesteps is set to 0 and hence the monitor object will\
+    basically save the data of that single step you called the `record` for and so is\
+    equivalent to the object's variable itself. To record the variables for a specified\
+    duration of time, use `set_time_steps` to define the duration and time resolution. Use\
+    `get` with the variable name you want to retrieve to obtain the recorded values.
+
+    Also make sure to call `reset_state_variables` before starting any simulation to make the\
+    allocations.
+
     Examples
     --------
     >>> from network.neural_populations import LIFPopulation
@@ -26,10 +41,10 @@ class Monitor:
     >>> dt = 1.0  # time resolution
     >>> monitor.set_time_steps(time, dt)  # record the whole simulation
     >>> for t in range(time):
-    ...     # compute input spike trace and call `neuron.foward(input_trace)`
+    ...     # compute input spike trace and call `neuron.forward(input_trace)`
     ...     monitor.record()
     `monitor.record()` should be called within the simulation process. The state variables of
-    the given object are so recorded in the simulation timestep and is kept in the recording.
+    the given object are so recorded in the simulation time step and is kept in the recording.
     >>> s = monitor.get("s")
     >>> v = monitor.get("v")
     `s` and `v` hold the tensor of spikes and voltages during the simulation. Their shape would
@@ -65,12 +80,11 @@ class Monitor:
 
         Parameters
         ----------
-        time : int, Optional
-            Pre-allocated memory for variable recording. Represents the simulation time we intend to\
-            record. If 0, Only records one time step at each point. The default is 0.
+        time : int
+            The simulation time we intend to record. If 0, Only records one time step\
+            at each point.
         dt : float
             Simulation time resolution.
-            Make sure to define it.
 
         """
         self.time_steps = int(time / dt)
