@@ -39,8 +39,12 @@ class Monitor:
         The object, states of which is desired to record.
     state_variables : Iterable of str
         Name of variables of interest.
+    dt : float
+        Simulation time resolution.
+        Make sure to define it.
     time : int, Optional
-        pre-allocated memory for variable recording. The default is 0.
+        Pre-allocated memory for variable recording. Represents the simulation time we intend to\
+        record. If 0, Only records one time step at each point. The default is 0.
     device : str, Optional
         The device to run the monitor. The default is "cpu".
 
@@ -50,12 +54,15 @@ class Monitor:
         self,
         obj: Union[NeuralPopulation, AbstractConnection],
         state_variables: Iterable[str],
+        dt: float,
         time: Optional[int] = 0,
         device: Optional[str] = "cpu",
     ) -> None:
         self.obj = obj
         self.state_variables = state_variables
+        self.dt = dt
         self.time = time
+        self.time_steps = int(self.time / self.dt)
         self.device = device
 
         self.recording = []
@@ -114,5 +121,5 @@ class Monitor:
             self.recording = {var: [] for var in self.state_variables}
         else:
             self.recording = {
-                var: [[] for i in range(self.time)] for var in self.variables
+                var: [[] for i in range(self.time_steps)] for var in self.state_variables
             }
