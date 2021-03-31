@@ -46,13 +46,17 @@ class NeuralPopulation(torch.nn.Module):
     might need to consider how to convert the pre-synaptic spikes into current or how to\
     change the `forward` block to support spike traces as input.
 
-    There are two more points to be considered further:
-    1) Note that parameters of the neuron are not specified in child classes. You have to\
+    There are some more points to be considered further:
+    - Note that parameters of the neuron are not specified in child classes. You have to\
         define them as attributes of the corresponding class (i.e. in __init__) with suitable\
         naming.
-    2) In case you want to make simulations on `cuda`, make sure to transfer the tensors\
+    - In case you want to make simulations on `cuda`, make sure to transfer the tensors\
         to the desired device by defining a `device` attribute or handling the issue from\
         upstream code.
+    - Almost all variables, parameters, and arguments in this file are tensors with a\
+        single value or tensors of the shape equal to population`s shape. No extra\
+        dimension for time is needed. The time dimension should be handled in upstream\
+        code and/or monitor objects.
 
     Arguments
     ---------
