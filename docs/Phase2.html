@@ -88,7 +88,10 @@
 <li class="toctree-l1"><a class="reference internal" href="README.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="phases.html">Project Phases (Spring 2021)</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Phase1.html">Phase 1</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Phase 2</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Phase 2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code-manual">Code Manual</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Phase3.html">Phase 3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Phase4.html">Phase 4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Phase5.html">Phase 5</a></li>
@@ -176,7 +179,23 @@
 <embed>
     <iframe src="_downloads/Project-02.pdf" width="100%" height="1000px">
 </iframe>
-</embed></div>
+</embed><div class="section" id="code-manual">
+<h2>Code Manual<a class="headerlink" href="#code-manual" title="Permalink to this headline">¶</a></h2>
+<p>For this phase, you will need to complete <strong>ELIFPopulation</strong> and <strong>AELIFPopulation</strong> in <cite>cnsproject.network.neural_populations module</cite>. You can ignore the following attributes in this phase:</p>
+<ul class="simple">
+<li><p>spike_trace</p></li>
+<li><p>additive_spike_trace</p></li>
+<li><p>tau_s</p></li>
+<li><p>trace_scale</p></li>
+<li><p>is_inhibitory</p></li>
+<li><p>learning</p></li>
+</ul>
+<p>The first four parameters are responsible for spike traces. You can simply call <em>forward</em> and <em>compute_decay</em> of the parent class at the end of the corresponding method in <strong>ELIFPopulation</strong> and <strong>AELIFPopulation</strong>. You can change their parent to <strong>LIFPopulation</strong> as well but more care might be needed for spike trace computation (Since the parent contains more computation procedures than just a single spike trace update).</p>
+<p>Make sure to read the documentation provided in <strong>NeuralPopulation</strong> class before getting started.
+You will also need an object of <strong>Monitor</strong> to record parameters of the neuron through time. The class is located in <cite>cnsproject.network.monitors module</cite>. Read the documentation and instruction provided in its file for further details.
+Implement all your visualization functions and classes in <cite>plotting module</cite>.</p>
+</div>
+</div>
 
 
            </div>
