@@ -18,6 +18,26 @@ class AbstractConnection(ABC, torch.nn.Module):
     Make sure to implement the `compute`, `update`, and `reset_state_variables`\
     methods in your child class.
 
+    You will need to define the populations you want to connect as `pre` and `post`.\
+    In case of learning, you will need to define the learning rate (`lr`) and the \
+    learning rule to follow. Attribute `w` is reserved for synaptic weights.\
+    However, it has not been predefined or allocated, as it depends on the \
+    pattern of connectivity. So make sure to define it in child class initializations \
+    appropriately to indicate the pattern of connectivity. The default range of \
+    each synaptic weight is [0, 1] but it can be controlled by `wmin` and `wmax`. \
+    Synaptic strengths might decay in time and do not last forever. To define \
+    the decay rate of the synaptic weights, use `weight_decay` attribute. Also, \
+    if you want to control the overall input synaptic strength to each neuron, \
+    use `norm` argument to normalize the synaptic weights.
+
+    In case of learning, you have to implement the methods `compute` and `update`. \
+    You will use the `compute` method to calculate the activity of post-synaptic \
+    population based on the pre-synaptic one. Update of weights based on the \
+    learning rule will be implemented in the `update` method. If you find this \
+    architecture mind-bugling, try your own architecture and make sure to redefine \
+    the learning rule architecture to be compatible with this new architecture \
+    of yours.
+
     Arguments
     ---------
     pre : NeuralPopulation

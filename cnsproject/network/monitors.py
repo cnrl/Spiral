@@ -40,6 +40,7 @@ class Monitor:
     >>> time = 10  # time of simulation
     >>> dt = 1.0  # time resolution
     >>> monitor.set_time_steps(time, dt)  # record the whole simulation
+    >>> monitor.reset_state_variables()
     >>> for t in range(time):
     ...     # compute input spike trace and call `neuron.forward(input_trace)`
     ...     monitor.record()
