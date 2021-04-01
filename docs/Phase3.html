@@ -89,7 +89,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="phases.html">Project Phases (Spring 2021)</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="Phase1.html">Phase 1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Phase2.html">Phase 2</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Phase 3</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Phase 3</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code-manual">Code Manual</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="Phase4.html">Phase 4</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Phase5.html">Phase 5</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Phase6.html">Phase 6</a></li>
@@ -176,7 +179,26 @@
 <embed>
     <iframe src="_downloads/Project-03.pdf" width="100%" height="1000px">
 </iframe>
-</embed></div>
+</embed><div class="section" id="code-manual">
+<h2>Code Manual<a class="headerlink" href="#code-manual" title="Permalink to this headline">¶</a></h2>
+<p>You have implemented the neuronal dynamics of different LIF neuron’s variants so far. Now, You have to make sure that the vectorized computations are flawless and examine creation of neural populations of shape (n,), where n &gt; 1. You also need to consider the <em>is_inhibitory</em> attribute or any equivalent entity you want to propose. Three options have been provided (you can come up with any other idea you find effective, too):</p>
+<ul class="simple">
+<li><p>The default definition of the neural populations include an <em>is_inhibitory</em> boolean attribute and we have proposed
+that the populations are going to be homogeneous. This means that all neurons in the population are either inhibitory
+or excitatory. So you would have to follow instructions in part a of question 1 in the description. You will have to
+make use of this additional attribute and make suitable branches in neuronal dynamics to specify how the dynamics
+change in case of inhibitory neurons.</p></li>
+<li><p>Alternatively, you can change the behavior of <em>is_inhibitory</em> to act as a tensor of boolean values, showing which
+neurons in the population are inhibitory and which ones are excitatory. So it will enable you to define inhomogeneous
+populations and you would have to follow instructions in part b of question 1. Then you have to change the dynamics
+respectively to handle the behavior of inhibitory neurons as well as the excitatory ones.</p></li>
+<li><p>To build inhomogeneous populations, another option would be to replace the <em>is_inhibitory</em> attribute with a
+<em>inhibitory_rate</em> one, indicating the rate of inhibitory neurons in the population. Then you will have to make
+appropriate modifications to handle the required behavior.</p></li>
+</ul>
+<p>You will need to modify <strong>LIFPopulation</strong>, <strong>ELIFPopulation</strong>, and <strong>AELIFPopulation</strong> in <cite>cnsproject.network.neural_populations module</cite> in this project. As in previous phases, you also need to implement the required plotting functions/classes in <cite>cnsproject.plotting.plotting module</cite> and use monitor objects to track the required variables.</p>
+</div>
+</div>
 
 
            </div>

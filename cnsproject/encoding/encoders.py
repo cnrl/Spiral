@@ -20,8 +20,8 @@ class AbstractEncoder(ABC):
 
     The computation procedure should be implemented in the `__call__` method. \
     Data will be passed to this method as a tensor for further computations. You \
-    might need to define more parameters for this method. `--call__` should return \
-    the tensor of spikes with the shape (time_steps, *population.shape).
+    might need to define more parameters for this method. The `__call__`  should return \
+    the tensor of spikes with the shape (time_steps, \*population.shape).
 
     Arguments
     ---------
