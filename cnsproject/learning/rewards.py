@@ -14,6 +14,16 @@ class AbstractReward(ABC):
     Abstract class to define reward function.
 
     Make sure to implement the abstract methods in your child class.
+
+    To implement your dopamine functionality, You will write a class \
+    inheriting this abstract class. You can add attributes to your \
+    child class. The dynamics of dopamine function (DA) will be \
+    implemented in `compute` method. So you will call `compute` in \
+    your reward-modulated learning rules to retrieve the dopamine \
+    value in the desired time step. To reset or update the defined \
+    attributes in your reward function, use `update` method and \
+    remember to call it your learning rule computations in the \
+    right place.
     """
 
     @abstractmethod
