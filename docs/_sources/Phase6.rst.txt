@@ -16,4 +16,4 @@ Read the documentation provided in **LearningRule** before getting started.
 To move further in the project, you will have to make a dense connection between an instance of **InputPopulation** \
 and an instance of one of the neural populations you have implemented in phases 1 and 2. The **InputPopulation** will \
 take care of input spikes and you will not need to modify unless you wish it to have a different behavior. You can \
-also add other modules and functions if you like.
+also add other modules and functions if you like. You will also need to modify *run* method of **Network** accordingly.

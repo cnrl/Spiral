@@ -548,6 +548,8 @@ activity of the pre-synaptic population.</p>
 <span class="go">10 miliseconds.</span>
 </pre></div>
 </div>
+<p>You will need to implement the <cite>run</cite> method. This mthod is responsible for the whole simulation     procedure of a spiking neural network. You will have to compute number of time steps using     <cite>dt</cite> attribute of the class and <cite>time</cite> parameter of the method. then you will iteratively call     the procedures for single step simulation of network objects.</p>
+<p><strong>NOTE:</strong> If you faced any errors related to importing packages, modify the <cite>__init__.py</cite> files     accordingly to solve the problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -624,6 +626,8 @@ learning. The default is None.</p></li>
 <dt id="cnsproject.network.network.Network.run">
 <code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><span class="pre">torch.Tensor</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">one_step</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">None</span><a class="headerlink" href="#cnsproject.network.network.Network.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simulate network for a specific time duration with the possible given        input.</p>
+<p>Input to each layer is given to <cite>inputs</cite> parameter. As you see, it is a         dictionary of population’s name and tensor of input values through time.         There is a parameter named <cite>one_step</cite>. This parameter will define how the         input is propagated through the network: does it go forward up to the final         layer in one time step or it passes from one layer to the next in each         step of simulation. You can easily remove it if it is mind-bugling.</p>
+<p>Also, make sure to call <cite>self.reset_state_variables()</cite> before starting the         simulation.</p>
 <p>TODO.</p>
 <p>Implement the body of this method.</p>
 <dl class="field-list simple">
