@@ -42,3 +42,35 @@ class AbstractDecision(ABC):
 
         """
         pass
+
+
+class WinnerTakeAllDecision(AbstractDecision):
+    """
+    The k-Winner-Take-All decision mechanism.
+
+    You will have to define a constructor and specify the required \
+    attributes, including k, the number of winners.
+    """
+
+    def compute(self, **kwargs) -> None:
+        """
+        Infer the decision to be made.
+
+        Returns
+        -------
+        None
+            It should return the decision result.
+
+        """
+        pass
+
+    def update(self, **kwargs) -> None:
+        """
+        Update the variables after making the decision.
+
+        Returns
+        -------
+        None
+
+        """
+        pass
