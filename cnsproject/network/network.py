@@ -79,6 +79,9 @@ class Network(torch.nn.Module):
 
         self.train(learning)
 
+        # Make sure that arguments of your reward and decision classes do not
+        # share same names. Their arguments are passed to the network as its
+        # keyword arguments.
         self.reward = reward(**kwargs)
         self.decision = decision(**kwargs)
 
@@ -201,8 +204,8 @@ class Network(torch.nn.Module):
             Mapping of connection names to boolean masks of the weights to clamp
             to zero.
 
-        Note: you can pass the reward and decision arguments as keyword\
-        argumeents to this function.
+        **Note:** you can pass the reward and decision methods' arguments as keyword\
+        arguments to this function.
 
         Returns
         -------

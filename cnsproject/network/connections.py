@@ -8,7 +8,6 @@ from typing import Union, Sequence
 import torch
 
 from .neural_populations import NeuralPopulation
-# from ..learning.learning_rules import LearningRule, NoOp
 
 
 class AbstractConnection(ABC, torch.nn.Module):
@@ -121,7 +120,7 @@ class AbstractConnection(ABC, torch.nn.Module):
     @abstractmethod
     def update(self, **kwargs) -> None:
         """
-        Compute connection's learning rule.
+        Compute connection's learning rule and weight update.
 
         Keyword Arguments
         -----------------

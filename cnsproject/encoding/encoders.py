@@ -28,9 +28,9 @@ class AbstractEncoder(ABC):
     time : int
         Length of encoded tensor.
     dt : float, Optional
-        Simulation timestep. The default is 1.0.
+        Simulation time step. The default is 1.0.
     device : str, Optional
-        The device to do the comutations. The default is "cpu".
+        The device to do the computations. The default is "cpu".
 
     """
 
