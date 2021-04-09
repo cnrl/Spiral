@@ -1,11 +1,21 @@
-"""
-Module for utility functions.
+import numpy as np
 
-TODO.
+class DII: #Dictionary Items Iterator
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+        self.iter_dictionary = {i: iter(it) for i,it in self.dictionary.items()}
+    
+    def __next__(self):
+        output = dict()
+        for k in self.iter_dictionary:
+            v = next(self.iter_dictionary[k], None)
+            if v is None:
+                self.iter_dictionary[k] = iter(self.dictionary[k])
+                v = next(self.iter_dictionary[k])
+            output[k] = v
+        return output
 
-Use this module to implement any required utility function.
-
-Note: You are going to need to implement DoG and Gabor filters. A possible opt
-ion would be to write them in this file but it is not a must and you can define\
-a separate module/package for them.
-"""
+def step_function(length, step_index, val0=0, val1=1):
+    u = np.zeros(length) + val0
+    u[step_index:] += val1
+    return u

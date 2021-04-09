@@ -8,7 +8,7 @@ import torch
 
 from .neural_populations import NeuralPopulation
 from .connections import AbstractConnection
-
+from ..utils import DII
 
 class Monitor:
     """
@@ -67,28 +67,25 @@ class Monitor:
         obj: Union[NeuralPopulation, AbstractConnection],
         state_variables: Iterable[str],
         device: Optional[str] = "cpu",
+        time: float = None,
+        dt: float = None,
     ) -> None:
         self.obj = obj
         self.state_variables = state_variables
-        self.time_steps = 0
         self.device = device
-
         self.recording = []
+        self.reset_state_variables()
+        self.time = time
+        self.dt = dt
 
-    def set_time_steps(self, time: int, dt: float):
-        """
-        Set number of time steps to record.
-
-        Parameters
-        ----------
-        time : int
-            The simulation time we intend to record. If 0, Only records one time step\
-            at each point.
-        dt : float
-            Simulation time resolution.
-
-        """
-        self.time_steps = int(time / dt)
+    def get_time_info(self, time=None, dt=None):
+        if time==None:
+            time = self.time
+        if dt==None:
+            dt = self.dt
+            if dt==None and 'dt' in self.obj.__dict__:
+                dt = self.obj.dt
+        return time,dt
 
     def get(self, variable: str) -> torch.Tensor:
         """
@@ -105,10 +102,10 @@ class Monitor:
             The recording log of the requested variable.
 
         """
-        logs = torch.cat(self.recording[variable], 0)
-        if self.time_steps == 0:
-            self.recording[variable] = []
-        return logs
+        return self.recording[variable]
+
+    def __getitem__(self, variable: str) -> torch.Tensor:
+        return self.get(variable)
 
     def record(self) -> None:
         """
@@ -127,8 +124,6 @@ class Monitor:
                     data, non_blocking=True
                 )
             )
-            if self.time_steps > 0:
-                self.recording[var].pop(0)
 
     def reset_state_variables(self) -> None:
         """
@@ -139,9 +134,13 @@ class Monitor:
         None
 
         """
-        if self.time_steps == 0:
-            self.recording = {var: [] for var in self.state_variables}
-        else:
-            self.recording = {
-                var: [[] for i in range(self.time_steps)] for var in self.state_variables
-            }
+        self.recording = {var: [] for var in self.state_variables}
+
+    def simulate(self, func, inputs={}, time=None, dt=None):
+        time,dt = self.get_time_info(time, dt)
+        inputs = DII(inputs)
+        self.reset_state_variables()
+        self.record()
+        for _ in torch.arange(0, time, dt):
+            func(**next(inputs))
+            self.record()
