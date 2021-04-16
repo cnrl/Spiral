@@ -10,9 +10,12 @@ import matplotlib.gridspec as gridspec
 import numpy as np
 from ..utils import DII
 
+class empty_cls:
+    pass
 class empty_monitor:
     def __init__(self):
         self.state_variables = []
+        self.obj = empty_cls()
     def get_time_info(self, time=None, dt=None):
         return None,None
 
@@ -93,12 +96,16 @@ class Plotter:
                 output = [next(dii)[z] for i in range(repeat_till)]
         return output
 
-    def get_data(self, y, x='time', data={}, monitor=None, repeat_till=None, t0=0, dt=None, **args):
+    def get_data(self, y, x='time', data={}, monitor=None, repeat_till=None, t0=0, dt=None,
+                black_line=None, blue_line=None, red_line=None, **args):
         output = {}
         output[y] = self.get_axis_data(z=y, data=data, monitor=monitor, repeat_till=repeat_till, default=None)
         dt = self.get_dt(dt, monitor)
         output[x] = self.get_axis_data(z=x, data=data, monitor=monitor, repeat_till=repeat_till,
                                     default=np.arange(t0,len(output[y])*dt, dt))
+        for line in [black_line, blue_line, red_line]:
+            if line!=None:
+                output[line] = self.get_axis_data(line, data, monitor, repeat_till=len(output[x]))
         return output
 
     def set_limits(self, ax, x_lim=None, y_lim=None, x=None, y=None, data={}):
@@ -117,21 +124,39 @@ class Plotter:
         if not y_vis:
             ax.get_yaxis().set_ticks([])
 
+    def plot_extra_lines(self, ax, data, blue_line=None, black_line=None, red_line=None,
+                        blue_line_alpha=0.5, black_line_alpha=0.5, red_line_alpha=0.5,
+                        blue_line_label=None, black_line_label=None, red_line_label=None):
+        if blue_line!=None:
+            ax.plot(data[blue_line], 'b--', label=blue_line_label if blue_line_label!=None else blue_line, alpha=blue_line_alpha)
+        if black_line!=None:
+            ax.plot(data[black_line], 'k-.', label=black_line_label if black_line_label!=None else black_line, alpha=black_line_alpha)
+        if red_line!=None:
+            ax.plot(data[red_line], 'r:', label=red_line_label if red_line_label!=None else red_line, alpha=red_line_alpha)
 
-    def plot(self, ax,
+
+    def plot(self, ax, additive=False,
             y=None, x='time', data={}, monitor=None, dt:float=None, t0=0,
             title=None, x_label=None, y_label=None, x_vis=True, y_vis=True,
-            x_lim=None, y_lim=None, repeat_till=None, style='b', **args):
+            x_lim=None, y_lim=None, repeat_till=None, style='b',
+            blue_line=None, black_line=None, red_line=None,
+            blue_line_alpha=0.5, black_line_alpha=0.5, red_line_alpha=0.5,
+            blue_line_label=None, black_line_label=None, red_line_label=None, **args):
 
         monitor = self.get_monitor(monitor)
         dt = self.get_dt(dt, monitor)
         if y==None: y = str(ax)
-        data = self.get_data(y=y, x=x, data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt)
+        data = self.get_data(y=y, x=x, data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt,
+                            blue_line=blue_line, black_line=black_line, red_line=red_line)
         ax = self.get_ax(ax)
         ax.plot(data[x], data[y], style, **args)
-        self.set_labels(ax, x_label, y_label, title, x, y)
-        self.set_limits(ax, x_lim, y_lim, x, y, data)
-        self.set_axes_visibility(ax, x_vis, y_vis)
+        if not additive:
+            self.set_labels(ax, x_label, y_label, title, x, y)
+            self.set_limits(ax, x_lim, y_lim, x, y, data)
+            self.set_axes_visibility(ax, x_vis, y_vis)
+            self.plot_extra_lines(ax, data=data, blue_line=blue_line, black_line=black_line, red_line=red_line,
+                blue_line_alpha=blue_line_alpha, black_line_alpha=black_line_alpha, red_line_alpha=red_line_alpha,
+                blue_line_label=blue_line_label, black_line_label=black_line_label, red_line_label=red_line_label)
         return len(data[x])
 
     def show(self):
@@ -148,13 +173,16 @@ class Plotter:
                 color='red',
                 **args)
 
-    def neuron_voltage(self, ax, y='u', monitor=None, spike_threshold='spike_threshold', resting_potential='u_rest',
-                        y_label='u', x_label='time', **args):
+    def neuron_voltage(self, ax, y='u', monitor=None, y_label='u', x_label='time', threshold='spike_threshold', **args):
         monitor = self.get_monitor(monitor)
-        length = self.plot(ax, y=y, monitor=monitor, color='green', y_label=y_label, x_label=x_label, x_lim='fit', **args)
+        data = {
+            "Resting Potential": [monitor.obj.u_rest.tolist()],
+            "Threshold": [getattr(monitor.obj, threshold).tolist()],
+        }
+        self.plot(ax, y=y, data=data, monitor=monitor, color='green', y_label=y_label, x_label=x_label, x_lim='fit',
+                black_line="Resting Potential", blue_line="Threshold", **args)
         ax = self.get_ax(ax)
-        ax.plot([getattr(monitor.obj, spike_threshold)]*length, 'b--')
-        ax.plot([getattr(monitor.obj, resting_potential)]*length, 'k-.')
+        ax.legend()
 
     def neuron_spike(self, ax, y='s', x='time', **args):
         data = self.get_data(y=y, x=x, **args)
@@ -166,3 +194,9 @@ class Plotter:
         if type(I)!=type(None):
             data[y] = I
         self.plot(ax, y=y, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)
+
+    def adaptation_current_dynamic(self, ax, y='w', monitor=None, additive=False, y_label='w', x_label='time', alpha=.4, **args):
+        if additive:
+            self.plot(ax, y=y, monitor=monitor, color='red', alpha=alpha, label=y_label, additive=True, **args)
+        else:
+            self.plot(ax, y=y, monitor=monitor, y_label=y_label, x_label=x_label, x_lim='fit', color='red', **args)
