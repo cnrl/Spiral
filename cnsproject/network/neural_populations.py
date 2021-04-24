@@ -84,6 +84,7 @@ class NeuralPopulation(torch.nn.Module):
         additive_spike_trace: bool = True,
         tau_s: Union[float, torch.Tensor] = 15.,
         trace_scale: Union[float, torch.Tensor] = 1.,
+        is_excitatory: Union[bool, torch.Tensor] = True,
         learning: bool = True,
         dt: float = None,
         **kwargs
@@ -94,6 +95,7 @@ class NeuralPopulation(torch.nn.Module):
         self.n = reduce(mul, self.shape)
         self.spike_trace = spike_trace
         self.additive_spike_trace = additive_spike_trace
+        self.register_buffer("is_excitatory", torch.tensor(is_excitatory))
 
         if self.spike_trace:
             # You can use `torch.Tensor()` instead of `torch.zeros(*shape)` if `reset_state_variables`
@@ -114,7 +116,7 @@ class NeuralPopulation(torch.nn.Module):
         self.set_dt(dt)
 
     def set_dt(self, dt:float):
-        self.dt = torch.tensor(dt) if type(dt)!=type(None) else dt
+        self.dt = torch.tensor(dt) if dt is not None else dt
 
     @abstractmethod
     def forward(self, I: torch.Tensor) -> None:

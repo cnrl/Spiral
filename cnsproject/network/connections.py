@@ -3,7 +3,7 @@ Module for connections between neural populations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Union, Sequence
+from typing import Union, Sequence, Callable
 
 import torch
 
@@ -85,6 +85,8 @@ class AbstractConnection(ABC, torch.nn.Module):
 
         self.weight_decay = weight_decay
 
+        self.norm = kwargs.get('norm', None)
+
         from ..learning.learning_rules import NoOp
 
         learning_rule = kwargs.get('learning_rule', NoOp)
@@ -95,12 +97,9 @@ class AbstractConnection(ABC, torch.nn.Module):
             weight_decay=weight_decay,
             **kwargs
         )
-        self.wmin = kwargs.get('wmin', 0.)
-        self.wmax = kwargs.get('wmax', 1.)
-        self.norm = kwargs.get('norm', None)
 
     @abstractmethod
-    def compute(self, s: torch.Tensor) -> None:
+    def forward(self, s: torch.Tensor) -> None: #s: spike
         """
         Compute the post-synaptic neural population activity based on the given\
         spikes of the pre-synaptic population.
@@ -156,234 +155,241 @@ class AbstractConnection(ABC, torch.nn.Module):
         pass
 
 
-class DenseConnection(AbstractConnection):
-    """
-    Specify a fully-connected synapse between neural populations.
 
-    Implement the dense connection pattern following the abstract connection\
-    template.
-    """
+# abstract function!!
+def dense_connectivity(preshape, postshape, **kwargs):
+    shape = (*preshape, *postshape)
+    return torch.ones(shape, dtype=torch.bool)
 
+def rfcpc_connectivity(preshape, postshape, **kwargs): #random fixed coupling prob connectivity
+    shape = (*preshape, *postshape)
+    rand_mat = torch.rand(shape)
+    c = kwargs.get("connections_count", None)
+    if c is None:
+        p = kwargs.get("connections_rate", .1)
+        c = int(rand_mat.numel() * p)
+    t = rand_mat.reshape(-1).sort()[0][-c]
+    return (rand_mat >= t)
+
+def rfnopp_connectivity(preshape, postshape, **kwargs): #random fixed number of presynaptic partners connectivity
+    shape = (*preshape, *postshape)
+    rand_mat = torch.rand(shape)
+    flatted = rand_mat.reshape(-1, *postshape)
+    c = kwargs.get("connections_count", None)
+    if c is None:
+        p = kwargs.get("connections_rate", .1)
+        c = int(flatted.shape[0] * p)
+    t = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-c]
+    return (rand_mat >= t)
+
+def internal_dense_connectivity(preshape, postshape, **kwargs):
+    diag = torch.diag(torch.ones(preshape)).reshape(*preshape,*preshape)
+    return (diag != 1)
+
+def internal_rfcpc_connectivity(preshape, postshape, **kwargs): #random fixed coupling prob connectivity
+    shape = (*preshape, *preshape)
+    rand_mat = torch.rand(shape)
+    diag = torch.diag(torch.ones(preshape)).reshape(*preshape,*preshape)
+    diag = (diag==1)
+    rand_mat[diag] = -1
+    c = kwargs.get("connections_count", None)
+    if c is None:
+        p = kwargs.get("connections_rate", .1)
+        c = int(rand_mat.numel() * p)
+    t = rand_mat.reshape(-1).sort()[0][-c]
+    return (rand_mat >= t)
+
+def internal_rfnopp_connectivity(preshape, postshape, **kwargs): #random fixed number of presynaptic partners connectivity
+    shape = (*preshape, *preshape)
+    rand_mat = torch.rand(shape)
+    diag = torch.diag(torch.ones(preshape)).reshape(*preshape,*preshape)
+    diag = (diag==1)
+    rand_mat[diag] = -1
+    flatted = rand_mat.reshape(-1, *preshape)
+    c = kwargs.get("connections_count", None)
+    if c is None:
+        p = kwargs.get("connections_rate", .1)
+        c = int(flatted.shape[0] * p)
+    t = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-c]
+    return (rand_mat >= t)
+
+
+# abstract function!!
+def constant_weights(preshape, postshape, **kwargs):
+    shape = (*preshape, *postshape)
+    return kwargs.get('wscale',1)*torch.ones(shape)
+
+def uniform_weights(preshape, postshape, **kwargs):
+    shape = (*preshape, *postshape)
+    wmin = kwargs.get('wmin',0)
+    wmax = kwargs.get('wmax',1)
+    return torch.rand(shape)*(wmax-wmin)+wmin
+
+def norm_weights(preshape, postshape, **kwargs):
+    shape = (*preshape, *postshape)
+    return torch.normal(kwargs.get('wmean',1.), kwargs.get('wstd',.1), shape)
+
+
+
+
+class SimpleConnection(AbstractConnection):
     def __init__(
         self,
-        pre: NeuralPopulation,
-        post: NeuralPopulation,
-        lr: Union[float, Sequence[float]] = None,
-        weight_decay: float = 0.0,
+        connectivity: Callable = dense_connectivity,
+        w: Callable = constant_weights,
+        tau_s: Union[float, torch.Tensor] = 15.,
+        dt: float = None,
         **kwargs
     ) -> None:
-        super().__init__(
-            pre=pre,
-            post=post,
-            lr=lr,
-            weight_decay=weight_decay,
-            **kwargs
-        )
-        """
-        TODO.
+        super().__init__(**kwargs)
+        self.shape = (*self.pre.shape, *self.post.shape)
+        self.register_buffer("connectivity", connectivity(preshape=self.pre.shape, postshape=self.post.shape, **kwargs))
+        self.register_buffer("w", w(preshape=self.pre.shape, postshape=self.post.shape, connectivity=self.connectivity, **kwargs))
+        self.w /= self.connectivity.sum(axis=[i for i in range(len(self.pre.shape))])
+        self.w *= self.connectivity
+        self.register_buffer("traces", torch.zeros(*self.shape))
+        self.register_buffer("tau_s", torch.tensor(tau_s))
+        self.register_buffer("I", torch.zeros(*self.post.shape)) #mA
+        self.set_dt(dt)
 
-        1. Add more parameters if needed.
-        2. Fill the body accordingly.
-        """
+    def set_dt(self, dt:float):
+        self.dt = torch.tensor(dt) if dt is not None else dt
 
-    def compute(self, s: torch.Tensor) -> None:
-        """
-        TODO.
+    def forward(self, s: torch.Tensor) -> None:
+        self.compute_traces(s)
+        I = self.pre.is_excitatory.reshape(*self.pre.shape, *[1 for i in self.post.shape])
+        I = (2*I-1)*self.traces
+        I = I*self.w
+        I = I.sum(axis=[i for i in range(len(self.pre.shape))])
+        self.I = I
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
-        """
-        pass
-
-    def update(self, **kwargs) -> None:
-        """
-        TODO.
-
-        Update the connection weights based on the learning rule computations.\
-        You might need to call the parent method.
-        """
-        pass
-
-    def reset_state_variables(self) -> None:
-        """
-        TODO.
-
-        Reset all the state variables of the connection.
-        """
-        pass
-
-
-class RandomConnection(AbstractConnection):
-    """
-    Specify a random synaptic connection between neural populations.
-
-    Implement the random connection pattern following the abstract connection\
-    template.
-    """
-
-    def __init__(
-        self,
-        pre: NeuralPopulation,
-        post: NeuralPopulation,
-        lr: Union[float, Sequence[float]] = None,
-        weight_decay: float = 0.0,
-        **kwargs
-    ) -> None:
-        super().__init__(
-            pre=pre,
-            post=post,
-            lr=lr,
-            weight_decay=weight_decay,
-            **kwargs
-        )
-        """
-        TODO.
-
-        1. Add more parameters if needed.
-        2. Fill the body accordingly.
-        """
-
-    def compute(self, s: torch.Tensor) -> None:
-        """
-        TODO.
-
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
-        """
-        pass
+    def compute_traces(self, s: torch.Tensor) -> None:
+        self.traces *= torch.exp(-self.dt/self.tau_s)
+        self.traces += s.float().reshape(*self.pre.shape, *[1 for i in self.post.shape])
 
     def update(self, **kwargs) -> None:
-        """
-        TODO.
-
-        Update the connection weights based on the learning rule computations.\
-        You might need to call the parent method.
-        """
-        pass
+        super().update(**Keyword)
 
     def reset_state_variables(self) -> None:
-        """
-        TODO.
-
-        Reset all the state variables of the connection.
-        """
-        pass
+        traces = torch.zeros(*self.traces.shape)
+        I = torch.zeros(*self.I.shape)
 
 
-class ConvolutionalConnection(AbstractConnection):
-    """
-    Specify a convolutional synaptic connection between neural populations.
 
-    Implement the convolutional connection pattern following the abstract\
-    connection template.
-    """
+# class ConvolutionalConnection(AbstractConnection):
+#     """
+#     Specify a convolutional synaptic connection between neural populations.
 
-    def __init__(
-        self,
-        pre: NeuralPopulation,
-        post: NeuralPopulation,
-        lr: Union[float, Sequence[float]] = None,
-        weight_decay: float = 0.0,
-        **kwargs
-    ) -> None:
-        super().__init__(
-            pre=pre,
-            post=post,
-            lr=lr,
-            weight_decay=weight_decay,
-            **kwargs
-        )
-        """
-        TODO.
+#     Implement the convolutional connection pattern following the abstract\
+#     connection template.
+#     """
 
-        1. Add more parameters if needed.
-        2. Fill the body accordingly.
-        """
+#     def __init__(
+#         self,
+#         pre: NeuralPopulation,
+#         post: NeuralPopulation,
+#         lr: Union[float, Sequence[float]] = None,
+#         weight_decay: float = 0.0,
+#         **kwargs
+#     ) -> None:
+#         super().__init__(
+#             pre=pre,
+#             post=post,
+#             lr=lr,
+#             weight_decay=weight_decay,
+#             **kwargs
+#         )
+#         """
+#         TODO.
 
-    def compute(self, s: torch.Tensor) -> None:
-        """
-        TODO.
+#         1. Add more parameters if needed.
+#         2. Fill the body accordingly.
+#         """
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
-        """
-        pass
+#     def forward(self, s: torch.Tensor) -> None:
+#         """
+#         TODO.
 
-    def update(self, **kwargs) -> None:
-        """
-        TODO.
+#         Implement the computation of post-synaptic population activity given the
+#         activity of the pre-synaptic population.
+#         """
+#         pass
 
-        Update the connection weights based on the learning rule computations.
-        You might need to call the parent method.
-        """
-        pass
+#     def update(self, **kwargs) -> None:
+#         """
+#         TODO.
 
-    def reset_state_variables(self) -> None:
-        """
-        TODO.
+#         Update the connection weights based on the learning rule computations.
+#         You might need to call the parent method.
+#         """
+#         pass
 
-        Reset all the state variables of the connection.
-        """
-        pass
+#     def reset_state_variables(self) -> None:
+#         """
+#         TODO.
+
+#         Reset all the state variables of the connection.
+#         """
+#         pass
 
 
-class PoolingConnection(AbstractConnection):
-    """
-    Specify a pooling synaptic connection between neural populations.
+# class PoolingConnection(AbstractConnection):
+#     """
+#     Specify a pooling synaptic connection between neural populations.
 
-    Implement the pooling connection pattern following the abstract connection\
-    template. Consider a parameter for defining the type of pooling.
+#     Implement the pooling connection pattern following the abstract connection\
+#     template. Consider a parameter for defining the type of pooling.
 
-    Note: The pooling operation does not support learning. You might need to\
-    make some modifications in the defined structure of this class.
-    """
+#     Note: The pooling operation does not support learning. You might need to\
+#     make some modifications in the defined structure of this class.
+#     """
 
-    def __init__(
-        self,
-        pre: NeuralPopulation,
-        post: NeuralPopulation,
-        lr: Union[float, Sequence[float]] = None,
-        weight_decay: float = 0.0,
-        **kwargs
-    ) -> None:
-        super().__init__(
-            pre=pre,
-            post=post,
-            lr=lr,
-            weight_decay=weight_decay,
-            **kwargs
-        )
-        """
-        TODO.
+#     def __init__(
+#         self,
+#         pre: NeuralPopulation,
+#         post: NeuralPopulation,
+#         lr: Union[float, Sequence[float]] = None,
+#         weight_decay: float = 0.0,
+#         **kwargs
+#     ) -> None:
+#         super().__init__(
+#             pre=pre,
+#             post=post,
+#             lr=lr,
+#             weight_decay=weight_decay,
+#             **kwargs
+#         )
+#         """
+#         TODO.
 
-        1. Add more parameters if needed.
-        2. Fill the body accordingly.
-        """
+#         1. Add more parameters if needed.
+#         2. Fill the body accordingly.
+#         """
 
-    def compute(self, s: torch.Tensor) -> None:
-        """
-        TODO.
+#     def forward(self, s: torch.Tensor) -> None:
+#         """
+#         TODO.
 
-        Implement the computation of post-synaptic population activity given the
-        activity of the pre-synaptic population.
-        """
-        pass
+#         Implement the computation of post-synaptic population activity given the
+#         activity of the pre-synaptic population.
+#         """
+#         pass
 
-    def update(self, **kwargs) -> None:
-        """
-        TODO.
+#     def update(self, **kwargs) -> None:
+#         """
+#         TODO.
 
-        Update the connection weights based on the learning rule computations.\
-        You might need to call the parent method.
+#         Update the connection weights based on the learning rule computations.\
+#         You might need to call the parent method.
 
-        Note: You should be careful with this method.
-        """
-        pass
+#         Note: You should be careful with this method.
+#         """
+#         pass
 
-    def reset_state_variables(self) -> None:
-        """
-        TODO.
+#     def reset_state_variables(self) -> None:
+#         """
+#         TODO.
 
-        Reset all the state variables of the connection.
-        """
-        pass
+#         Reset all the state variables of the connection.
+#         """
+#         pass
