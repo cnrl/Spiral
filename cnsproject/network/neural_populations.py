@@ -169,7 +169,7 @@ class NeuralPopulation(torch.nn.Module):
         pass
 
     @abstractmethod
-    def refractory_and_reset(self) -> None:
+    def reset(self) -> None:
         """
         Refractor and reset the neurons.
 
@@ -178,7 +178,10 @@ class NeuralPopulation(torch.nn.Module):
         None
 
         """
-        pass
+        self.s.zero_()
+
+        if self.spike_trace:
+            self.traces.zero_()
 
     @abstractmethod
     def compute_trace_decay(self) -> None:
@@ -193,20 +196,6 @@ class NeuralPopulation(torch.nn.Module):
 
         if self.spike_trace:
             self.trace_decay = torch.exp(-self.dt/self.tau_s)
-
-    def reset_state_variables(self) -> None:
-        """
-        Reset all internal state variables.
-
-        Returns
-        -------
-        None
-
-        """
-        self.s.zero_()
-
-        if self.spike_trace:
-            self.traces.zero_()
 
     def train(self, mode: bool = True) -> "NeuralPopulation":
         """
@@ -287,7 +276,7 @@ class InputPopulation(NeuralPopulation):
 
         super().forward(traces)
 
-    def reset_state_variables(self) -> None:
+    def reset(self) -> None:
         """
         Reset all internal state variables.
 
@@ -296,7 +285,7 @@ class InputPopulation(NeuralPopulation):
         None
 
         """
-        super().reset_state_variables()
+        super().reset()
 
 
 class LIFPopulation(NeuralPopulation):
@@ -343,10 +332,10 @@ class LIFPopulation(NeuralPopulation):
         self.u += self.s*self.u_rest
 
     @abstractmethod
-    def refractory_and_reset(self) -> None:
+    def reset(self) -> None:
         self.u.zero_()
         self.u += self.u_rest
-        super().refractory_and_reset()
+        super().reset()
 
 
 class ELIFPopulation(LIFPopulation):
@@ -421,6 +410,6 @@ class AELIFPopulation(ELIFPopulation):
         self.w += self.dt/self.tau_w * (self.a_w*(self.u-self.u_rest) - self.w + self.b_w*self.tau_w*self.s)
 
     @abstractmethod
-    def refractory_and_reset(self) -> None:
+    def reset(self) -> None:
         self.w.zero_()
-        super().refractory_and_reset()
+        super().reset()

@@ -48,7 +48,7 @@ class Plotter:
         return self.axes[name]
 
     def get_monitor(self, monitor=None):
-        if type(monitor)==type(None):
+        if monitor is None:
             monitor = self.monitor
         return monitor
 
@@ -190,11 +190,6 @@ class Plotter:
         x_data = x_data[data[y]]
         self.plot(ax, y=y, x=x, data={x: x_data, y:[1]*x_data.shape[0]}, style='ro', y_vis=False, x_lim=[min(data[x]), max(data[x])], **args)
 
-    def current_dynamic(self, ax, I=None, y='I', y_label='I', data={}, x_label='time', **args):
-        if type(I)!=type(None):
-            data[y] = I
-        self.plot(ax, y=y, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)
-
     def adaptation_current_dynamic(self, ax, y='w', monitor=None, additive=False, y_label='w', x_label='time', alpha=.4, **args):
         if additive:
             self.plot(ax, y=y, monitor=monitor, color='red', alpha=alpha, label=y_label, additive=True, **args)
@@ -209,68 +204,95 @@ class Plotter:
             return monitor.obj.__dict__['_buffers'][name]
         return np.ones(y.shape, dtype=True)
 
-    def get_population_activity_raster_data(self, y='s', x='time', excitatory_flag='is_excitatory', **args):
-        data = self.get_data(y=y, x=x, **args)
-        excitatory_flag = self.get_excitatory_flag(name=excitatory_flag, y=data[y])
-        ecount = excitatory_flag.sum().numpy()
+    def get_population_activity_raster_data(self, y='s', x='time', excitatory_flag='is_excitatory', start=0, monitor=None, **args):
+        data = self.get_data(y=y, x=x, monitor=monitor, **args)
+        excitatory_flag = self.get_excitatory_flag(name=excitatory_flag, y=data[y], monitor=monitor)
+        ce = data[y][0][excitatory_flag].numel()
+        ci = data[y][0][~excitatory_flag].numel()
         xe,ye,xi,yi = [],[],[],[]
         for index,t in enumerate(data[x]):
             yt = data[y][index]
             e = yt[excitatory_flag].reshape(-1)
             i = yt[~excitatory_flag].reshape(-1)
-            se = np.where(e)[0]
-            si = np.where(i)[0] + ecount
+            se = np.where(e)[0] + start
+            si = np.where(i)[0] + ce + start
             ye += se.tolist()
             yi += si.tolist()
             xe += (np.ones(se.shape)*t).tolist()
             xi += (np.ones(si.shape)*t).tolist()
-        return xe,ye,xi,yi
+        return xe,ye,ce,xi,yi,ci
 
-    def population_activity_raster(self, ax, y='s', x='time', 
-            data={}, monitor=None, repeat_till=None, t0=0, dt=None,
+    def population_activity_raster(self, ax, y='s', x='time', label_prefix='', start=0,
+            data={}, monitor=None, repeat_till=None, t0=0, dt=None, color={}, marker={},
             title=None, x_label=None, y_label=None, x_vis=True, y_vis=False,
             x_lim=None, y_lim=None, s=1, additive=False, **args):
+        if type(color)==type(''):
+            color = {'e': color, 'i': color}
+        if type(marker)==type(''):
+            marker = {'e': marker, 'i': marker}
 
-        xe,ye,xi,yi = self.get_population_activity_raster_data(y=y, x=x, 
+        xe,ye,ce,xi,yi,ci = self.get_population_activity_raster_data(y=y, x=x, start=start,
             data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt)
         ax = self.get_ax(ax)
-        ax.scatter(xe, ye, color='g', s=s, label='excitatory', **args)
-        ax.scatter(xi, yi, color='r', s=s, label='inhibitory', **args)
+        if len(xe)>0:
+            ax.scatter(xe, ye, color=color.get('e','g'), marker=marker.get('e','o'), s=s, label=label_prefix+'excitatory', **args)
+        if len(xi)>0:
+            ax.scatter(xi, yi, color=color.get('i','r'), marker=marker.get('e','o'), s=s, label=label_prefix+'inhibitory', **args)
         if not additive:
             self.set_labels(ax, x_label, y_label, title, x, y)
             self.set_limits(ax, x_lim, y_lim, x, y, data)
             self.set_axes_visibility(ax, x_vis, y_vis)
-        ax.legend()
-        return xe,ye,xi,yi
+        return xe,ye,ce,xi,yi,ci
 
     def population_activity(self, ax, raster_data=None, y='a', x='time', y_label='s count',
-                data={}, monitor=None, repeat_till=None, t0=0, dt=None, alpha=.3, **args):
+                ei_split=False, label='', color='b', ei_color={},
+                data={}, monitor=None, repeat_till=None, t0=0, dt=None, alpha=.3, additive=False, **args):
         if raster_data is None:
             raster_data = self.get_population_activity_raster_data(y=y, x=x, 
                 data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt)
-        xe,_,xi,_ = raster_data
-
-        e = np.unique(xe, return_counts=True)
-        ex,ey = e
-        e = np.zeros(int(1+ex.max()-ex.min()))
-        e[(ex-ex.min()).astype(int)] = ey
-        ex = np.arange(ex.min(),ex.max()+1)
-
-        i = np.unique(xi, return_counts=True)
-        ix,iy = i
-        i = np.zeros(int(1+ix.max()-ix.min()))
-        i[(ix-ix.min()).astype(int)] = iy
-        ix = np.arange(ix.min(),ix.max()+1)
+        xe,_,ce,xi,_,ci = raster_data
 
         ie = np.unique(xe+xi, return_counts=True)
         iex,iey = ie
-        ie = np.zeros(int(1+iex.max()-iex.min()))
-        ie[(iex-iex.min()).astype(int)] = iey
-        iex = np.arange(iex.min(),iex.max()+1)
+        if iex.shape[0]>0:
+            ie = np.zeros(int(1+iex.max()-iex.min()))
+            ie[(iex-iex.min()).astype(int)] = iey
+            iex = np.arange(iex.min(),iex.max()+1)
 
-        range_ = (int(iex.min()), int(iex.max())+1)
-        self.plot(ax, additive=False, y=y, x=x, data={x: ex, y: e}, y_label=y_label, color='g', label='excitatory', alpha=alpha, **args)
-        self.plot(ax, additive=True, y=y, x=x, data={x: ix, y: i}, color='r', label='inhibitory', alpha=alpha, **args)
-        self.plot(ax, additive=True, y=y, x=x, data={x: iex, y: ie}, color='b', label='total', alpha=alpha, **args)
-        ax = self.get_ax(ax)
-        ax.legend()
+            range_ = (int(iex.min()), int(iex.max())+1)
+            self.plot(ax, additive=additive, y=y, x=x, data={x: iex, y: ie/(ce+ci)}, y_label=y_label, color=color, label=label, alpha=alpha, **args)
+
+        if ei_split:
+            e = np.unique(xe, return_counts=True)
+            ex,ey = e
+            if ex.shape[0]>0:
+                e = np.zeros(int(1+ex.max()-ex.min()))
+                e[(ex-ex.min()).astype(int)] = ey
+                ex = np.arange(ex.min(),ex.max()+1)
+                self.plot(ax, additive=True, y=y, x=x, data={x: ex, y: e/ce}, color=ei_color.get('e','g'), label=label+'excitatory', alpha=alpha, **args)
+
+            i = np.unique(xi, return_counts=True)
+            ix,iy = i
+            if ix.shape[0]>0:
+                i = np.zeros(int(1+ix.max()-ix.min()))
+                i[(ix-ix.min()).astype(int)] = iy
+                ix = np.arange(ix.min(),ix.max()+1)
+                self.plot(ax, additive=True, y=y, x=x, data={x: ix, y: i/ci}, color=ei_color.get('i','r'), label=label+'inhibitory', alpha=alpha, **args)
+
+            ax = self.get_ax(ax)
+            ax.legend()
+            return iex,ie,ce+ci,ex,e,ce,ix,i,ci
+        return iex,ie,ce+ci
+
+    def population_plot(self, ax, vector, data={}, population_alpha=0.01, color='b', alpha=1, additive=False, **args):
+        if type(vector)==type([]):
+            vector = np.array(vector)
+        data['population'] = vector.reshape(vector.shape[0],-1)
+        data['vector'] = data['population'].mean(axis=1)
+        self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
+        self.plot(ax, y='population', additive=True, data=data, color=color, alpha=population_alpha)
+
+    def current_dynamic(self, ax, I=None, y='I', y_label='Current', data={}, x_label='time', **args):
+        if type(I)==type(None):
+            I = data[y]
+        self.population_plot(ax, vector=I, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)

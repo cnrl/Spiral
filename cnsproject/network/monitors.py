@@ -136,11 +136,13 @@ class Monitor:
         """
         self.recording = {var: [] for var in self.state_variables}
 
-    def simulate(self, func, inputs={}, time=None, dt=None):
+    def simulate(self, func, inputs={}, time=None, dt=None, attendance=[]):
         time,dt = self.get_time_info(time, dt)
         inputs = DII(inputs)
-        self.reset_state_variables()
-        self.record()
+        attendance.append(self)
+        for a in attendance:
+            a.record()
         for _ in torch.arange(0, time, dt):
             func(**next(inputs))
-            self.record()
+            for a in attendance:
+                a.record()
