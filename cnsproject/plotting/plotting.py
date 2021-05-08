@@ -196,17 +196,17 @@ class Plotter:
         else:
             self.plot(ax, y=y, monitor=monitor, y_label=y_label, x_label=x_label, x_lim='fit', color='red', **args)
 
-    def get_excitatory_flag(self, name='is_excitatory', data={}, y=None, monitor=None):
+    def get_excitatory_flag(self, name='is_excitatory', data={}, y_shape=None, monitor=None):
         if name in data:
             return data[name]
         monitor = self.get_monitor(monitor)
         if name in monitor.obj.__dict__['_buffers']:
             return monitor.obj.__dict__['_buffers'][name]
-        return np.ones(y.shape, dtype=True)
+        return np.ones(y.shape, dtype=bool)
 
     def get_population_activity_raster_data(self, y='s', x='time', excitatory_flag='is_excitatory', start=0, monitor=None, **args):
         data = self.get_data(y=y, x=x, monitor=monitor, **args)
-        excitatory_flag = self.get_excitatory_flag(name=excitatory_flag, y=data[y], monitor=monitor)
+        excitatory_flag = self.get_excitatory_flag(name=excitatory_flag, y_shape=data[y][0].shape, monitor=monitor)
         ce = data[y][0][excitatory_flag].numel()
         ci = data[y][0][~excitatory_flag].numel()
         xe,ye,xi,yi = [],[],[],[]
@@ -225,14 +225,14 @@ class Plotter:
     def population_activity_raster(self, ax, y='s', x='time', label_prefix='', start=0,
             data={}, monitor=None, repeat_till=None, t0=0, dt=None, color={}, marker={},
             title=None, x_label=None, y_label=None, x_vis=True, y_vis=False,
-            x_lim=None, y_lim=None, s=1, additive=False, **args):
+            x_lim=None, y_lim=None, s=1, additive=False, excitatory_flag='is_excitatory', **args):
         if type(color)==type(''):
             color = {'e': color, 'i': color}
         if type(marker)==type(''):
             marker = {'e': marker, 'i': marker}
 
         xe,ye,ce,xi,yi,ci = self.get_population_activity_raster_data(y=y, x=x, start=start,
-            data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt)
+            data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt, excitatory_flag=excitatory_flag)
         ax = self.get_ax(ax)
         if len(xe)>0:
             ax.scatter(xe, ye, color=color.get('e','g'), marker=marker.get('e','o'), s=s, label=label_prefix+'excitatory', **args)
@@ -296,3 +296,9 @@ class Plotter:
         if type(I)==type(None):
             I = data[y]
         self.population_plot(ax, vector=I, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)
+
+    def imshow(self, ax, im, title='', aspect='auto', **args):
+        ax = self.get_ax(ax)
+        ax.imshow(im, aspect=aspect, **args)
+        ax.set_title(title)
+        self.set_axes_visibility(ax, x_vis=False, y_vis=False)

@@ -331,7 +331,6 @@ class LIFPopulation(NeuralPopulation):
         self.u *= ~self.s
         self.u += self.s*self.u_rest
 
-    @abstractmethod
     def reset(self) -> None:
         self.u.zero_()
         self.u += self.u_rest
@@ -409,7 +408,6 @@ class AELIFPopulation(ELIFPopulation):
     def compute_w(self) -> None:
         self.w += self.dt/self.tau_w * (self.a_w*(self.u-self.u_rest) - self.w + self.b_w*self.tau_w*self.s)
 
-    @abstractmethod
     def reset(self) -> None:
         self.w.zero_()
         super().reset()

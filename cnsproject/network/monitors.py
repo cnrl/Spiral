@@ -64,7 +64,7 @@ class Monitor:
 
     def __init__(
         self,
-        obj: Union[NeuralPopulation, AbstractConnection],
+        obj,
         state_variables: Iterable[str],
         device: Optional[str] = "cpu",
         time: float = None,
@@ -74,7 +74,7 @@ class Monitor:
         self.state_variables = state_variables
         self.device = device
         self.recording = []
-        self.reset_state_variables()
+        self.reset()
         self.time = time
         self.dt = dt
 
@@ -102,7 +102,7 @@ class Monitor:
             The recording log of the requested variable.
 
         """
-        return self.recording[variable]
+        return torch.tensor([a.tolist() for a in self.recording[variable]])
 
     def __getitem__(self, variable: str) -> torch.Tensor:
         return self.get(variable)
@@ -125,7 +125,7 @@ class Monitor:
                 )
             )
 
-    def reset_state_variables(self) -> None:
+    def reset(self) -> None:
         """
         Reset all internal state variables.
 
@@ -139,10 +139,10 @@ class Monitor:
     def simulate(self, func, inputs={}, time=None, dt=None, attendance=[]):
         time,dt = self.get_time_info(time, dt)
         inputs = DII(inputs)
-        attendance.append(self)
-        for a in attendance:
-            a.record()
+        monitors = [self]+attendance
+        for m in monitors:
+            m.record()
         for _ in torch.arange(0, time, dt):
             func(**next(inputs))
-            for a in attendance:
-                a.record()
+            for m in monitors:
+                m.record()
