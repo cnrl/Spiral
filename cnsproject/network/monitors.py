@@ -6,8 +6,6 @@ from typing import Union, Iterable, Optional
 
 import torch
 
-from .neural_populations import NeuralPopulation
-from .connections import AbstractConnection
 from ..utils import DII
 
 class Monitor:
@@ -136,10 +134,14 @@ class Monitor:
         """
         self.recording = {var: [] for var in self.state_variables}
 
-    def simulate(self, func, inputs={}, time=None, dt=None, attendance=[]):
+    def simulate(self, func, inputs={}, time=None, dt=None, attendance=[], reset=True):
         time,dt = self.get_time_info(time, dt)
         inputs = DII(inputs)
         monitors = [self]+attendance
+        if reset:
+            self.reset()
+            for m in monitors:
+                m.reset
         for m in monitors:
             m.record()
         for _ in torch.arange(0, time, dt):

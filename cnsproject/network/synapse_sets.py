@@ -63,8 +63,8 @@ class SimpleSynapseSet(AbstractSynapseSet):
             connectivity = connectivity.reshape(torch.tensor(self.axon_set.shape).prod(), -1)
             max_conn_no = connectivity.sum(axis=0).max()
             assert (max_conn_no!=torch.tensor(self.dendrite_set.terminal_shape).prod()), \
-                "the shape of Axon output (population * terminal shape) must match the shape of Dendrite terminal shape - or - "+
-                "the number of Axon-Dendrite connections per each Dendrite (connectivity sum on Axon axis), "+
+                "the shape of Axon output (population * terminal shape) must match the shape of Dendrite terminal shape - or - "+\
+                "the number of Axon-Dendrite connections per each Dendrite (connectivity sum on Axon axis), "+\
                 "must match the Dendrite input capacity (terminal shape)"
             self.filter = lambda x: x.\
                                     reshape(torch.tensor(self.axon_set.shape).prod(), -1).\

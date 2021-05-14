@@ -85,7 +85,7 @@ class Plotter:
         if z in data:
             output = data[z]
         elif z in monitor.state_variables:
-            output = monitor.get(z)
+            output = monitor.get(z).clone()
         else:
             output = default
         if repeat_till!=None:
@@ -188,12 +188,13 @@ class Plotter:
         ax = self.get_ax(ax)
         ax.legend()
 
-    def neuron_spike(self, ax, y='s', x='time', **args):
+    def neuron_spike(self, ax, y='s', x='time', y_label='spikes', **args):
         data = self.get_data(y=y, x=x, **args)
         x_data = np.array(data[x])
-        x_data = x_data[data[y]]
+        y_data = np.array(data[y])
+        x_data = x_data[y_data.reshape(x_data.shape)]
         self.plot(ax, y=y, x=x, data={x: x_data, y:[1]*x_data.shape[0]}, color='r',
-                y_vis=False, x_lim=[min(data[x]), max(data[x])],
+                y_label=y_label, y_vis=False, x_lim=[min(data[x]), max(data[x])],
                 plot_type="scatter", **args)
 
     def adaptation_current_dynamic(self, ax, y='w', monitor=None, additive=False, y_label='w', x_label='time', alpha=.4, **args):
@@ -222,18 +223,20 @@ class Plotter:
         data[y] = y
         self.plot(ax, y=y, data=data, y_label=y_label, alpha=alpha, **args)
 
-    def population_plot(self, ax, vector, data={}, population_alpha=0.01, color='b', alpha=1, additive=False, **args):
-        if type(vector)==type([]):
-            vector = np.array(vector)
-        data['population'] = vector.reshape(vector.shape[0],-1)
-        data['vector'] = data['population'].mean(axis=1)
+    def population_plot(self, ax, y='population', data={}, population_alpha=0.01, color='b', alpha=1, additive=False,
+                        aggregation=lambda x: x.mean(axis=1), **args):
+        data = self.get_data(y=y, data=data, **args)
+        if type(data[y])==type([]):
+            data[y] = np.array(data[y])
+        data['population'] = data[y].reshape(data[y].shape[0],-1)
+        data['vector'] = aggregation(data['population'])
         self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
         self.plot(ax, y='population', additive=True, data=data, color=color, alpha=population_alpha)
 
     def current_dynamic(self, ax, I=None, y='I', y_label='Current', data={}, x_label='time', **args):
-        if type(I)==type(None):
-            I = data[y]
-        self.population_plot(ax, vector=I, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)
+        if type(I)!=type(None):
+            data[y] = I
+        self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)
 
     def imshow(self, ax, im, title='', aspect='auto', **args):
         ax = self.get_ax(ax)

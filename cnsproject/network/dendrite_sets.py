@@ -3,7 +3,7 @@ Module for connections between neural populations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Union, Sequence, Callable
+from typing import Union, Sequence, Callable, Iterable
 
 import torch
 

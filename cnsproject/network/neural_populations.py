@@ -9,6 +9,9 @@ from typing import Union, Iterable
 
 import torch
 
+from .axon_sets import AbstractAxonSet
+from .dendrite_sets import AbstractDendriteSet
+
 
 class NeuralPopulation(torch.nn.Module):
     def __init__(
@@ -35,22 +38,22 @@ class NeuralPopulation(torch.nn.Module):
         for axon_set in self.axon_sets.values():
             axon_set.set_dt(dt)
 
-    def add_axon_set(self, axon_set: __, name: str):
+    def add_axon_set(self, axon_set: AbstractAxonSet, name: str):
         self.axon_sets[name] = axon_set
         axon_set.set_dt(self.dt)
 
 
-    def add_dendrite_sets(self, dendrite_set: __, name: str):
+    def add_dendrite_sets(self, dendrite_set: AbstractDendriteSet, name: str):
         self.dendrite_sets[name] = dendrite_set
         dendrite_set.set_dt(self.dt)
 
 
     @abstractmethod
     def forward(self,
-            direct_input: torch.Tensor = torch.tensor(0),
+            direct_input: torch.Tensor = torch.tensor(0.),
             clamps: torch.Tensor = torch.tensor(False),
             unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        I = self.s * 0
+        I = self.s * 0.
         I += direct_input
         for dendrite_set in self.dendrite_sets.values():
             I += dendrite_set.get_output()
@@ -63,7 +66,7 @@ class NeuralPopulation(torch.nn.Module):
 
 
     @abstractmethod
-    def compute_potential(self) -> None:
+    def compute_potential(self, I: torch.Tensor) -> None:
         pass
 
     @abstractmethod
@@ -247,8 +250,8 @@ class AELIFPopulation(ELIFPopulation):
         self.register_buffer("w", torch.zeros(self.shape))
 
 
-    def forward(self, I: torch.Tensor) -> None: # I: mA
-        super().forward(I)
+    def forward(self, **args) -> None: # I: mA
+        super().forward(**args)
         self.compute_w()
 
 

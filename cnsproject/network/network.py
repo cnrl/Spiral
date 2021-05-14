@@ -8,7 +8,7 @@ import torch
 
 from .neural_populations import NeuralPopulation
 from .synapse_sets import AbstractSynapseSet
-from ..learning.rewards import AbstractReward
+# from ..learning.rewards import AbstractReward
 from ..decision.decision import AbstractDecision
 from collections import defaultdict
 
@@ -63,9 +63,9 @@ class Network(torch.nn.Module):
     def __init__(
         self,
         dt: float = 1.0,
-        learning: bool = True,
-        reward: Optional[AbstractReward] = None,
-        decision: Optional[AbstractDecision] = None,
+        # learning: bool = True,
+        # reward: Optional[AbstractReward] = None,
+        # decision: Optional[AbstractDecision] = None,
         **kwargs
     ) -> None:
         super().__init__()
@@ -75,15 +75,15 @@ class Network(torch.nn.Module):
         self.populations = {}
         self.synapses = {}
 
-        self.train(learning)
+        # self.train(learning)
 
         # Make sure that arguments of your reward and decision classes do not
         # share same names. Their arguments are passed to the network as its
         # keyword arguments.
-        if reward is not None:
-            self.reward = reward(**kwargs)
-        if decision is not None:
-            self.decision = decision(**kwargs)
+        # if reward is not None:
+        #     self.reward = reward(**kwargs)
+        # if decision is not None:
+        #     self.decision = decision(**kwargs)
 
     def add_population(self, population: NeuralPopulation, name: str) -> None:
         """
