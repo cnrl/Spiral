@@ -7,11 +7,10 @@ from typing import Optional, Dict
 import torch
 
 from .neural_populations import NeuralPopulation
-from .connections import AbstractConnection
-from .monitors import Monitor
+from .synapse_sets import AbstractSynapseSet
 from ..learning.rewards import AbstractReward
 from ..decision.decision import AbstractDecision
-
+from collections import defaultdict
 
 class Network(torch.nn.Module):
     """
@@ -73,19 +72,20 @@ class Network(torch.nn.Module):
 
         self.dt = dt
 
-        self.layers = {}
-        self.connections = {}
-        self.monitors = {}
+        self.populations = {}
+        self.synapses = {}
 
         self.train(learning)
 
         # Make sure that arguments of your reward and decision classes do not
         # share same names. Their arguments are passed to the network as its
         # keyword arguments.
-        self.reward = reward(**kwargs)
-        self.decision = decision(**kwargs)
+        if reward is not None:
+            self.reward = reward(**kwargs)
+        if decision is not None:
+            self.decision = decision(**kwargs)
 
-    def add_layer(self, layer: NeuralPopulation, name: str) -> None:
+    def add_population(self, population: NeuralPopulation, name: str) -> None:
         """
         Add a neural population to the network.
 
@@ -101,17 +101,16 @@ class Network(torch.nn.Module):
         None
 
         """
-        self.layers[name] = layer
-        self.add_module(name, layer)
+        self.populations[name] = population
+        self.add_module(name, population)
 
-        layer.train(self.learning)
-        layer.dt = self.dt
+        population.train(self.learning)
+        population.set_dt(self.dt)
 
-    def add_connection(
+    def add_synapse(
         self,
-        connection: AbstractConnection,
-        pre: str,
-        post: str
+        synapse: AbstractSynapseSet,
+        name: str,
     ) -> None:
         """
         Add a connection between neural populations to the network. The\
@@ -131,36 +130,15 @@ class Network(torch.nn.Module):
         None
 
         """
-        self.connections[f"{pre}_to_{post}"] = connection
-        self.add_module(f"{pre}_to_{post}", connection)
+        self.synapses[name] = synapse
+        self.add_module(name, synapse)
 
-        connection.train(self.learning)
-        connection.dt = self.dt
+        # connection.train(self.learning)
+        synapse.set_dt(self.dt)
 
-    def add_monitor(self, monitor: Monitor, name: str) -> None:
-        """
-        Add a monitor on a network object to the network.
-
-        Parameters
-        ----------
-        monitor : Monitor
-            The monitor instance to be added.
-        name : str
-            Name of the monitor instance for further referencing.
-
-        Returns
-        -------
-        None
-
-        """
-        self.monitors[name] = monitor
-        monitor.dt = self.dt
-
-    def run(
+    def forward(
         self,
-        time: int,
         inputs: Dict[str, torch.Tensor] = {},
-        one_step: bool = False,
         **kwargs
     ) -> None:
         """
@@ -215,8 +193,19 @@ class Network(torch.nn.Module):
         clamps = kwargs.get("clamp", {})
         unclamps = kwargs.get("unclamp", {})
         masks = kwargs.get("masks", {})
+        direct_inputs = kwargs.get("direct_inputs", {})
+        
+        for name,synapse in self.synapses.items():
+            synapse.forward(masks)
+        
+        for name,population in self.populations.items():
+            direct_input = direct_inputs.get(name, torch.tensor(0))
+            clamp = clamps.get(name, torch.tensor(False))
+            unclamp = unclamps.get(name, torch.tensor(False))
+            population.forward(direct_input=direct_input, clamps=clamp, unclamps=unclamp)
 
-    def reset_state_variables(self) -> None:
+
+    def reset(self) -> None:
         """
         Reset all internal state variables.
 
@@ -225,14 +214,11 @@ class Network(torch.nn.Module):
         None
 
         """
-        for layer in self.layers:
-            self.layers[layer].reset_state_variables()
+        for population in self.populations.values():
+            population.reset()
 
-        for connection in self.connections:
-            self.connections[connection].reset_state_variables()
-
-        for monitor in self.monitors:
-            self.monitors[monitor].reset_state_variables()
+        for _,connection,_ in self.connections.values():
+            connection.reset()
 
     def train(self, mode: bool = True) -> "torch.nn.Moudle":
         """

@@ -1,6 +1,10 @@
 from .network import Network
 from . import (
     neural_populations,
-    connections,
-    monitors,
+    axon_sets,
+    dendrite_sets,
+    synapse_sets,
+    connectivity_patterns,
+    weight_initializations,
+    encoders,
 )

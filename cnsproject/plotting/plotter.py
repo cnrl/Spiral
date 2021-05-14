@@ -135,10 +135,10 @@ class Plotter:
             ax.plot(data[red_line], 'r:', label=red_line_label if red_line_label!=None else red_line, alpha=red_line_alpha)
 
 
-    def plot(self, ax, additive=False,
+    def plot(self, ax, additive=False, plot_type="plot",
             y=None, x='time', data={}, monitor=None, dt:float=None, t0=0,
             title=None, x_label=None, y_label=None, x_vis=True, y_vis=True,
-            x_lim=None, y_lim=None, repeat_till=None, style='b',
+            x_lim=None, y_lim=None, repeat_till=None,
             blue_line=None, black_line=None, red_line=None,
             blue_line_alpha=0.5, black_line_alpha=0.5, red_line_alpha=0.5,
             blue_line_label=None, black_line_label=None, red_line_label=None, **args):
@@ -149,7 +149,10 @@ class Plotter:
         data = self.get_data(y=y, x=x, data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt,
                             blue_line=blue_line, black_line=black_line, red_line=red_line)
         ax = self.get_ax(ax)
-        ax.plot(data[x], data[y], style, **args)
+        if plot_type == "plot":
+            ax.plot(data[x], data[y], **args)
+        elif plot_type == "scatter":
+            ax.scatter(data[x], data[y], **args)
         if not additive:
             self.set_labels(ax, x_label, y_label, title, x, y)
             self.set_limits(ax, x_lim, y_lim, x, y, data)
@@ -175,10 +178,11 @@ class Plotter:
 
     def neuron_voltage(self, ax, y='u', monitor=None, y_label='u', x_label='time', threshold='spike_threshold', **args):
         monitor = self.get_monitor(monitor)
-        data = {
-            "Resting Potential": [monitor.obj.u_rest.tolist()],
-            "Threshold": [getattr(monitor.obj, threshold).tolist()],
-        }
+        if monitor is not None:
+            data = {
+                "Resting Potential": [monitor.obj.u_rest.tolist()],
+                "Threshold": [getattr(monitor.obj, threshold).tolist()],
+            }
         self.plot(ax, y=y, data=data, monitor=monitor, color='green', y_label=y_label, x_label=x_label, x_lim='fit',
                 black_line="Resting Potential", blue_line="Threshold", **args)
         ax = self.get_ax(ax)
@@ -188,7 +192,9 @@ class Plotter:
         data = self.get_data(y=y, x=x, **args)
         x_data = np.array(data[x])
         x_data = x_data[data[y]]
-        self.plot(ax, y=y, x=x, data={x: x_data, y:[1]*x_data.shape[0]}, style='ro', y_vis=False, x_lim=[min(data[x]), max(data[x])], **args)
+        self.plot(ax, y=y, x=x, data={x: x_data, y:[1]*x_data.shape[0]}, color='r',
+                y_vis=False, x_lim=[min(data[x]), max(data[x])],
+                plot_type="scatter", **args)
 
     def adaptation_current_dynamic(self, ax, y='w', monitor=None, additive=False, y_label='w', x_label='time', alpha=.4, **args):
         if additive:
@@ -196,93 +202,25 @@ class Plotter:
         else:
             self.plot(ax, y=y, monitor=monitor, y_label=y_label, x_label=x_label, x_lim='fit', color='red', **args)
 
-    def get_excitatory_flag(self, name='is_excitatory', data={}, y_shape=None, monitor=None):
-        if name in data:
-            return data[name]
-        monitor = self.get_monitor(monitor)
-        if name in monitor.obj.__dict__['_buffers']:
-            return monitor.obj.__dict__['_buffers'][name]
-        return np.ones(y.shape, dtype=bool)
-
-    def get_population_activity_raster_data(self, y='s', x='time', excitatory_flag='is_excitatory', start=0, monitor=None, **args):
-        data = self.get_data(y=y, x=x, monitor=monitor, **args)
-        excitatory_flag = self.get_excitatory_flag(name=excitatory_flag, y_shape=data[y][0].shape, monitor=monitor)
-        ce = data[y][0][excitatory_flag].numel()
-        ci = data[y][0][~excitatory_flag].numel()
-        xe,ye,xi,yi = [],[],[],[]
-        for index,t in enumerate(data[x]):
-            yt = data[y][index]
-            e = yt[excitatory_flag].reshape(-1)
-            i = yt[~excitatory_flag].reshape(-1)
-            se = np.where(e)[0] + start
-            si = np.where(i)[0] + ce + start
-            ye += se.tolist()
-            yi += si.tolist()
-            xe += (np.ones(se.shape)*t).tolist()
-            xi += (np.ones(si.shape)*t).tolist()
-        return xe,ye,ce,xi,yi,ci
-
-    def population_activity_raster(self, ax, y='s', x='time', label_prefix='', start=0,
-            data={}, monitor=None, repeat_till=None, t0=0, dt=None, color={}, marker={},
-            title=None, x_label=None, y_label=None, x_vis=True, y_vis=False,
-            x_lim=None, y_lim=None, s=1, additive=False, excitatory_flag='is_excitatory', **args):
-        if type(color)==type(''):
-            color = {'e': color, 'i': color}
-        if type(marker)==type(''):
-            marker = {'e': marker, 'i': marker}
-
-        xe,ye,ce,xi,yi,ci = self.get_population_activity_raster_data(y=y, x=x, start=start,
-            data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt, excitatory_flag=excitatory_flag)
+    def population_activity_raster(self, ax, y='s', y_label='spikes', start=0, t0=0, selection=None, s=1, **args):
+        data = self.get_data(y=y, t0=t0, **args)
+        y = data[y]
+        y = y[:,selection]
+        y = y.reshape(y.shape[0], -1)
+        x,y = np.where(y)
+        x += t0
+        y += start
         ax = self.get_ax(ax)
-        if len(xe)>0:
-            ax.scatter(xe, ye, color=color.get('e','g'), marker=marker.get('e','o'), s=s, label=label_prefix+'excitatory', **args)
-        if len(xi)>0:
-            ax.scatter(xi, yi, color=color.get('i','r'), marker=marker.get('e','o'), s=s, label=label_prefix+'inhibitory', **args)
-        if not additive:
-            self.set_labels(ax, x_label, y_label, title, x, y)
-            self.set_limits(ax, x_lim, y_lim, x, y, data)
-            self.set_axes_visibility(ax, x_vis, y_vis)
-        return xe,ye,ce,xi,yi,ci
+        self.plot(ax, data={'x':x, 'y':y}, x='x', y='y', plot_type="scatter", s=s, y_label=y_label, **args)
 
-    def population_activity(self, ax, raster_data=None, y='a', x='time', y_label='s count',
-                ei_split=False, label='', color='b', ei_color={},
-                data={}, monitor=None, repeat_till=None, t0=0, dt=None, alpha=.3, additive=False, **args):
-        if raster_data is None:
-            raster_data = self.get_population_activity_raster_data(y=y, x=x, 
-                data=data, monitor=monitor, repeat_till=repeat_till, t0=t0, dt=dt)
-        xe,_,ce,xi,_,ci = raster_data
-
-        ie = np.unique(xe+xi, return_counts=True)
-        iex,iey = ie
-        if iex.shape[0]>0:
-            ie = np.zeros(int(1+iex.max()-iex.min()))
-            ie[(iex-iex.min()).astype(int)] = iey
-            iex = np.arange(iex.min(),iex.max()+1)
-
-            range_ = (int(iex.min()), int(iex.max())+1)
-            self.plot(ax, additive=additive, y=y, x=x, data={x: iex, y: ie/(ce+ci)}, y_label=y_label, color=color, label=label, alpha=alpha, **args)
-
-        if ei_split:
-            e = np.unique(xe, return_counts=True)
-            ex,ey = e
-            if ex.shape[0]>0:
-                e = np.zeros(int(1+ex.max()-ex.min()))
-                e[(ex-ex.min()).astype(int)] = ey
-                ex = np.arange(ex.min(),ex.max()+1)
-                self.plot(ax, additive=True, y=y, x=x, data={x: ex, y: e/ce}, color=ei_color.get('e','g'), label=label+'excitatory', alpha=alpha, **args)
-
-            i = np.unique(xi, return_counts=True)
-            ix,iy = i
-            if ix.shape[0]>0:
-                i = np.zeros(int(1+ix.max()-ix.min()))
-                i[(ix-ix.min()).astype(int)] = iy
-                ix = np.arange(ix.min(),ix.max()+1)
-                self.plot(ax, additive=True, y=y, x=x, data={x: ix, y: i/ci}, color=ei_color.get('i','r'), label=label+'inhibitory', alpha=alpha, **args)
-
-            ax = self.get_ax(ax)
-            ax.legend()
-            return iex,ie,ce+ci,ex,e,ce,ix,i,ci
-        return iex,ie,ce+ci
+    def population_activity(self, ax, y='s', data={}, y_label='activity', selection=None, alpha=.3, **args):
+        data_y = self.get_data(y=y, data=data, **args)
+        y = data_y[y]
+        y = y[:,selection]
+        y = y.reshape(y.shape[0], -1)
+        y = y.sum(axis=1)
+        data[y] = y
+        self.plot(ax, y=y, data=data, y_label=y_label, alpha=alpha, **args)
 
     def population_plot(self, ax, vector, data={}, population_alpha=0.01, color='b', alpha=1, additive=False, **args):
         if type(vector)==type([]):

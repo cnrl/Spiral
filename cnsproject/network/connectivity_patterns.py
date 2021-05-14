@@ -1,74 +1,51 @@
 import torch
 
-# abstract function!!
-def dense_connectivity(preshape, postshape, **kwargs):
-    shape = (*preshape, *postshape)
+def dense_connectivity(a_shape, b_shape):
+    shape = (a_shape, b_shape)
     return torch.ones(shape, dtype=torch.bool)
 
-def rfcpc_connectivity(preshape, postshape, **kwargs): #random fixed coupling prob connectivity
-    shape = (*preshape, *postshape)
+def rfcpc_connectivity(a_shape, b_shape, c_count=None, c_rate=.1): #random fixed coupling prob connectivity
+    shape = (a_shape, b_shape)
     rand_mat = torch.rand(shape)
-    c = kwargs.get("connections_count", None)
-    if c is None:
-        p = kwargs.get("connections_rate", .1)
-        c = int(rand_mat.numel() * p)
-    t = rand_mat.reshape(-1).sort()[0][-c]
+    if c_count is None:
+        c_count = int(rand_mat.numel() * c_rate)
+    t = rand_mat.reshape(-1).sort()[0][-c_count]
     return (rand_mat >= t)
 
-def rfnopp_connectivity(preshape, postshape, **kwargs): #random fixed number of presynaptic partners connectivity
-    shape = (*preshape, *postshape)
+def rfnopp_connectivity(a_shape, b_shape, c_count=None, c_rate=.1): #random fixed number of presynaptic partners connectivity
+    shape = (a_shape, b_shape)
     rand_mat = torch.rand(shape)
     flatted = rand_mat.reshape(-1, *postshape)
-    c = kwargs.get("connections_count", None)
-    if c is None:
-        p = kwargs.get("connections_rate", .1)
-        c = int(flatted.shape[0] * p)
-    t = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-c]
+    if c_count is None:
+        c_count = int(flatted.shape[0] * c_rate)
+    t = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-c_count]
     return (rand_mat >= t)
 
-def internal_dense_connectivity(preshape, postshape, **kwargs):
-    diag = torch.diag(torch.ones(preshape)).reshape(*preshape,*preshape)
+def internal_dense_connectivity(a_shape):
+    shape = (a_shape, a_shape)
+    diag = torch.diag(torch.ones(preshape)).reshape(shape)
     return (diag != 1)
 
-def internal_rfcpc_connectivity(preshape, postshape, **kwargs): #random fixed coupling prob connectivity
-    shape = (*preshape, *preshape)
+def internal_rfcpc_connectivity(a_shape, c_count=None, c_rate=.1): #random fixed coupling prob connectivity
+    shape = (a_shape, a_shape)
     rand_mat = torch.rand(shape)
-    diag = torch.diag(torch.ones(preshape)).reshape(*preshape,*preshape)
+    diag = torch.diag(torch.ones(connection.pre)).reshape(shape)
     diag = (diag==1)
     rand_mat[diag] = -1
-    c = kwargs.get("connections_count", None)
-    if c is None:
-        p = kwargs.get("connections_rate", .1)
-        c = int(rand_mat.numel() * p)
-    t = rand_mat.reshape(-1).sort()[0][-c]
+    if c_count is None:
+        c_count = int(rand_mat.numel() * c_rate)
+    t = rand_mat.reshape(-1).sort()[0][-c_count]
     return (rand_mat >= t)
 
-def internal_rfnopp_connectivity(preshape, postshape, **kwargs): #random fixed number of presynaptic partners connectivity
-    shape = (*preshape, *preshape)
+def internal_rfnopp_connectivity(a_shape, c_count=None, c_rate=.1): #random fixed number of presynaptic partners connectivity
+    shape = (a_shape, a_shape)
     rand_mat = torch.rand(shape)
-    diag = torch.diag(torch.ones(preshape)).reshape(*preshape,*preshape)
+    diag = torch.diag(torch.ones(connection.pre)).reshape(shape)
     diag = (diag==1)
     rand_mat[diag] = -1
-    flatted = rand_mat.reshape(-1, *preshape)
-    c = kwargs.get("connections_count", None)
-    if c is None:
-        p = kwargs.get("connections_rate", .1)
-        c = int(flatted.shape[0] * p)
-    t = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-c]
+    flatted = rand_mat.reshape(-1, a_shape)
+    c_count = kwargs.get("c_count", None)
+    if c_count is None:
+        c_count = int(flatted.shape[0] * c_rate)
+    t = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-c_count]
     return (rand_mat >= t)
-
-
-# abstract function!!
-def constant_weights(preshape, postshape, **kwargs):
-    shape = (*preshape, *postshape)
-    return kwargs.get('wscale',1)*torch.ones(shape)
-
-def uniform_weights(preshape, postshape, **kwargs):
-    shape = (*preshape, *postshape)
-    wmin = kwargs.get('wmin',0)
-    wmax = kwargs.get('wmax',1)
-    return torch.rand(shape)*(wmax-wmin)+wmin
-
-def norm_weights(preshape, postshape, **kwargs):
-    shape = (*preshape, *postshape)
-    return torch.normal(kwargs.get('wmean',1.), kwargs.get('wstd',.1), shape)

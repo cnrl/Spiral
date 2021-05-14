@@ -7,7 +7,6 @@ from typing import Union, Sequence, Callable
 
 import torch
 
-from .neural_populations import NeuralPopulation
 from .connectivity_patterns import dense_connectivity,constant_weights
 
 
@@ -68,36 +67,43 @@ class AbstractConnection(ABC, torch.nn.Module):
 
     def __init__(
         self,
-        pre: NeuralPopulation,
-        post: NeuralPopulation,
+        pre: Iterable[int] = None,
+        post: Iterable[int] = None,
+        wmin: Union[float, torch.Tensor] = 0.,
+        wmax: Union[float, torch.Tensor] = 1.,
+        scale: Union[float, torch.Tensor] = 1.,
         lr: Union[float, Sequence[float]] = None,
         weight_decay: float = 0.0,
+        dt: float = None,
         **kwargs
     ) -> None:
         super().__init__()
 
-        assert isinstance(pre, NeuralPopulation), \
-            "Pre is not a NeuralPopulation instance"
-        assert isinstance(post, NeuralPopulation), \
-            "Post is not a NeuralPopulation instance"
-
         self.pre = pre
         self.post = post
+        self.register_buffer("wmin", torch.tensor(wmin))
+        self.register_buffer("wmax", torch.tensor(wmax))
+        self.register_buffer("scale", torch.tensor(scale))
 
-        self.weight_decay = weight_decay
+        # self.weight_decay = weight_decay
 
-        self.norm = kwargs.get('norm', None)
+        # self.norm = kwargs.get('norm', None)
 
-        from ..learning.learning_rules import NoOp
+        # from ..learning.learning_rules import NoOp
 
-        learning_rule = kwargs.get('learning_rule', NoOp)
+        # learning_rule = kwargs.get('learning_rule', NoOp)
 
-        self.learning_rule = learning_rule(
-            connection=self,
-            lr=lr,
-            weight_decay=weight_decay,
-            **kwargs
-        )
+        # self.learning_rule = learning_rule(
+        #     connection=self,
+        #     lr=lr,
+        #     weight_decay=weight_decay,
+        #     **kwargs
+        # )
+        self.register_buffer("I", torch.zeros(*self.post.shape)) #mA
+        self.set_dt(dt)
+
+    def set_dt(self, dt:float):
+        self.dt = torch.tensor(dt) if dt is not None else dt
 
     @abstractmethod
     def forward(self, s: torch.Tensor) -> None: #s: spike
@@ -155,8 +161,8 @@ class AbstractConnection(ABC, torch.nn.Module):
         """
         pass
 
-
-
+    def output(self):
+        return self.I * self.scale
 
 
 
@@ -165,51 +171,28 @@ class SimpleConnection(AbstractConnection):
         self,
         connectivity: Callable = dense_connectivity,
         w: Callable = constant_weights,
-        tau_s: Union[float, torch.Tensor] = 15.,
-        dt: float = None,
         **kwargs
     ) -> None:
         super().__init__(**kwargs)
-        self.shape = (*self.pre.shape, *self.post.shape)
-        self.register_buffer("connectivity", connectivity(preshape=self.pre.shape, postshape=self.post.shape, **kwargs))
-        self.register_buffer("w", w(preshape=self.pre.shape, postshape=self.post.shape, connectivity=self.connectivity, **kwargs))
-        self.w /= self.connectivity.sum(axis=[i for i in range(len(self.pre.shape))])
+        self.shape = (*self.pre, *self.post)
+        self.register_buffer("connectivity", connectivity(self, **kwargs))
+        self.register_buffer("w", w(self, **kwargs))
+        self.w /= self.connectivity.sum(axis=[i for i in range(len(self.pre))])
         self.w *= self.connectivity
-        self.register_buffer("traces", torch.zeros(*self.shape))
-        self.register_buffer("tau_s", torch.tensor(tau_s))
-        self.register_buffer("I", torch.zeros(*self.post.shape)) #mA
-        self.set_dt(dt)
-
-    def set_dt(self, dt:float):
-        self.dt = torch.tensor(dt) if dt is not None else dt
+        self.w[self.w<self.wmin] = wmin
+        self.w[self.w>self.wmax] = wmax
 
     def forward(self, s: torch.Tensor) -> None:
-        self.compute_traces(s)
-        I = self.pre.is_excitatory
-        if I.numel()>1:
-            I = self.pre.is_excitatory.reshape(*self.pre.shape, *[1 for i in self.post.shape])
-        I = (2*I-1)*self.traces
-        I = I*self.w
-        I = I.sum(axis=[i for i in range(len(self.pre.shape))])
+        I = s.reshape(*self.pre, *[1 for i in self.post])
+        I *= self.w
+        I = I.sum(axis=[i for i in range(len(self.pre))])
         self.I = I
-
-    def compute_traces(self, s: torch.Tensor) -> None:
-        self.traces *= torch.exp(-self.dt/self.tau_s)
-        self.traces += s.float().reshape(*self.pre.shape, *[1 for i in self.post.shape])
 
     def update(self, **kwargs) -> None:
         super().update(**Keyword)
 
     def reset(self) -> None:
-        self.traces.zero_()
         self.I.zero_()
-
-    def copy_connectivity(self, **args):
-        return self.connectivity.clone()
-
-    def copy_w(self, **args):
-        return self.w.clone()
-
 
 
 # class ConvolutionalConnection(AbstractConnection):
