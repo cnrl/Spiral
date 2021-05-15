@@ -10,16 +10,16 @@ import torch
 class AbstractAxonSet(ABC, torch.nn.Module):
     def __init__(
         self,
-        population_shape: Iterable[int],
-        terminal_shape: Iterable[int] = (),
+        population: Iterable[int],
+        terminal: Iterable[int] = (),
         is_excitatory: Union[bool, torch.Tensor] = True,
         dt: float = None,
         **kwargs
     ) -> None:
         super().__init__()
 
-        self.population_shape = population_shape
-        self.terminal_shape = terminal_shape
+        self.population_shape = population
+        self.terminal_shape = terminal
         self.shape = (*self.population_shape,*self.terminal_shape)
         self.register_buffer("is_excitatory", self.add_terminal_shape(torch.tensor(is_excitatory)))
         self.register_buffer("e", torch.zeros(self.shape) * 0.)
@@ -77,8 +77,8 @@ class SimpleAxonSet(AbstractAxonSet):
 
     def compute_response(self, s: torch.Tensor) -> None:
         self.e = s * 1.
-        repeating = (*[1]*len(self.e.shape), *self.shape[len(self.e.shape):])
-        self.e = self.e.repeat(repeating)
+        self.e = self.e.reshape(*self.population_shape, *[1]*len(self.terminal_shape))
+        self.e = self.e.repeat(*[1]*len(self.population_shape), *self.terminal_shape)
 
 
     def update_spike_history(self, s: torch.Tensor) -> None:

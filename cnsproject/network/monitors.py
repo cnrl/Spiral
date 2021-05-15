@@ -2,7 +2,7 @@
 Module for monitoring objects.
 """
 
-from typing import Union, Iterable, Optional
+from typing import Union, Iterable, Optional, Callable
 
 import torch
 
@@ -63,13 +63,16 @@ class Monitor:
     def __init__(
         self,
         obj,
-        state_variables: Iterable[str],
+        state_variables: Iterable[str] = [],
+        state_calls: dict = {},
         device: Optional[str] = "cpu",
         time: float = None,
         dt: float = None,
     ) -> None:
         self.obj = obj
         self.state_variables = state_variables
+        self.state_calls = state_calls
+        self.variables = self.state_variables+list(self.state_calls.keys())
         self.device = device
         self.recording = []
         self.reset()
@@ -123,6 +126,14 @@ class Monitor:
                 )
             )
 
+        for name,call in self.state_calls.items():
+            data = call()
+            self.recording[name].append(
+                torch.empty_like(data, device=self.device).copy_(
+                    data, non_blocking=True
+                )
+            )
+
     def reset(self) -> None:
         """
         Reset all internal state variables.
@@ -132,14 +143,13 @@ class Monitor:
         None
 
         """
-        self.recording = {var: [] for var in self.state_variables}
+        self.recording = {var: [] for var in self.variables}
 
     def simulate(self, func, inputs={}, time=None, dt=None, attendance=[], reset=True):
         time,dt = self.get_time_info(time, dt)
         inputs = DII(inputs)
         monitors = [self]+attendance
         if reset:
-            self.reset()
             for m in monitors:
                 m.reset
         for m in monitors:

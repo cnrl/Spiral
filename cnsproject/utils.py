@@ -36,7 +36,8 @@ def generate_function(length, shape=[], shift=0, noise=0, population_noise=0, sl
             vec = order
     output = torch.normal(_slope, noise) if noise>0 else _slope
     output = output.reshape(-1, *[1 for i in shape])
-    output = output + torch.normal(0, population_noise, (length, *shape))
+    if population_noise>0:
+        output = output + torch.normal(0, population_noise, (length, *shape))
     output = output.cumsum(dim=0)
     output += output+_shift.reshape(-1, *[1 for i in shape])
     return output

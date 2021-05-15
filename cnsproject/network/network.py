@@ -104,7 +104,7 @@ class Network(torch.nn.Module):
         self.populations[name] = population
         self.add_module(name, population)
 
-        population.train(self.learning)
+        # population.train(self.learning)
         population.set_dt(self.dt)
 
     def add_synapse(
@@ -138,7 +138,6 @@ class Network(torch.nn.Module):
 
     def forward(
         self,
-        inputs: Dict[str, torch.Tensor] = {},
         **kwargs
     ) -> None:
         """
@@ -190,18 +189,14 @@ class Network(torch.nn.Module):
         None
 
         """
-        clamps = kwargs.get("clamp", {})
-        unclamps = kwargs.get("unclamp", {})
-        masks = kwargs.get("masks", {})
-        direct_inputs = kwargs.get("direct_inputs", {})
         
         for name,synapse in self.synapses.items():
-            synapse.forward(masks)
+            synapse.forward(kwargs.get(name+"_mask", torch.tensor(True)))
         
         for name,population in self.populations.items():
-            direct_input = direct_inputs.get(name, torch.tensor(0))
-            clamp = clamps.get(name, torch.tensor(False))
-            unclamp = unclamps.get(name, torch.tensor(False))
+            direct_input = kwargs.get(name+"_direct_input", torch.tensor(0))
+            clamp = kwargs.get(name+"_clamp", torch.tensor(False))
+            unclamp = kwargs.get(name+"_unclamp", torch.tensor(False))
             population.forward(direct_input=direct_input, clamps=clamp, unclamps=unclamp)
 
 
@@ -220,20 +215,20 @@ class Network(torch.nn.Module):
         for _,connection,_ in self.connections.values():
             connection.reset()
 
-    def train(self, mode: bool = True) -> "torch.nn.Moudle":
-        """
-        Set the population's training mode.
+    # def train(self, mode: bool = True) -> "torch.nn.Moudle":
+    #     """
+    #     Set the population's training mode.
 
-        Parameters
-        ----------
-        mode : bool, optional
-            Mode of training. `True` turns on the training while `False` turns\
-            it off. The default is True.
+    #     Parameters
+    #     ----------
+    #     mode : bool, optional
+    #         Mode of training. `True` turns on the training while `False` turns\
+    #         it off. The default is True.
 
-        Returns
-        -------
-        torch.nn.Module
+    #     Returns
+    #     -------
+    #     torch.nn.Module
 
-        """
-        self.learning = mode
-        return super().train(mode)
+    #     """
+    #     self.learning = mode
+    #     return super().train(mode)

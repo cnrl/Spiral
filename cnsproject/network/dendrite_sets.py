@@ -12,8 +12,8 @@ from .weight_initializations import constant_initialization
 class AbstractDendriteSet(ABC, torch.nn.Module):
     def __init__(
         self,
-        terminal_shape: Iterable[int],
-        population_shape: Iterable[int],
+        terminal: Iterable[int],
+        population: Iterable[int],
         wmin: Union[float, torch.Tensor] = 0.,
         wmax: Union[float, torch.Tensor] = 1.,
         dt: float = None,
@@ -21,21 +21,20 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
     ) -> None:
         super().__init__()
 
-        self.terminal_shape = terminal_shape
-        self.population_shape = population_shape
+        self.terminal_shape = terminal
+        self.population_shape = population
         self.shape = (*self.terminal_shape,*self.population_shape)
         self.register_buffer("wmin", torch.tensor(wmin))
         self.register_buffer("wmax", torch.tensor(wmax))
-        self.register_buffer("scale", torch.tensor(scale))
         self.register_buffer("I", torch.zeros(*self.population_shape)) #mA
         self.set_dt(dt)
 
 
     def add_population_shape(self, tensor: torch.Tensor):
-        if tensor.numel()>1:
-            return tensor.reshape((*self.terminal_shape,*[1]*len(self.population_shape)))
-        else:
+        if tensor.numel()==1 or tensor.shape==self.shape:
             return tensor
+        else:
+            return tensor.reshape((*self.terminal_shape,*[1]*len(self.population_shape)))
 
 
     def set_dt(self, dt:float):
@@ -47,12 +46,11 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
         pass
 
 
-    @abstractmethod
     def reset(self) -> None:
         self.I.zero_()
 
 
-    def output(self): # in shape *self.population_shape
+    def get_output(self): # in shape *self.population_shape
         return self.I
 
     # @abstractmethod
@@ -91,11 +89,10 @@ class SimpleDendriteSet(AbstractDendriteSet):
         **kwargs
     ) -> None:
         super().__init__(**kwargs)
-        self.shape = (*self.terminal_shape, *self.shape)
         if w is None:
             w = constant_initialization(
                 self.terminal_shape,
-                self.shape,
+                self.population_shape,
                 self.wmin +
                 (self.wmax - self.wmin) /
                 (2 * torch.prod(torch.tensor(self.terminal_shape)))
@@ -105,7 +102,7 @@ class SimpleDendriteSet(AbstractDendriteSet):
         self.w[self.w>self.wmax] = self.wmax
 
     def forward(self, e: torch.Tensor) -> None:
-        self.I = e * self.w
+        self.I = self.add_population_shape(e) * self.w
         self.I = self.I.sum(axis=list(range(len(self.terminal_shape))))
 
 

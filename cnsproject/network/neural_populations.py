@@ -47,17 +47,21 @@ class NeuralPopulation(torch.nn.Module):
         self.dendrite_sets[name] = dendrite_set
         dendrite_set.set_dt(self.dt)
 
+    
+    def collect_I(self, direct_input: torch.Tensor = torch.tensor(0.)):
+        I = self.s * 0.
+        I += direct_input
+        for dendrite_set in self.dendrite_sets.values():
+            I += dendrite_set.get_output()
+        return I
+
 
     @abstractmethod
     def forward(self,
             direct_input: torch.Tensor = torch.tensor(0.),
             clamps: torch.Tensor = torch.tensor(False),
             unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        I = self.s * 0.
-        I += direct_input
-        for dendrite_set in self.dendrite_sets.values():
-            I += dendrite_set.get_output()
-        self.compute_potential(I)
+        self.compute_potential(self.collect_I(direct_input))
         self.compute_spike()
         self.s *= ~unclamps
         self.s += clamps

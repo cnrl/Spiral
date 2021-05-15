@@ -62,22 +62,25 @@ class SimpleSynapseSet(AbstractSynapseSet):
         if self.filtering:
             connectivity = connectivity.reshape(torch.tensor(self.axon_set.shape).prod(), -1)
             max_conn_no = connectivity.sum(axis=0).max()
-            assert (max_conn_no!=torch.tensor(self.dendrite_set.terminal_shape).prod()), \
+            assert (max_conn_no==torch.tensor(self.dendrite_set.terminal_shape).prod()), \
                 "the shape of Axon output (population * terminal shape) must match the shape of Dendrite terminal shape - or - "+\
                 "the number of Axon-Dendrite connections per each Dendrite (connectivity sum on Axon axis), "+\
-                "must match the Dendrite input capacity (terminal shape)"
+                "must match the Dendrite input capacity (terminal shape)\n"+\
+                f"Axon: (population: {self.axon_set.population_shape}, terminal: {self.axon_set.terminal_shape}) and "+\
+                f"Dendrite: (terminal: {self.dendrite_set.terminal_shape}, population: {self.dendrite_set.population_shape})\n"+\
+                f"max_conn_no: {max_conn_no}, terminal_neuron_no: {torch.tensor(self.dendrite_set.terminal_shape).prod()})"
             self.filter = lambda x: x.\
                                     reshape(torch.tensor(self.axon_set.shape).prod(), -1).\
                                     gather(0, connectivity.argsort(axis=0, descending=True))\
-                                    [:max_conn_no].reshape(*self.dendrite_set.terminal_shape, self.dendrite_set.population_shape)
+                                    [:max_conn_no].reshape(*self.dendrite_set.terminal_shape, *self.dendrite_set.population_shape)
 
 
     def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
         e = self.axon_set.get_output()
         e = e.reshape((*self.axon_set.shape, *[1]*len(self.dendrite_set.population_shape)))
-        e *= self.connectivity
+        e = e * self.connectivity
         e *= mask
-        if filtering:
+        if self.filtering:
             e = self.filter(e)
         self.dendrite_set.forward(e)
 

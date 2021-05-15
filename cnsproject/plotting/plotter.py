@@ -14,7 +14,7 @@ class empty_cls:
     pass
 class empty_monitor:
     def __init__(self):
-        self.state_variables = []
+        self.variables = []
         self.obj = empty_cls()
     def get_time_info(self, time=None, dt=None):
         return None,None
@@ -79,12 +79,14 @@ class Plotter:
         ax.set_ylabel(y_label)
         ax.set_title(title)
 
-    def get_axis_data(self, z, data={}, monitor=None, repeat_till=None, default=None):
+    def get_axis_data(self, z, data=None, monitor=None, repeat_till=None, default=None, **args):
+        if data is None:
+            data = {}
         monitor = self.get_monitor(monitor)
         output = None
         if z in data:
             output = data[z]
-        elif z in monitor.state_variables:
+        elif z in monitor.variables:
             output = monitor.get(z).clone()
         else:
             output = default
@@ -96,19 +98,21 @@ class Plotter:
                 output = [next(dii)[z] for i in range(repeat_till)]
         return output
 
-    def get_data(self, y, x='time', data={}, monitor=None, repeat_till=None, t0=0, dt=None,
+    def get_data(self, y, x='time', monitor=None, t0=0, dt=None, repeat_till=None,
                 black_line=None, blue_line=None, red_line=None, **args):
         output = {}
-        output[y] = self.get_axis_data(z=y, data=data, monitor=monitor, repeat_till=repeat_till, default=None)
+        output[y] = self.get_axis_data(z=y, monitor=monitor, default=None, repeat_till=repeat_till, **args)
         dt = self.get_dt(dt, monitor)
-        output[x] = self.get_axis_data(z=x, data=data, monitor=monitor, repeat_till=repeat_till,
-                                    default=np.arange(t0,len(output[y])*dt, dt))
+        output[x] = self.get_axis_data(z=x, monitor=monitor, repeat_till=repeat_till,
+                                    default=np.arange(t0,len(output[y])*dt, dt), **args)
         for line in [black_line, blue_line, red_line]:
             if line!=None:
-                output[line] = self.get_axis_data(line, data, monitor, repeat_till=len(output[x]))
+                output[line] = self.get_axis_data(line, monitor=monitor, repeat_till=len(output[x]), **args)
         return output
 
-    def set_limits(self, ax, x_lim=None, y_lim=None, x=None, y=None, data={}):
+    def set_limits(self, ax, x_lim=None, y_lim=None, x=None, y=None, data=None):
+        if data is None:
+            data = {}
         if x_lim=='fit':
             x_lim = [min(data[x]), max(data[x])]
         if y_lim=='fit':
@@ -136,13 +140,14 @@ class Plotter:
 
 
     def plot(self, ax, additive=False, plot_type="plot",
-            y=None, x='time', data={}, monitor=None, dt:float=None, t0=0,
+            y=None, x='time', data=None, monitor=None, dt:float=None, t0=0,
             title=None, x_label=None, y_label=None, x_vis=True, y_vis=True,
             x_lim=None, y_lim=None, repeat_till=None,
             blue_line=None, black_line=None, red_line=None,
             blue_line_alpha=0.5, black_line_alpha=0.5, red_line_alpha=0.5,
             blue_line_label=None, black_line_label=None, red_line_label=None, **args):
-
+        if data is None:
+            data = {}
         monitor = self.get_monitor(monitor)
         dt = self.get_dt(dt, monitor)
         if y==None: y = str(ax)
@@ -203,18 +208,22 @@ class Plotter:
         else:
             self.plot(ax, y=y, monitor=monitor, y_label=y_label, x_label=x_label, x_lim='fit', color='red', **args)
 
-    def population_activity_raster(self, ax, y='s', y_label='spikes', start=0, t0=0, selection=None, s=1, **args):
+    def population_activity_raster(self, ax, y='s', y_label='spikes', start=0, t0=0, selection=None, s=1, x_lim=None, **args):
         data = self.get_data(y=y, t0=t0, **args)
         y = data[y]
         y = y[:,selection]
         y = y.reshape(y.shape[0], -1)
+        if x_lim is None:
+            x_lim = (0, y.shape[0])
         x,y = np.where(y)
         x += t0
         y += start
         ax = self.get_ax(ax)
-        self.plot(ax, data={'x':x, 'y':y}, x='x', y='y', plot_type="scatter", s=s, y_label=y_label, **args)
+        self.plot(ax, data={'x':x, 'y':y}, x='x', y='y', plot_type="scatter", s=s, y_label=y_label, x_lim=x_lim, **args)
 
-    def population_activity(self, ax, y='s', data={}, y_label='activity', selection=None, alpha=.3, **args):
+    def population_activity(self, ax, y='s', y_label='activity', selection=None, data=None, alpha=.3, **args):
+        if data is None:
+            data = {}
         data_y = self.get_data(y=y, data=data, **args)
         y = data_y[y]
         y = y[:,selection]
@@ -223,23 +232,32 @@ class Plotter:
         data[y] = y
         self.plot(ax, y=y, data=data, y_label=y_label, alpha=alpha, **args)
 
-    def population_plot(self, ax, y='population', data={}, population_alpha=0.01, color='b', alpha=1, additive=False,
-                        aggregation=lambda x: x.mean(axis=1), **args):
+    def population_plot(self, ax, y='population', population_alpha=None, color='b', alpha=1, additive=False,
+                        aggregation=lambda x: x.mean(axis=1), data=None, **args):
+        if data is None:
+            data = {}
         data = self.get_data(y=y, data=data, **args)
         if type(data[y])==type([]):
             data[y] = np.array(data[y])
         data['population'] = data[y].reshape(data[y].shape[0],-1)
         data['vector'] = aggregation(data['population'])
         self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
+        if population_alpha is None:
+            population_alpha = 1/data['population'].shape[1]
         self.plot(ax, y='population', additive=True, data=data, color=color, alpha=population_alpha)
 
-    def current_dynamic(self, ax, I=None, y='I', y_label='Current', data={}, x_label='time', **args):
-        if type(I)!=type(None):
+    def current_dynamic(self, ax, I=None, y='I', y_label='Current', data=None, x_lim='fit', x_label='time', **args):
+        if data is None:
+            data = {}
+        if I is not None:
             data[y] = I
-        self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim='fit', y_label=y_label, **args)
+        self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label, **args)
 
     def imshow(self, ax, im, title='', aspect='auto', **args):
         ax = self.get_ax(ax)
         ax.imshow(im, aspect=aspect, **args)
         ax.set_title(title)
         self.set_axes_visibility(ax, x_vis=False, y_vis=False)
+
+    def spike_response_function(self, ax, y='e', y_label='Spike Response', x_lim='fit', **args):
+        self.population_plot(ax, y=y, y_label=y_label, x_lim=x_lim, **args)
