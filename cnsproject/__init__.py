@@ -4,9 +4,8 @@ from . import (
     utils,
     network,
     # learning,
-    encoding,
     decision,
-    plotting,
+    monitors,
 )
 
 ROOT_DIR = Path(__file__).parents[0].parents[0]
