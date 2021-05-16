@@ -253,6 +253,14 @@ class Plotter:
             data[y] = I
         self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label, **args)
 
+    def dendrite_current(self, ax, I=None, y='I', y_label='Dendrite Current', data=None, x_lim='fit', x_label='time', **args):
+        if data is None:
+            data = {}
+        if I is not None:
+            data[y] = I
+        self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label,
+            aggregation=lambda x: x.sum(axis=1), **args)
+
     def imshow(self, ax, im, title='', aspect='auto', **args):
         ax = self.get_ax(ax)
         ax.imshow(im, aspect=aspect, **args)

@@ -10,130 +10,182 @@ from torch.distributions import Normal
 
 import torch
 
+from .neural_populations import NeuralPopulation
 
-class AbstractEncoder(torch.nn.Module):
-    """
-    Base class for implementing neural populations.
-
-    Make sure to implement the abstract methods in your child class. Note that this template\
-    will give you homogeneous neural populations in terms of excitations and inhibitions. You\
-    can modify this by removing `is_inhibitory` and adding another attribute which defines the\
-    percentage of inhibitory/excitatory neurons or use a boolean tensor with the same shape as\
-    the population, defining which neurons are inhibitory.
-
-    Arguments
-    ---------
-    shape : Iterable of int
-        Define the topology of neurons in the population.
-    spike_trace : bool, Optional
-        Specify whether to record spike traces. The default is True.
-    additive_spike_trace : bool, Optional
-        Specify whether to record spike traces additively. The default is True.
-    tau_s : float or torch.Tensor, Optional
-        Time constant of spike trace decay. The default is 15.0.
-    trace_scale : float or torch.Tensor, Optional
-        The scaling factor of spike traces. The default is 1.0.
-    is_inhibitory : False, Optional
-        Whether the neurons are inhibitory or excitatory. The default is False.
-    learning : bool, Optional
-        Define the training mode. The default is True.
-
-    """
-
+class AbstractEncoder(NeuralPopulation):
     def __init__(
         self,
         input_shape: Iterable[int],
         output_shape: Iterable[int],
         min_input: Union[float, torch.Tensor] = 0.,
         max_input: Union[float, torch.Tensor] = 1.,
-        length: int = None,
-        is_excitatory: Union[bool, torch.Tensor] = True,
         **kwargs
     ) -> None:
-        super().__init__()
+        super().__init__(output_shape, **kwargs)
 
         self.input_shape = input_shape
         self.output_shape = output_shape
-        self.length = length
         self.register_buffer("min", torch.tensor(min_input))
         self.register_buffer("max", torch.tensor(max_input))
-        self.register_buffer("stage", torch.zeros(*self.input_shape, dtype=torch.bool))
         self.register_buffer("s", torch.zeros(*self.output_shape, dtype=torch.bool))
-        self.register_buffer("is_excitatory", torch.tensor(is_excitatory))
+
 
     @abstractmethod
-    def forward(self) -> None:
-        """
-        Compute the encoded tensor of the given data.
+    def forward(self,
+            direct_input: torch.Tensor = torch.tensor(False),
+            clamps: torch.Tensor = torch.tensor(False),
+            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+        self.compute_spike(direct_input)
+        self.s *= ~unclamps
+        self.s += clamps
+        for axon_set in self.axon_sets.values():
+            axon_set.forward(self.s)
 
-        Parameters
-        ----------
-        data : torch.Tensor
-            The data tensor to encode.
 
-        Returns
-        -------
-        None
-            Set self.s.
-
-        """
+    @abstractmethod
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
         pass
+        
+
+    @abstractmethod
+    def scale_input(self, data:torch.Tensor) -> torch.Tensor:
+        return (data-self.min)/(self.max-self.min)
+
 
     @abstractmethod
     def encode(self, data: torch.Tensor) -> None:
-        """
-        Returns
-        -------
-        None
-        """
-
-        self.stage = (data-self.min)/(self.max-self.min)
+        pass
 
 
     @abstractmethod
     def reset(self) -> None:
-        """
-        Refractor and reset the neurons.
-
-        Returns
-        -------
-        None
-
-        """
         self.s.zero_()
 
 
-class Time2FirstSpikeEncoder(AbstractEncoder):
-    """
-    Time-to-First-Spike coding.
 
-    Implement Time-to-First-Spike coding.
-    """
 
+class LazyEncoder(AbstractEncoder):
     def __init__(
         self,
         shape: Iterable[int],
         **kwargs
     ) -> None:
         super().__init__(
-            input_shape=shape,
+            input_shape=(),
             output_shape=shape,
+            **kwargs)
+
+
+    @abstractmethod
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+        self.s = direct_input.type(torch.bool).reshape(self.output_shape)
+
+
+
+
+class AlwaysOnEncoder(LazyEncoder):
+    def __init__(self, shape, **args):
+        super().__init__(shape, **args)
+
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+        self.s = torch.ones(self.output_shape).type(torch.bool)
+
+
+
+
+class AlwaysOffEncoder(LazyEncoder):
+    def __init__(self, shape, **args):
+        super().__init__(shape, **args)
+
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+        self.s = torch.zeros(self.output_shape).type(torch.bool)
+
+
+
+
+class TemporaryEncoder(AbstractEncoder):
+    def __init__(
+        self,
+        input_shape: Iterable[int],
+        output_shape: Iterable[int],
+        time: float,
+        dt: float = None,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            input_shape=input_shape,
+            output_shape=output_shape,
+            dt = None,
             **kwargs
         )
-        self.t = 0
+        self.time = time
+        self.step = 0
+        self.set_dt(dt)
 
-    def forward(self) -> None:
-        self.s = (self.stage==(self.length-self.t))
-        self.t += 1
+
+    def set_dt(self, dt:float):
+        super().set_dt(dt)
+        if self.dt is not None:
+            self.length = self.time//self.dt
+
+
+    def forward(self,
+            direct_input: torch.Tensor = torch.tensor(False),
+            clamps: torch.Tensor = torch.tensor(False),
+            unclamps: torch.Tensor = torch.tensor(False)):
+        assert self.step<self.length, "There is no more encoded information in encoder."
+        super().forward(
+            direct_input = torch.tensor(False),
+            clamps = torch.tensor(False),
+            unclamps = torch.tensor(False))
+        self.step += 1
+
 
     def encode(self, data: torch.Tensor) -> None:
-        super().encode(data)
-        self.stage *= self.length
-        self.stage = self.stage.round()
+        self.step = 0
+
 
     def reset(self) -> None:
-        self.t = 0
+        self.step = 0
         super().reset()
+
+
+
+
+class Time2FirstSpikeEncoder(TemporaryEncoder):
+    """
+    Time-to-First-Spike coding.
+    """
+
+    def __init__(
+        self,
+        shape: Iterable[int],
+        time: float,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            input_shape=shape,
+            output_shape=shape,
+            time = time,
+            **kwargs
+        )
+
+
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+        self.s = (self.stage==(self.length-self.step))
+
+
+    def encode(self, data: torch.Tensor) -> None:
+        self.stage = self.scale_input(data)
+        self.stage *= self.length
+        self.stage = self.stage.round()
+        super().encode(data)
+
+
+    def reset(self) -> None:
+        self.stage.zero_()
+        super().reset()
+
 
     def decode(self, data: torch.Tensor) -> torch.Tensor:
         d = data.reshape(self.length,-1)
@@ -146,16 +198,17 @@ class Time2FirstSpikeEncoder(AbstractEncoder):
         return d.reshape(self.input_shape)
 
 
-class PositionEncoder(AbstractEncoder):
+
+
+class PositionEncoder(TemporaryEncoder):
     """
     Poisson coding.
-
-    Implement Poisson coding.
     """
 
     def __init__(
         self,
         shape: Iterable[int],
+        time: float,
         k: int = None, # resolution
         mean: Union[float, torch.Tensor] = None,
         std: Union[float, torch.Tensor] = None,
@@ -165,6 +218,7 @@ class PositionEncoder(AbstractEncoder):
         super().__init__(
             input_shape=shape,
             output_shape=(*shape,k),
+            time = time,
             **kwargs
         )
         self.k = k
@@ -172,14 +226,14 @@ class PositionEncoder(AbstractEncoder):
             mean = torch.linspace(self.min, self.max, self.k)
         self.register_buffer("mean", torch.tensor(mean))
         if std is None:
-            std = ((self.max-self.min)/(self.k-1))/3
+            std = ((self.max-self.min)/(self.k-1))/2
         self.register_buffer("std", torch.tensor(std))
         self.register_buffer("ignore_threshold", torch.tensor(ignore_threshold))
-        self.t = 0
 
-    def forward(self) -> None:
-        self.s = (self.stage==(self.length-self.t))
-        self.t += 1
+
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+        self.s = (self.stage==(self.length-self.step))
+
 
     def encode(self, data: torch.Tensor) -> None:
         normal = Normal(self.mean, self.std)
@@ -189,10 +243,13 @@ class PositionEncoder(AbstractEncoder):
         self.stage *= self.length
         self.stage = self.stage.round()
 
+
     def reset(self) -> None:
+        self.stage.zero_()
         super().reset()
 
-    def decode(self, data: torch.Tensor) -> torch.Tensor:
+
+    def decode(self, data: torch.Tensor) -> torch.Tensor: # is buggy
         d = data.reshape(self.length,-1)
         times,neurons = torch.where(d)
         spike_times = torch.cat([neurons.reshape(*neurons.shape,1),times.reshape(*times.shape,1)], dim=1)
@@ -218,17 +275,17 @@ class PositionEncoder(AbstractEncoder):
         d = d.reshape(self.input_shape)
         return d
 
+
+
+
 class PoissonEncoder(AbstractEncoder):
     """
     Poisson coding.
-
-    Implement Poisson coding.
     """
-
     def __init__(
         self,
         shape: Iterable[int],
-        max_rate: Union[int, torch.Tensor] = None,
+        rate: Union[int, torch.Tensor] = None,
         **kwargs
     ) -> None:
         super().__init__(
@@ -236,19 +293,22 @@ class PoissonEncoder(AbstractEncoder):
             output_shape=shape,
             **kwargs
         )
-        if max_rate is None:
-            max_rate = self.length
-        self.register_buffer("max_rate", torch.tensor(max_rate))
+        self.register_buffer("rate", torch.tensor(rate))
 
-    def forward(self) -> None:
+
+    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
         self.s = torch.bernoulli(self.stage).type(torch.bool)
 
+
     def encode(self, data: torch.Tensor) -> None:
-        super().encode(data)
-        self.stage *= self.max_rate/self.length
+        self.stage = self.scale_input(data)
+        self.stage *= self.rate
+
 
     def reset(self) -> None:
+        self.stage.zero_()
         super().reset()
 
+
     def decode(self, data: torch.Tensor) -> torch.Tensor:
-        return data.sum(axis=0).reshape(self.input_shape)
+        return data.float().mean(axis=0).reshape(self.input_shape) * (self.max-self.min) + self.min

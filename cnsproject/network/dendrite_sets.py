@@ -26,11 +26,11 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
         self.shape = (*self.terminal_shape,*self.population_shape)
         self.register_buffer("wmin", torch.tensor(wmin))
         self.register_buffer("wmax", torch.tensor(wmax))
-        self.register_buffer("I", torch.zeros(*self.population_shape)) #mA
+        self.register_buffer("I", torch.zeros(*self.shape)) #mA
         self.set_dt(dt)
 
 
-    def add_population_shape(self, tensor: torch.Tensor):
+    def to_singlton_population_shape(self, tensor: torch.Tensor):
         if tensor.numel()==1 or tensor.shape==self.shape:
             return tensor
         else:
@@ -46,12 +46,18 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
         pass
 
 
+    @abstractmethod
+    def backward(self, s: torch.Tensor) -> None: # population spike in shape(self.population_shape)
+        pass
+
+
     def reset(self) -> None:
         self.I.zero_()
 
 
-    def get_output(self): # in shape *self.population_shape
-        return self.I
+    @abstractmethod
+    def get_output(self) -> torch.Tensor: # in shape *self.population_shape
+        pass
 
     # @abstractmethod
     # def update(self, **kwargs) -> None:
@@ -101,12 +107,20 @@ class SimpleDendriteSet(AbstractDendriteSet):
         self.w[self.w<self.wmin] = self.wmin
         self.w[self.w>self.wmax] = self.wmax
 
-    def forward(self, e: torch.Tensor) -> None:
-        self.I = self.add_population_shape(e) * self.w
-        self.I = self.I.sum(axis=list(range(len(self.terminal_shape))))
+
+    def forward(self, e: torch.Tensor) -> None: #doesn't replace nan values
+        e_singleton = self.to_singlton_population_shape(e)
+        I = e_singleton * self.w
+        I[e.isnan()] = 0
+        self.I = self.I*e_singleton.isnan() + I
 
 
+    def backward(self, s: torch.Tensor) -> None:
+        self.s = s
 
+
+    def get_output(self) -> torch.Tensor:
+        return self.I.sum(axis=list(range(len(self.terminal_shape))))
 
 
 # class ConvolutionalConnection(AbstractConnection):

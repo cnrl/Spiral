@@ -67,25 +67,25 @@ class NeuralPopulation(torch.nn.Module):
         self.s += clamps
         for axon_set in self.axon_sets.values():
             axon_set.forward(self.s)
+        for dendrite_set in self.dendrite_sets.values():
+            dendrite_set.backward(self.s)
 
 
     @abstractmethod
     def compute_potential(self, I: torch.Tensor) -> None:
         pass
 
+
     @abstractmethod
     def compute_spike(self) -> None:
         pass
+
 
     @abstractmethod
     def reset(self) -> None:
         self.s.zero_()
         for axon_set in self.axon_sets.values():
             axon_set.reset()
-
-    @abstractmethod
-    def get_output(self) -> None:
-        return self.s.clone()
 
 
     # def train(self, mode: bool = True) -> "NeuralPopulation":
@@ -107,65 +107,6 @@ class NeuralPopulation(torch.nn.Module):
     #     return super().train(mode)
 
 
-# class InputPopulation(NeuralPopulation):
-#     """
-#     Neural population for user-defined spike pattern.
-
-#     This class is implemented for future usage. Extend it if needed.
-
-#     Arguments
-#     ---------
-#     shape : Iterable of int
-#         Define the topology of neurons in the population.
-#     spike_trace : bool, Optional
-#         Specify whether to record spike traces. The default is True.
-#     additive_spike_trace : bool, Optional
-#         Specify whether to record spike traces additively. The default is True.
-#     tau_s : float or torch.Tensor, Optional
-#         Time constant of spike trace decay. The default is 15.0.
-#     trace_scale : float or torch.Tensor, Optional
-#         The scaling factor of spike traces. The default is 1.0.
-#     learning : bool, Optional
-#         Define the training mode. The default is True.
-
-#     """
-
-#     def __init__(
-#         self,
-#         **kwargs
-#     ) -> None:
-#         super().__init__(
-#             **kwargs
-#         )
-
-#     def forward(self, s: torch.Tensor) -> None:
-#         """
-#         Simulate the neural population for a single step.
-
-#         Parameters
-#         ----------
-#         traces : torch.Tensor
-#             Input spike trace.
-
-#         Returns
-#         -------
-#         None
-
-#         """
-#         self.s = s
-
-#         super().forward(s)
-
-#     def reset(self) -> None:
-#         """
-#         Reset all internal state variables.
-
-#         Returns
-#         -------
-#         None
-
-#         """
-#         super().reset()
 
 
 class LIFPopulation(NeuralPopulation):

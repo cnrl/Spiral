@@ -212,8 +212,8 @@ class Network(torch.nn.Module):
         for population in self.populations.values():
             population.reset()
 
-        for _,connection,_ in self.connections.values():
-            connection.reset()
+        for synapse in self.synapses.values():
+            synapse.reset()
 
     # def train(self, mode: bool = True) -> "torch.nn.Moudle":
     #     """

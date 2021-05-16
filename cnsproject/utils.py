@@ -15,6 +15,10 @@ class DII: #Dictionary Items Iterator
             output[k] = v
         return output
 
+class SliceMaker(object):
+    def __getitem__(self, item):
+        return item
+
 def step_function(length, step_index, val0=0, val1=1):
     u = torch.zeros(length) + val0
     u[step_index:] += val1

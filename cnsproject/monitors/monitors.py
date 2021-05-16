@@ -151,7 +151,7 @@ class Monitor:
         monitors = [self]+attendance
         if reset:
             for m in monitors:
-                m.reset
+                m.reset()
         for m in monitors:
             m.record()
         for _ in torch.arange(0, time, dt):
