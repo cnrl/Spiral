@@ -160,15 +160,15 @@ class STDP(AbstractWeightLR):
 
     def compute_dw(self) -> torch.Tensor:
         ltp_lr,ltd_lr = compute_lrs()
-        ltp = ltp_lr * self.pre_traces.traces() * self.synapse_set.dendrite_set.s
-        ltd = ltd_lr * self.post_traces.traces() * self.synapse_set.axon_set.s
+        ltp = ltp_lr * self.pre_traces.traces() * self.synapse_set.dendrite_set.spikes()
+        ltd = ltd_lr * self.post_traces.traces() * self.synapse_set.axon_set.spikes()
         dw = self.dt * (ltp - ltd)
         return dw
 
 
     def forward(self, neuromodulators: torch.Tensor = None) -> None:
-        self.pre_traces.forward(self.synapse_set.axon_set.s)
-        self.pre_traces.forward(self.synapse_set.dendrite_set.s)
+        self.pre_traces.forward(self.synapse_set.axon_set.spikes())
+        self.pre_traces.forward(self.synapse_set.dendrite_set.spikes())
         super().forward(neuromodulators=neuromodulators)
 
 

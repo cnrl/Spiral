@@ -37,11 +37,6 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
         pass
 
 
-    @abstractmethod
-    def backward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
-        pass
-
-
     def reset(self) -> None:
         self.dendrite_set.reset()
 
@@ -80,11 +75,6 @@ class SimpleSynapseSet(AbstractSynapseSet):
         e = e * self.connectivity
         e *= mask
         self.dendrite_set.forward(e)
-
-
-    @abstractmethod
-    def backward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
-        pass
 
 
 
