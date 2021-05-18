@@ -2,7 +2,7 @@
 Module for SpikeTraces.
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Union, Iterable
 
 import numpy as np
@@ -35,17 +35,14 @@ class AbstractSpikeTrace(ABC, torch.nn.Module):
         self.dt = torch.tensor(dt) if dt is not None else dt
 
     
-    @abstractmethod
     def forward(self, s: torch.Tensor) -> None: #s: spikes
         pass
 
 
-    @abstractmethod
     def traces(self) -> torch.Tensor:
         return self.tr
 
 
-    @abstractmethod
     def reset(self) -> None:
         self.traces.zero_()
 
@@ -62,17 +59,14 @@ class SimpleSpikeTrace(AbstractSpikeTrace):
         self.register_buffer("scale", torch.tensor(scale))
 
 
-    @abstractmethod
     def forward(self, s: torch.Tensor) -> None: #s: spikes
         self.tr += self.flip_traces(s) - self.decay_traces(s)
 
 
-    @abstractmethod
     def flip_traces(self, s: torch.Tensor) -> torch.Tensor: #s: spikes
         return s * self.scale
 
 
-    @abstractmethod
     def decay_traces(self, s: torch.Tensor) -> torch.Tensor: #s: spikes
         return self.tr
 

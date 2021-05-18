@@ -117,9 +117,9 @@ class Plotter:
             x_lim = [min(data[x]), max(data[x])]
         if y_lim=='fit':
             y_lim = [min(data[y]), max(data[y])]
-        if type(x_lim)!=type(None):
+        if x_lim is not None:
             ax.set_xlim(x_lim)
-        if type(y_lim)!=type(None):
+        if y_lim is not None:
             ax.set_ylim(y_lim)
 
     def set_axes_visibility(self, ax, x_vis=True, y_vis=True):
@@ -240,11 +240,12 @@ class Plotter:
         if type(data[y])==type([]):
             data[y] = np.array(data[y])
         data['population'] = data[y].reshape(data[y].shape[0],-1)
-        data['vector'] = aggregation(data['population'])
-        self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
+        if aggregation is not None:
+            data['vector'] = aggregation(data['population'])
+            self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
         if population_alpha is None:
             population_alpha = 1/data['population'].shape[1]
-        self.plot(ax, y='population', additive=True, data=data, color=color, alpha=population_alpha)
+        self.plot(ax, y='population', additive=(aggregation is not None), data=data, color=color, alpha=population_alpha)
 
     def current_dynamic(self, ax, I=None, y='I', y_label='Current', data=None, x_lim='fit', x_label='time', **args):
         if data is None:
@@ -261,11 +262,17 @@ class Plotter:
         self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label,
             aggregation=lambda x: x.sum(axis=1), **args)
 
-    def imshow(self, ax, im, title='', aspect='auto', **args):
+    def imshow(self, ax, im, aspect='auto', additive=False,
+            title='', x_label=None, y_label=None,
+            x_vis=True, y_vis=True, x_lim=None, y_lim=None, **args):
         ax = self.get_ax(ax)
         ax.imshow(im, aspect=aspect, **args)
         ax.set_title(title)
         self.set_axes_visibility(ax, x_vis=False, y_vis=False)
+        if not additive:
+            self.set_labels(ax, x_label, y_label, title)
+            self.set_limits(ax, x_lim, y_lim)
+            self.set_axes_visibility(ax, x_vis, y_vis)
 
     def spike_response_function(self, ax, y='e', y_label='Spike Response', x_lim='fit', **args):
         self.population_plot(ax, y=y, y_label=y_label, x_lim=x_lim, **args)

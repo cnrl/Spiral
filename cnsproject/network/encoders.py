@@ -180,7 +180,7 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
 
 
     def reset(self) -> None:
-        self.stage.zero_()
+        if hasattr(self, 'stage'): del self.stage
         super().reset()
 
 
@@ -242,7 +242,7 @@ class PositionEncoder(TemporaryEncoder):
 
 
     def reset(self) -> None:
-        self.stage.zero_()
+        if hasattr(self, 'stage'): del self.stage
         super().reset()
 
 
@@ -282,7 +282,7 @@ class PoissonEncoder(AbstractEncoder):
     def __init__(
         self,
         shape: Iterable[int],
-        rate: Union[int, torch.Tensor] = None,
+        rate: Union[int, torch.Tensor] = 1.,
         **kwargs
     ) -> None:
         super().__init__(
@@ -290,6 +290,7 @@ class PoissonEncoder(AbstractEncoder):
             output_shape=shape,
             **kwargs
         )
+        self.register_buffer("rate", torch.tensor(rate))
         self.register_buffer("rate", torch.tensor(rate))
 
 
@@ -303,7 +304,7 @@ class PoissonEncoder(AbstractEncoder):
 
 
     def reset(self) -> None:
-        self.stage.zero_()
+        if hasattr(self, 'stage'): del self.stage
         super().reset()
 
 

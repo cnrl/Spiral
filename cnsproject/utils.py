@@ -1,4 +1,5 @@
 import torch
+from functools import wraps
 
 class DII: #Dictionary Items Iterator
     def __init__(self, dictionary):

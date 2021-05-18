@@ -38,7 +38,7 @@ class AbstractAxonSet(ABC, torch.nn.Module):
 
     @abstractmethod
     def forward(self, spikes: torch.Tensor) -> None: #s: spike in shape *self.population_shape
-        self.spikes
+        self.s = spikes
 
 
     @abstractmethod
@@ -52,7 +52,7 @@ class AbstractAxonSet(ABC, torch.nn.Module):
 
 
     def spikes(self) -> torch.Tensor: # in shape (*self.population_shape)
-        return self.spikes
+        return self.s
 
 
 
@@ -84,7 +84,7 @@ class SimpleAxonSet(AbstractAxonSet):
         self.update_spike_history(spikes)
         s = self.get_delayed_spikes().clone()
         self.compute_response(s)
-        self.spikes = self.spike_history[0]
+        self.s = self.spike_history[0]
         self.minimize_spike_history()
 
 

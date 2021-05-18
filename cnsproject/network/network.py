@@ -10,6 +10,7 @@ from .neural_populations import AbstractNeuralPopulation
 from .synapse_sets import AbstractSynapseSet
 # from ..learning.rewards import AbstractReward
 from ..decision.decision import AbstractDecision
+from ..learning.learning_rulers import AbstractLearningRuler
 
 
 class Network(torch.nn.Module):
@@ -63,7 +64,7 @@ class Network(torch.nn.Module):
     def __init__(
         self,
         dt: float = 1.0,
-        # learning: bool = True,
+        learning: bool = True,
         # reward: Optional[AbstractReward] = None,
         # decision: Optional[AbstractDecision] = None,
         **kwargs
@@ -74,8 +75,9 @@ class Network(torch.nn.Module):
 
         self.populations = {}
         self.synapses = {}
+        self.learners = {}
 
-        # self.train(learning)
+        self.train(learning)
 
         # Make sure that arguments of your reward and decision classes do not
         # share same names. Their arguments are passed to the network as its
@@ -84,6 +86,26 @@ class Network(torch.nn.Module):
         #     self.reward = reward(**kwargs)
         # if decision is not None:
         #     self.decision = decision(**kwargs)
+
+
+    def train(self, mode: bool = True) -> "torch.nn.Moudle":
+        """
+        Set the population's training mode.
+
+        Parameters
+        ----------
+        mode : bool, optional
+            Mode of training. `True` turns on the training while `False` turns\
+            it off. The default is True.
+
+        Returns
+        -------
+        torch.nn.Module
+
+        """
+        self.learning = mode
+        return super().train(mode)
+
 
     def add_population(self, population: AbstractNeuralPopulation, name: str) -> None:
         """
@@ -103,9 +125,8 @@ class Network(torch.nn.Module):
         """
         self.populations[name] = population
         self.add_module(name, population)
-
-        # population.train(self.learning)
         population.set_dt(self.dt)
+
 
     def add_synapse(
         self,
@@ -132,9 +153,18 @@ class Network(torch.nn.Module):
         """
         self.synapses[name] = synapse
         self.add_module(name, synapse)
-
-        # connection.train(self.learning)
         synapse.set_dt(self.dt)
+
+
+    def add_LR(
+        self,
+        learner: AbstractLearningRuler,
+        name: str,
+    ) -> None:
+        self.learners[name] = learner
+        self.add_module(name, learner)
+        learner.set_dt(self.dt)
+
 
     def forward(
         self,
@@ -199,6 +229,32 @@ class Network(torch.nn.Module):
             unclamp = kwargs.get(name+"_unclamp", torch.tensor(False))
             population.forward(direct_input=direct_input, clamps=clamp, unclamps=unclamp)
 
+        if self.learning:
+            for name,population in self.populations.items():
+                population.backward()
+
+            for name,learner in self.learners.items():
+                learner.forward()
+
+
+    def encode(self, data: dict) -> None:
+        for key,value in data.items():
+            self.populations[key].encode(value)
+
+
+    def backward(
+        self,
+        **kwargs
+    ) -> None:
+        for name,learner in self.learners.items():
+            learner.backward()
+
+
+    def run(self, **kwargs):
+        self.forward(**kwargs)
+        if self.learning:
+            self.backward(**kwargs)
+
 
     def reset(self) -> None:
         """
@@ -214,21 +270,3 @@ class Network(torch.nn.Module):
 
         for synapse in self.synapses.values():
             synapse.reset()
-
-    # def train(self, mode: bool = True) -> "torch.nn.Moudle":
-    #     """
-    #     Set the population's training mode.
-
-    #     Parameters
-    #     ----------
-    #     mode : bool, optional
-    #         Mode of training. `True` turns on the training while `False` turns\
-    #         it off. The default is True.
-
-    #     Returns
-    #     -------
-    #     torch.nn.Module
-
-    #     """
-    #     self.learning = mode
-    #     return super().train(mode)

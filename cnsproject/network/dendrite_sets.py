@@ -45,7 +45,7 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
 
 
     def backward(self, spikes: torch.Tensor) -> None: # population spike in shape(self.population_shape)
-        self.spikes = spikes
+        self.s = spikes
 
 
     def reset(self) -> None:
@@ -58,7 +58,7 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
 
 
     def spikes(self) -> torch.Tensor: # in shape (*self.population_shape)
-        return self.spikes
+        return self.s
 
 
 
