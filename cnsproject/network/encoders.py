@@ -2,17 +2,14 @@
 Module for neuronal dynamics and populations.
 """
 
-from functools import reduce
 from abc import abstractmethod
-from operator import mul
 from typing import Union, Iterable
 from torch.distributions import Normal
-
 import torch
+from .neural_populations import AbstractNeuralPopulation
 
-from .neural_populations import NeuralPopulation
 
-class AbstractEncoder(NeuralPopulation):
+class AbstractEncoder(AbstractNeuralPopulation):
     def __init__(
         self,
         input_shape: Iterable[int],

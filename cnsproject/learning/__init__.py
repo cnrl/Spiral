@@ -1,4 +1,4 @@
 from . import (
-    learning_rules,
+    learning_rulers,
     rewards,
 )

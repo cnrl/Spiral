@@ -2,29 +2,23 @@
 Module for neuronal dynamics and populations.
 """
 
-from functools import reduce
 from abc import abstractmethod
-from operator import mul
 from typing import Union, Iterable
-
 import torch
-
 from .axon_sets import AbstractAxonSet
 from .dendrite_sets import AbstractDendriteSet
 
 
-class NeuralPopulation(torch.nn.Module):
+class AbstractNeuralPopulation(torch.nn.Module):
     def __init__(
         self,
         shape: Iterable[int],
-        # learning: bool = True,
         dt: float = None,
         **kwargs
     ) -> None:
         super().__init__()
 
         self.shape = shape
-        self.n = reduce(mul, self.shape)
         self.register_buffer("s", torch.zeros(*self.shape, dtype=torch.bool))
         self.axon_sets = {}
         self.dendrite_sets = {}
@@ -52,7 +46,7 @@ class NeuralPopulation(torch.nn.Module):
         I = self.s * 0.
         I += direct_input
         for dendrite_set in self.dendrite_sets.values():
-            I += dendrite_set.get_output()
+            I += dendrite_set.currents()
         return I
 
 
@@ -62,13 +56,17 @@ class NeuralPopulation(torch.nn.Module):
             clamps: torch.Tensor = torch.tensor(False),
             unclamps: torch.Tensor = torch.tensor(False)) -> None:
         self.compute_potential(self.collect_I(direct_input))
-        self.compute_spike()
-        self.s *= ~unclamps
-        self.s += clamps
+        self.compute_spike(clamps=clamps, unclamps=unclamps)
+        spikes = self.spikes()
         for axon_set in self.axon_sets.values():
-            axon_set.forward(self.s)
+            axon_set.forward(spikes)
+
+
+    @abstractmethod
+    def backward(self) -> None:
+        spikes = self.spikes()
         for dendrite_set in self.dendrite_sets.values():
-            dendrite_set.backward(self.s)
+            dendrite_set.backward(spikes)
 
 
     @abstractmethod
@@ -77,8 +75,10 @@ class NeuralPopulation(torch.nn.Module):
 
 
     @abstractmethod
-    def compute_spike(self) -> None:
-        pass
+    def compute_spike(self,
+            clamps: torch.Tensor = torch.tensor(False),
+            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+        self.s =  ((self.s * ~unclamps) + clamps)
 
 
     @abstractmethod
@@ -88,28 +88,14 @@ class NeuralPopulation(torch.nn.Module):
             axon_set.reset()
 
 
-    # def train(self, mode: bool = True) -> "NeuralPopulation":
-    #     """
-    #     Set the population's training mode.
-
-    #     Parameters
-    #     ----------
-    #     mode : bool, optional
-    #         Mode of training. `True` turns on the training while `False` turns\
-    #         it off. The default is True.
-
-    #     Returns
-    #     -------
-    #     NeuralPopulation
-
-    #     """
-    #     self.learning = mode
-    #     return super().train(mode)
+    @abstractmethod
+    def spikes(self) -> torch.Tensor:
+        return self.s
 
 
 
 
-class LIFPopulation(NeuralPopulation):
+class LIFPopulation(AbstractNeuralPopulation):
     def __init__(
         self,
         shape: Iterable[int],
@@ -133,13 +119,14 @@ class LIFPopulation(NeuralPopulation):
 
 
     def compute_potential(self, I: torch.Tensor) -> None:
+        self.u *= ~self.s
+        self.u += self.s*self.u_rest
         self.u -= self.dt/self.tau * ((self.u-self.u_rest) - self.R*I)
 
 
-    def compute_spike(self) -> None:
+    def compute_spike(self, **args) -> None:
         self.s = (self.u > self.spike_threshold)
-        self.u *= ~self.s
-        self.u += self.s*self.u_rest
+        super().compute_spike(**args)
 
 
     def reset(self) -> None:
@@ -169,8 +156,8 @@ class ELIFPopulation(LIFPopulation):
 
 
     def compute_potential(self, I: torch.Tensor) -> None:
-        firing_term = self.sharpness*torch.exp((self.u-self.firing_threshold)/self.sharpness)
         super().compute_potential(I)
+        firing_term = self.sharpness*torch.exp((self.u-self.firing_threshold)/self.sharpness)
         self.u += self.dt/self.tau * firing_term
 
 

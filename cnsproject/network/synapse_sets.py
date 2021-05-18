@@ -4,9 +4,7 @@ Module for connections between neural populations.
 
 from abc import ABC, abstractmethod
 from typing import Union, Sequence, Iterable
-
 import torch
-
 from .connectivity_patterns import dense_connectivity
 from .axon_sets import AbstractAxonSet
 from .dendrite_sets import AbstractDendriteSet
@@ -35,8 +33,14 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
 
 
     @abstractmethod
-    def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None: #s: spike
+    def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
         pass
+
+
+    @abstractmethod
+    def backward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
+        pass
+
 
     def reset(self) -> None:
         self.dendrite_set.reset()
@@ -70,13 +74,17 @@ class SimpleSynapseSet(AbstractSynapseSet):
         self.register_buffer("connectivity", connectivity)
 
 
-
     def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
-        e = self.axon_set.get_output()
+        e = self.axon_set.neurotransmitters()
         e = e.reshape((*self.axon_set.shape, *[1]*len(self.dendrite_set.population_shape)))
         e = e * self.connectivity
         e *= mask
         self.dendrite_set.forward(e)
+
+
+    @abstractmethod
+    def backward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
+        pass
 
 
 
@@ -126,8 +134,9 @@ class FilterSynapseSet(AbstractSynapseSet):
         passage_shape = torch.zeros(source_shape)[passage].shape
         return passage,passage_shape
 
+
     def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
-        e = self.axon_set.get_output()
+        e = self.axon_set.neurotransmitters()
         e = e[self.axon_passage]
         e = e.reshape((*self.axon_passage_shape, *[1]*len(self.dendrite_set.population_shape)))
         e = e * self.connectivity
@@ -136,6 +145,8 @@ class FilterSynapseSet(AbstractSynapseSet):
         out_e[self.dendrite_terminal_passage] = e
         out_e *= mask
         self.dendrite_set.forward(out_e)
+
+
 
 
 # class ConvolutionalConnection(AbstractConnection):

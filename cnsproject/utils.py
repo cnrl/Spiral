@@ -19,6 +19,32 @@ class SliceMaker(object):
     def __getitem__(self, item):
         return item
 
+class Container:
+    def __init__(self, dictionary):
+        self.__dict__ = dictionary
+
+class Serializer:
+    def __init__(self, objs):
+        self.objs = objs
+        for name in [method_name
+                     for method_name
+                     in dir(objs[0])
+                     if callable(getattr(objs[0], method_name))
+                     and method_name[0]!='_']:
+            setattr(self, name, self.serialize_function(name))
+            
+    def serialize_function(self, func):
+        @wraps(func)
+        def wrapper(*args, **kw):
+            return [getattr(obj, func)(*args, **kw) for obj in self.objs]
+        return wrapper
+            
+    def __add__(self, other):
+        if type(other) is Serializer:
+            return Serializer(self.objs+other.objs)
+        else:
+            return Serializer(self.objs+[other])
+        
 def step_function(length, step_index, val0=0, val1=1):
     u = torch.zeros(length) + val0
     u[step_index:] += val1

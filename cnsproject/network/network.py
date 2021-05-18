@@ -6,11 +6,11 @@ from typing import Optional, Dict
 
 import torch
 
-from .neural_populations import NeuralPopulation
+from .neural_populations import AbstractNeuralPopulation
 from .synapse_sets import AbstractSynapseSet
 # from ..learning.rewards import AbstractReward
 from ..decision.decision import AbstractDecision
-from collections import defaultdict
+
 
 class Network(torch.nn.Module):
     """
@@ -85,7 +85,7 @@ class Network(torch.nn.Module):
         # if decision is not None:
         #     self.decision = decision(**kwargs)
 
-    def add_population(self, population: NeuralPopulation, name: str) -> None:
+    def add_population(self, population: AbstractNeuralPopulation, name: str) -> None:
         """
         Add a neural population to the network.
 

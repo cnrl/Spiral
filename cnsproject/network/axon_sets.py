@@ -2,9 +2,8 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Union, Sequence, Callable, Iterable
+from typing import Union, Iterable
 from ..utils import masked_shift
-
 import torch
 
 class AbstractAxonSet(ABC, torch.nn.Module):
@@ -38,7 +37,7 @@ class AbstractAxonSet(ABC, torch.nn.Module):
 
 
     @abstractmethod
-    def forward(self, s: torch.Tensor) -> None: #s: spike in shape *self.population_shape
+    def forward(self, spikes: torch.Tensor) -> None: #s: spike in shape *self.population_shape
         pass
 
 
@@ -48,7 +47,7 @@ class AbstractAxonSet(ABC, torch.nn.Module):
 
 
     @abstractmethod
-    def get_output(self) -> torch.Tensor: # in shape (*self.population_shape,*self.terminal_shape)
+    def neurotransmitters(self) -> torch.Tensor: # in shape (*self.population_shape,*self.terminal_shape)
         return self.e * (2*self.to_singlton_terminal_shape(self.is_excitatory)-1)
 
 
@@ -77,11 +76,12 @@ class SimpleAxonSet(AbstractAxonSet):
             self.register_buffer("spike_history", torch.zeros((self.max_delay,*self.population_shape), dtype=torch.bool))
 
 
-    def forward(self, s: torch.Tensor) -> None:
+    def forward(self, spikes: torch.Tensor) -> None:
         self.update_spike_history(s)
         s = self.get_delayed_spikes().clone()
         self.compute_response(s)
         self.minimize_spike_history()
+        self.s = self.spike_history[0]
 
 
     def compute_response(self, s: torch.Tensor) -> None:
@@ -118,8 +118,8 @@ class SimpleAxonSet(AbstractAxonSet):
         super().reset()
 
 
-    def get_output(self) -> None:
-        return self.scale * super().get_output()
+    def neurotransmitters(self) -> None:
+        return self.scale * super().neurotransmitters()
 
 
 
