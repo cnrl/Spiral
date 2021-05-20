@@ -46,7 +46,7 @@ class AbstractLearningRuler(ABC, torch.nn.Module):
 
 
 
-class SerializedLR(AbstractLearningRuler):
+class CombinedLR(AbstractLearningRuler):
     def __init__(
         self,
         LRs: Iterable[AbstractLearningRuler],
@@ -66,15 +66,15 @@ class SerializedLR(AbstractLearningRuler):
 
     
     def backward(self, **args) -> None:
-        [lr.backward(**args) for lr in self.LRs]
+        updatings = [lr.compute_updatings(**args) for lr in self.LRs]
+        [lr.update(u) for lr,u in zip(self.LRs, updatings)]
 
 
     def reset(self) -> None:
         [lr.reset() for lr in self.LRs]
 
 
-    @classmethod
-    def __add__(self, other: Union[AbstractLearningRuler]):
+    def __add__(self, other: AbstractLearningRuler):
         if type(other) is SerializedLR:
             return SerializedLR(self.LRs+other.LRs)
         else:
@@ -83,7 +83,7 @@ class SerializedLR(AbstractLearningRuler):
 
 
 
-class SerializableLR(AbstractLearningRuler):
+class CombinableLR(AbstractLearningRuler):
     def __init__(
         self,
         synapse_set: AbstractSynapseSet,
@@ -92,7 +92,21 @@ class SerializableLR(AbstractLearningRuler):
         super().__init__(synapse_set=synapse_set, **kwargs)
 
 
-    def __add__(self, other: Union[AbstractLearningRuler]) -> SerializedLR:
+    @abstractmethod
+    def compute_updatings(self, **args):
+        pass
+
+
+    @abstractmethod
+    def update(self, *data) -> None: # data = compute_updatings output
+        pass
+
+
+    def backward(self, **args) -> None:
+        self.update(self.compute_updatings(**args))
+
+
+    def __add__(self, other: AbstractLearningRuler) -> SerializedLR:
         if type(other) is SerializedLR:
             return SerializedLR([self]+other.LRs)
         else:
@@ -101,7 +115,7 @@ class SerializableLR(AbstractLearningRuler):
 
 
 
-class NoOp(SerializableLR):
+class NoOp(CombinableLR):
     def __init__(
         self,
         synapse_set: AbstractSynapseSet,
@@ -109,10 +123,18 @@ class NoOp(SerializableLR):
     ) -> None:
         super().__init__(synapse_set=synapse_set)
 
+    
+    def compute_updatings(self, **args):
+        return
+
+
+    def update(self, *data): # data = compute_updatings output
+        return
 
 
 
-class AbstractWeightLR(SerializableLR):
+
+class AbstractWeightLR(CombinableLR):
     """
     Spike-Time Dependent Plasticity learning rule.
 
@@ -128,25 +150,18 @@ class AbstractWeightLR(SerializableLR):
         super().__init__(synapse_set=synapse_set)
 
 
-    def compute_dw(self) -> torch.Tensor:
+    @abstractmethod
+    def compute_updatings(self, **args) -> torch.Tensor: # output = dw
         pass
 
 
-    def update_w(self, dw: torch.Tensor) -> None:
+    def update(self, dw: torch.Tensor) -> None:
         w = self.synapse_set.dendrite_set.w
         wmin = self.synapse_set.dendrite_set.wmin
         wmax = self.synapse_set.dendrite_set.wmax
         w += dw
         w[w<wmin] = wmin
         w[w>wmax] = wmax
-
-    
-    def forward(self, neuromodulators: torch.Tensor = None) -> None:
-        pass
-
-
-    def backward(self, **args) -> None:
-        self.update_w(self.compute_dw())
 
 
 
@@ -163,7 +178,7 @@ class SimpleWeightDecayLR(AbstractWeightLR):
         self.register_buffer("decay", torch.tensor(decay))
 
     
-    def compute_dw(self, **args) -> None:
+    def compute_updatings(self, **args) -> None:
         return self.synapse_set.dendrite_set.w * -self.decay
 
 
@@ -222,7 +237,7 @@ class STDP(AbstractWeightLR):
             )
 
 
-    def compute_dw(self) -> torch.Tensor:
+    def compute_updatings(self) -> torch.Tensor:
         ltp_lr,ltd_lr = self.compute_lrs()
         ltp = ltp_lr * self.to_singlton_dendrite_shape(self.pre_traces.traces()) * self.synapse_set.dendrite_set.spikes()
         ltd = ltd_lr * self.post_traces.traces() * self.to_singlton_dendrite_shape(self.synapse_set.axon_set.spikes())

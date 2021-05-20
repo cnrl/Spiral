@@ -10,33 +10,85 @@ from .weight_initializations import constant_initialization
 class AbstractDendriteSet(ABC, torch.nn.Module):
     def __init__(
         self,
-        terminal: Iterable[int],
-        population: Iterable[int],
+        name: str = None,
+        terminal: Iterable[int] = None,
+        population: Iterable[int] = None,
         wmin: Union[float, torch.Tensor] = 0.,
         wmax: Union[float, torch.Tensor] = 1.,
         dt: float = None,
+        config_prohibit: bool = False,
         **kwargs
     ) -> None:
         super().__init__()
 
-        self.terminal_shape = terminal
-        self.population_shape = population
-        self.shape = (*self.terminal_shape,*self.population_shape)
+        self.name = None
+        self.set_name(name)
         self.register_buffer("wmin", torch.tensor(wmin))
         self.register_buffer("wmax", torch.tensor(wmax))
-        self.register_buffer("I", torch.zeros(*self.shape)) #mA
+        self.population_shape = None
+        self.terminal_shape = None
+        self.dt = None
+        self.configed = False
+        self.config_prohibit = config_prohibit
         self.set_dt(dt)
+        self.set_terminal_shape(terminal)
+        self.set_population_shape(population)
+
+
+    def config_permit(self):
+        return (
+            self.population_shape is not None and
+            self.terminal_shape is not None and
+            self.dt is not None and
+            not self.config_prohibit and
+            not self.configed
+        )
+
+
+    def config(self) -> bool:
+        if not self.config_permit():
+            return False
+        self.shape = (*self.terminal_shape,*self.population_shape)
+        self.register_buffer("I", torch.zeros(*self.shape)) #mA
+        self.configed = True
+        return True
+
+
+    def set_name(self, name:str=None, soft=False) -> None:
+        if self.name is not None and soft:
+            return
+        self.name = name
+
+
+    def set_dt(self, dt:float) -> bool:
+        if self.configed:
+            return False
+        self.dt = torch.tensor(dt) if dt is not None else dt
+        self.config()
+        return True
+
+
+    def set_terminal_shape(self, terminal: Iterable[int] = ()) -> bool:
+        if self.configed:
+            return False
+        self.terminal_shape = terminal
+        self.config()
+        return True
+
+
+    def set_population_shape(self, population: Iterable[int]) -> bool:
+        if self.configed:
+            return False
+        self.population_shape = population
+        self.config()
+        return True
 
 
     def to_singlton_population_shape(self, tensor: torch.Tensor):
         if tensor.numel()==1 or tensor.shape==self.shape:
             return tensor
         else:
-            return tensor.reshape((*self.terminal_shape,*[1]*len(self.population_shape)))
-
-
-    def set_dt(self, dt:float):
-        self.dt = torch.tensor(dt) if dt is not None else dt
+            return tensor.reshape((*tensor.shape,*[1]*(len(self.shape)-len(tensor.shape))))
 
 
     @abstractmethod
@@ -61,26 +113,40 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
         return self.s
 
 
+    def __add__(self, other):
+        other.add_dendrite(self)
+        return other
+
+
+    def __lshift__(self, other):
+        other.set_dendrite(self)
+        return other
+
+
 
 
 class SimpleDendriteSet(AbstractDendriteSet):
     def __init__(
         self,
         w: torch.Tensor = None, # in shape (*self.terminal_shape, *self.population_shape) or *self.population_shape or 1
+        config_prohibit: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__(config_prohibit=True, **kwargs)
         if w is None:
-            w = constant_initialization(
-                self.terminal_shape,
-                self.population_shape,
-                self.wmin +
-                (self.wmax - self.wmin) /
-                (2 * torch.prod(torch.tensor(self.terminal_shape)))
-            )
-        self.register_buffer("w", w)
+            w = constant_initialization((self.wmax + self.wmin)/2)
+        self.w_func = w
+        self.config_prohibit = config_prohibit
+        self.config()
+
+    
+    def config(self) -> bool:
+        if not super().config():
+            return False
+        self.register_buffer("w", self.w_func(self.terminal_shape, self.population_shape))
         self.w[self.w<self.wmin] = self.wmin
         self.w[self.w>self.wmax] = self.wmax
+        return True
 
 
     def forward(self, neurotransmitters: torch.Tensor) -> None: #doesn't replace nan values

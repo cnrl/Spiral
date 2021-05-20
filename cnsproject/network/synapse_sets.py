@@ -14,22 +14,66 @@ from ..utils import SliceMaker
 class AbstractSynapseSet(ABC, torch.nn.Module):
     def __init__(
         self,
-        axon_set: AbstractAxonSet,
-        dendrite_set: AbstractDendriteSet,
+        name: str = None,
+        axon: AbstractAxonSet = None,
+        dendrite: AbstractDendriteSet = None,
         dt: float = None,
+        config_prohibit: bool = False,
         **kwargs
     ) -> None:
         super().__init__()
 
-        self.axon_set = axon_set
-        self.dendrite_set = dendrite_set
+        self.axon = None
+        self.dendrite = None
+        self.dt = None
+        self.configed = False
+        self.set_name(name)
+        self.config_prohibit = config_prohibit
         self.set_dt(dt)
+        self.set_axon(axon)
+        self.set_dendrite(dendrite)
+
+
+    def config_permit(self):
+        return (
+            self.axon is not None and
+            self.dendrite is not None and
+            self.dt is not None and
+            not self.config_prohibit and
+            not self.configed
+        )
+
+
+    def config(self) -> bool:
+        if not self.config_permit():
+            return False
+        self.dendrite.set_terminal_shape(self.axon.shape)
+        self.axon.set_dt(self.dt)
+        self.dendrite.set_dt(self.dt)
+        self.configed = True
+        self.set_name()
+        return True
+
+
+    def set_name(self, name: str = None) -> None:
+        self.name = name
+        if self.name is None and self.configed:
+            self.name = self.axon.name+"-"+self.dendrite.name
+
+
+    def set_axon(self, axon: AbstractAxonSet):
+        self.axon = axon
+        self.config()
+
+
+    def set_dendrite(self, dendrite: AbstractDendriteSet):
+        self.dendrite = dendrite
+        self.config()
 
 
     def set_dt(self, dt:float):
         self.dt = torch.tensor(dt) if dt is not None else dt
-        self.axon_set.set_dt(dt)
-        self.dendrite_set.set_dt(dt)
+        self.config()
 
 
     @abstractmethod
@@ -38,7 +82,23 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
 
 
     def reset(self) -> None:
-        self.dendrite_set.reset()
+        self.dendrite.reset()
+
+
+    def __lshift__(self, other: AbstractAxonSet):
+        self.set_axon(other)
+        return self
+    def __rrshift__(self, other: AbstractAxonSet):
+        self.set_axon(other)
+        return self
+
+
+    def __rshift__(self, other: AbstractDendriteSet):
+        self.set_dendrite(other)
+        return self
+    def __rlshift__(self, other: AbstractDendriteSet):
+        self.set_dendrite(other)
+        return self
 
 
 
@@ -46,75 +106,94 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
 class SimpleSynapseSet(AbstractSynapseSet):
     def __init__(
         self,
-        connectivity: torch.Tensor = None, # in shape (*self.axon_set.shape, self.dendrite_set.population_shape)
+        connectivity: torch.Tensor = dense_connectivity(), # in shape (*self.axon.shape, self.dendrite.population_shape)
+        config_prohibit: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__(config_prohibit=True, **kwargs)
+        self.connectivity_func = connectivity
+        self.config_prohibit = config_prohibit
+        self.config()
 
-        assert self.axon_set.shape==self.dendrite_set.terminal_shape, \
+
+    def config(self) -> bool:
+        if not super().config():
+            return False
+
+        assert self.axon.shape==self.dendrite.terminal_shape, \
             "the shape of Axon output (population * terminal shape) must match the shape of Dendrite terminal shape\n"+\
-            f"Axon: (population: {self.axon_set.population_shape}, terminal: {self.axon_set.terminal_shape}) and "+\
-            f"Dendrite: (terminal: {self.dendrite_set.terminal_shape}, population: {self.dendrite_set.population_shape})"
+            f"Axon: (population: {self.axon.population_shape}, terminal: {self.axon.terminal_shape}) and "+\
+            f"Dendrite: (terminal: {self.dendrite.terminal_shape}, population: {self.dendrite.population_shape})"
 
-        if connectivity is None:
-            connectivity = dense_connectivity(
-                self.dendrite_set.terminal_shape,
-                self.dendrite_set.population_shape
-            )
-        else:
-            assert connectivity.shape==self.dendrite_set.shape, \
-                "the shape of connectivity must match the shape of Dendrite\n"+\
-                f"connectivity: {connectivity.shape}, Dendrite: {self.dendrite_set.shape}"
+        connectivity = self.connectivity_func(
+            self.dendrite.terminal_shape,
+            self.dendrite.population_shape
+        )
+
+        assert connectivity.shape==self.dendrite.shape, \
+            "the shape of connectivity must match the shape of Dendrite\n"+\
+            f"connectivity: {connectivity.shape}, Dendrite: {self.dendrite.shape}"
 
         self.register_buffer("connectivity", connectivity)
+        return True
 
 
     def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
-        e = self.axon_set.neurotransmitters()
-        e = e.reshape((*self.axon_set.shape, *[1]*len(self.dendrite_set.population_shape)))
+        e = self.axon.neurotransmitters()
+        e = e.reshape((*self.axon.shape, *[1]*len(self.dendrite.population_shape)))
         e = e * self.connectivity
         e *= mask
-        self.dendrite_set.forward(e)
+        self.dendrite.forward(e)
 
 
 
-
+## doesn't work well with learning
 class FilterSynapseSet(AbstractSynapseSet):
     def __init__(
         self,
-        connectivity: torch.Tensor = None, # in shape (*self.axon_passage_shape, self.dendrite_set.population_shape)
-        passage: torch.Tensor = torch.tensor(True), # in shape (*self.axon_passage_shape, self.dendrite_set.population_shape)
+        passage: torch.Tensor = torch.tensor(True), # in shape (*self.axon_passage_shape, self.dendrite.population_shape)
         axon_passage: Iterable = None, #list
         dendrite_terminal_passage: Iterable = None, #list
+        config_prohibit: bool = False,
+        connectivity: torch.Tensor = dense_connectivity(), # in shape (*self.axon.shape, self.dendrite.population_shape)
         **kwargs
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__(config_prohibit=True, **kwargs)
+        self.connectivity_func = connectivity
+        self.axon_passage = axon_passage
+        self.dendrite_terminal_passage = dendrite_terminal_passage
+        self.passage = passage
+        self.config_prohibit = config_prohibit
+        self.config()
 
-        self.axon_passage,self.axon_passage_shape = self.parse_slice_passage(axon_passage, self.axon_set.shape)
-        self.dendrite_terminal_passage,self.dendrite_terminal_passage_shape = self.parse_slice_passage(dendrite_terminal_passage, self.dendrite_set.terminal_shape)
+    def config(self) -> bool:
+        if not super().config():
+            return False
+        
+        self.axon_passage,self.axon_passage_shape = self.parse_slice_passage(self.axon_passage, self.axon.shape)
+        self.dendrite_terminal_passage,self.dendrite_terminal_passage_shape = self.parse_slice_passage(self.dendrite_terminal_passage, self.dendrite.terminal_shape)
 
         assert self.axon_passage_shape==self.dendrite_terminal_passage_shape, \
             "the shape of Axon output must match the shape of Dendrite terminal shape\n"+\
             f"Axon: {self.axon_passage_shape},"+\
             f"Dendrite: {self.dendrite_terminal_passage_shape}"
 
-        if connectivity is None:
-            connectivity = dense_connectivity(
-                self.dendrite_terminal_passage_shape,
-                self.dendrite_set.population_shape
-            )
-        else:
-            assert connectivity.shape==(*self.dendrite_terminal_passage_shape, *self.dendrite_set.population_shape), \
-                "the shape of connectivity must match the shape of Dendrite\n"+\
-                f"connectivity: {connectivity.shape},"+\
-                f"Dendrite: {(*self.dendrite_terminal_passage_shape, *self.dendrite_set.population_shape)}"
+        connectivity = self.connectivity_func(
+            self.dendrite_terminal_passage_shape,
+            self.dendrite.population_shape
+        )
+
+        assert connectivity.shape==(*self.dendrite_terminal_passage_shape, *self.dendrite.population_shape), \
+            "the shape of connectivity must match the shape of Dendrite\n"+\
+            f"connectivity: {connectivity.shape},"+\
+            f"Dendrite: {(*self.dendrite_terminal_passage_shape, *self.dendrite.population_shape)}"
         self.register_buffer("connectivity", connectivity)
 
-        assert passage.shape==connectivity.shape, \
+        assert self.passage.shape==connectivity.shape, \
                 "the shape of passage must match the shape of connectivity\n"+\
                 f"connectivity: {connectivity.shape},"+\
-                f"passage: {passage.shape}"
-        self.passage = passage
+                f"passage: {self.passage.shape}"
+        return True
 
 
     def parse_slice_passage(self, passage, source_shape):
@@ -126,15 +205,15 @@ class FilterSynapseSet(AbstractSynapseSet):
 
 
     def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
-        e = self.axon_set.neurotransmitters()
+        e = self.axon.neurotransmitters()
         e = e[self.axon_passage]
-        e = e.reshape((*self.axon_passage_shape, *[1]*len(self.dendrite_set.population_shape)))
+        e = e.reshape((*self.axon_passage_shape, *[1]*len(self.dendrite.population_shape)))
         e = e * self.connectivity
         e[self.passage] = float("nan")
-        out_e = torch.ones(self.dendrite_set.shape)*float("nan")
+        out_e = torch.ones(self.dendrite.shape)*float("nan")
         out_e[self.dendrite_terminal_passage] = e
         out_e *= mask
-        self.dendrite_set.forward(out_e)
+        self.dendrite.forward(out_e)
 
 
 

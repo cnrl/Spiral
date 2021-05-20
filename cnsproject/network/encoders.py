@@ -12,13 +12,18 @@ from .neural_populations import AbstractNeuralPopulation
 class AbstractEncoder(AbstractNeuralPopulation):
     def __init__(
         self,
+        name: str,
         input_shape: Iterable[int],
         output_shape: Iterable[int],
         min_input: Union[float, torch.Tensor] = 0.,
         max_input: Union[float, torch.Tensor] = 1.,
         **kwargs
     ) -> None:
-        super().__init__(output_shape, **kwargs)
+        super().__init__(
+            name=name,
+            shape=output_shape,
+            **kwargs
+        )
 
         self.input_shape = input_shape
         self.output_shape = output_shape
@@ -64,10 +69,12 @@ class AbstractEncoder(AbstractNeuralPopulation):
 class LazyEncoder(AbstractEncoder):
     def __init__(
         self,
+        name: str,
         shape: Iterable[int],
         **kwargs
     ) -> None:
         super().__init__(
+            name=name,
             input_shape=(),
             output_shape=shape,
             **kwargs)
@@ -81,8 +88,16 @@ class LazyEncoder(AbstractEncoder):
 
 
 class AlwaysOnEncoder(LazyEncoder):
-    def __init__(self, shape, **args):
-        super().__init__(shape, **args)
+    def __init__(
+        self,
+        name: str,
+        shape: Iterable[int],
+        **args):
+        super().__init__(
+            name=name,
+            shape=shape,
+            **args
+        )
 
     def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
         self.s = torch.ones(self.output_shape).type(torch.bool)
@@ -91,8 +106,16 @@ class AlwaysOnEncoder(LazyEncoder):
 
 
 class AlwaysOffEncoder(LazyEncoder):
-    def __init__(self, shape, **args):
-        super().__init__(shape, **args)
+    def __init__(
+        self,
+        name: str,
+        shape: Iterable[int],
+        **args):
+        super().__init__(
+            name=name,
+            shape=shape,
+            **args
+        )
 
     def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
         self.s = torch.zeros(self.output_shape).type(torch.bool)
@@ -103,6 +126,7 @@ class AlwaysOffEncoder(LazyEncoder):
 class TemporaryEncoder(AbstractEncoder):
     def __init__(
         self,
+        name: str,
         input_shape: Iterable[int],
         output_shape: Iterable[int],
         time: float,
@@ -110,6 +134,7 @@ class TemporaryEncoder(AbstractEncoder):
         **kwargs
     ) -> None:
         super().__init__(
+            name=name,
             input_shape=input_shape,
             output_shape=output_shape,
             dt = None,
@@ -156,11 +181,13 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
 
     def __init__(
         self,
+        name: str,
         shape: Iterable[int],
         time: float,
         **kwargs
     ) -> None:
         super().__init__(
+            name=name,
             input_shape=shape,
             output_shape=shape,
             time = time,
@@ -204,6 +231,7 @@ class PositionEncoder(TemporaryEncoder):
 
     def __init__(
         self,
+        name: str,
         shape: Iterable[int],
         time: float,
         k: int = None, # resolution
@@ -213,6 +241,7 @@ class PositionEncoder(TemporaryEncoder):
         **kwargs
     ) -> None:
         super().__init__(
+            name=name,
             input_shape=shape,
             output_shape=(*shape,k),
             time = time,
@@ -281,11 +310,13 @@ class PoissonEncoder(AbstractEncoder):
     """
     def __init__(
         self,
+        name: str,
         shape: Iterable[int],
         rate: Union[int, torch.Tensor] = 1.,
         **kwargs
     ) -> None:
         super().__init__(
+            name=name,
             input_shape=shape,
             output_shape=shape,
             **kwargs

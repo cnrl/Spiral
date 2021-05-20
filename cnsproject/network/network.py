@@ -6,6 +6,7 @@ from typing import Optional, Dict
 
 import torch
 
+from typing import Union
 from .neural_populations import AbstractNeuralPopulation
 from .synapse_sets import AbstractSynapseSet
 # from ..learning.rewards import AbstractReward
@@ -107,7 +108,10 @@ class Network(torch.nn.Module):
         return super().train(mode)
 
 
-    def add_population(self, population: AbstractNeuralPopulation, name: str) -> None:
+    def add_population(
+        self,
+        population: AbstractNeuralPopulation
+    ) -> None:
         """
         Add a neural population to the network.
 
@@ -123,15 +127,15 @@ class Network(torch.nn.Module):
         None
 
         """
+        population.set_dt(self.dt)
+        name = population.name
         self.populations[name] = population
         self.add_module(name, population)
-        population.set_dt(self.dt)
 
 
     def add_synapse(
         self,
         synapse: AbstractSynapseSet,
-        name: str,
     ) -> None:
         """
         Add a connection between neural populations to the network. The\
@@ -151,9 +155,10 @@ class Network(torch.nn.Module):
         None
 
         """
+        synapse.set_dt(self.dt)
+        name = synapse.name
         self.synapses[name] = synapse
         self.add_module(name, synapse)
-        synapse.set_dt(self.dt)
 
 
     def add_LR(
@@ -270,3 +275,23 @@ class Network(torch.nn.Module):
 
         for synapse in self.synapses.values():
             synapse.reset()
+
+
+    def __add__(self, other: Union[list, AbstractNeuralPopulation, AbstractSynapseSet]):
+        if type(other) is list:
+            for o in other:
+                self.__add__(o)
+        elif issubclass(type(other), AbstractNeuralPopulation):
+            self.add_population(other)
+        elif issubclass(type(other), AbstractSynapseSet):
+            self.add_synapse(other)
+        else:
+            assert False, f"You just can add AbstractAxonSet or AbstractDendriteSet to population. Your object is {type(other)}"
+        return self
+
+
+    def __getitem__(self, name: Union[list, str]):
+        if type(name) is list:
+            assert len(name)==1, f"Length of name list ({name}) must be 1."
+            return self.synapses[name[0]]
+        return self.populations[name]
