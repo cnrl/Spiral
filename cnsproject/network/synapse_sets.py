@@ -27,6 +27,7 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
         self.dendrite = None
         self.dt = None
         self.configed = False
+        self.name = None
         self.set_name(name)
         self.config_prohibit = config_prohibit
         self.set_dt(dt)
@@ -58,7 +59,8 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
 
 
     def set_name(self, name: str = None) -> None:
-        self.name = name
+        if self.name is None:
+            self.name = name
         if self.name is None and self.configed:
             self.name = self.axon.name+"-"+self.dendrite.name
 

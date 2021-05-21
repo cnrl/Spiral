@@ -149,10 +149,26 @@ class SimpleDendriteSet(AbstractDendriteSet):
 
     def forward(self, neurotransmitters: torch.Tensor) -> None: #doesn't replace nan values
         neurotransmitters_singleton = self.to_singlton_population_shape(neurotransmitters)
-        I = neurotransmitters_singleton * self.w
-        I[neurotransmitters.isnan()] = 0
-        self.I = self.I*neurotransmitters_singleton.isnan() + I
+        self.I = neurotransmitters_singleton * self.w
 
 
     def currents(self) -> torch.Tensor:
         return self.I.sum(axis=list(range(len(self.terminal_shape))))
+
+
+
+
+class FilterDendriteSet(SimpleDendriteSet):
+    def __init__(
+        self,
+        name: str=None,
+        **kwargs
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+
+
+    def forward(self, neurotransmitters: torch.Tensor) -> None: #doesn't replace nan values
+        neurotransmitters_singleton = self.to_singlton_population_shape(neurotransmitters)
+        I = neurotransmitters_singleton * self.w
+        I[neurotransmitters.isnan()] = 0
+        self.I = self.I*neurotransmitters_singleton.isnan() + I

@@ -240,12 +240,14 @@ class Plotter:
         if type(data[y])==type([]):
             data[y] = np.array(data[y])
         data['population'] = data[y].reshape(data[y].shape[0],-1)
+        if population_alpha is None:
+            population_alpha = 1/data['population'].shape[1]
         if aggregation is not None:
             data['vector'] = aggregation(data['population'])
             self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
-        if population_alpha is None:
-            population_alpha = 1/data['population'].shape[1]
-        self.plot(ax, y='population', additive=(aggregation is not None), data=data, color=color, alpha=population_alpha)
+            self.plot(ax, y='population', additive=True, data=data, color=color, alpha=population_alpha)
+        else:
+            self.plot(ax, y='population', additive=False, data=data, color=color, alpha=population_alpha, **args)
 
     def current_dynamic(self, ax, I=None, y='I', y_label='Current', data=None, x_lim='fit', x_label='time', **args):
         if data is None:

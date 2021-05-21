@@ -77,6 +77,8 @@ class Network(torch.nn.Module):
         self.SSs = {} #synapse sets
         self.LREs = {} #learning rule enforcers
         self.NTs = {} #neuromodulatory_tissues
+        # The network is responsible for calculating
+        # the delay for delivering the neuromodulators to the connections
 
         self.train(learning)
 
