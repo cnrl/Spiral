@@ -45,14 +45,6 @@ class Serializer:
             return Serializer(self.objs+other.objs)
         else:
             return Serializer(self.objs+[other])
-
-class Infix:
-    def __init__(self, function):
-        self.function = function
-    def __ror__(self, other):
-        return Infix(lambda x, self=self, other=other: self.function(other, x))
-    def __or__(self, other):
-        return self.function(other)
         
 def step_function(length, step_index, val0=0, val1=1):
     u = torch.zeros(length) + val0

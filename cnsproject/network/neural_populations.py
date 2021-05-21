@@ -24,6 +24,8 @@ class AbstractNeuralPopulation(torch.nn.Module):
         self.register_buffer("s", torch.zeros(*self.shape, dtype=torch.bool))
         self.axons = {}
         self.dendrites = {}
+        self.free_axon_index = 0
+        self.free_dendrites_index = 0
         self.set_dt(dt)
 
 
@@ -34,20 +36,39 @@ class AbstractNeuralPopulation(torch.nn.Module):
         for axon_set in self.axons.values():
             axon_set.set_dt(dt)
 
-    def add_axon(self, axon_set: AbstractAxonSet):
-        axon_set.set_name(self.name+"_axon_"+str(len(self.axons)), soft=True)
+    def add_axon(self, axon_set: AbstractAxonSet) -> None:
+        axon_set.set_name(self.name+"_axon_"+str(self.free_axon_index), soft=True)
         axon_set.set_population_shape(self.shape)
         axon_set.set_dt(self.dt)
         self.axons[axon_set.name] = axon_set
+        self.free_axon_index += 1
 
 
-    def add_dendrite(self, dendrite_set: AbstractDendriteSet):
-        dendrite_set.set_name(self.name+"_dendrite_"+str(len(self.dendrites)), soft=True)
+    def remove_axon(self, name: str) -> None:
+        del self.axons[name]
+
+
+    def add_dendrite(self, dendrite_set: AbstractDendriteSet) -> None:
+        dendrite_set.set_name(self.name+"_dendrite_"+str(self.free_dendrites_index), soft=True)
         dendrite_set.set_population_shape(self.shape)
         dendrite_set.set_dt(self.dt)
         self.dendrites[dendrite_set.name] = dendrite_set
+        self.free_dendrites_index += 1
 
-    
+
+    def remove_dendrite(self, name: str) -> None:
+        del self.dendrites[name]
+
+            
+    def use(self, other: Union[list, AbstractAxonSet, AbstractDendriteSet]) -> None:
+        if issubclass(type(other), AbstractAxonSet):
+            self.add_axon(other)
+        elif issubclass(type(other), AbstractDendriteSet):
+            self.add_dendrite(other)
+        else:
+            assert False, f"You just can add AbstractAxonSet or AbstractDendriteSet to population. Your object is {type(other)}"
+
+
     def collect_I(self, direct_input: torch.Tensor = torch.tensor(0.)):
         I = self.s * 0.
         I += direct_input
@@ -99,33 +120,8 @@ class AbstractNeuralPopulation(torch.nn.Module):
         return self.s
 
 
-    def __add__(self, other: Union[list, AbstractAxonSet, AbstractDendriteSet]):
-        if type(other) is list:
-            for o in other:
-                self.__add__(o)
-        elif issubclass(type(other), AbstractAxonSet):
-            self.add_axon(other)
-        elif issubclass(type(other), AbstractDendriteSet):
-            self.add_dendrite(other)
-        else:
-            assert False, f"You just can add AbstractAxonSet or AbstractDendriteSet to population. Your object is {type(other)}"
-        return self
-
-
-    def __rshift__(self, other: AbstractAxonSet):
-        self.add_axon(other)
-        return other
-    def __rlshift__(self, other: AbstractAxonSet):
-        self.add_axon(other)
-        return other
-
-
-    def __lshift__(self, other: AbstractDendriteSet):
-        self.add_dendrite(other)
-        return other
-    def __rrshift__(self, other: AbstractDendriteSet):
-        self.add_dendrite(other)
-        return other
+    def __str__(self):
+        return f"{', '.join([a.__str__() for a in self.dendrites.values()])} [{self.name}] {', '.join([a.__str__() for a in self.axons.values()])}"
 
 
 

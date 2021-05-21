@@ -40,8 +40,8 @@ class AbstractEncoder(AbstractNeuralPopulation):
         self.compute_spike(direct_input)
         self.s *= ~unclamps
         self.s += clamps
-        for axon_set in self.axon_sets.values():
-            axon_set.forward(self.s)
+        for axon in self.axons.values():
+            axon.forward(self.s)
 
 
     @abstractmethod

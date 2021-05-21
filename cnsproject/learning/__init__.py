@@ -1,4 +1,4 @@
 from . import (
-    learning_rulers,
-    rewards,
+    learning_rule_enforcers,
+    # neuromodulatory_tissues,
 )

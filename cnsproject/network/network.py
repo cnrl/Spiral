@@ -6,12 +6,11 @@ from typing import Optional, Dict
 
 import torch
 
-from typing import Union
+from typing import Union, Iterable
 from .neural_populations import AbstractNeuralPopulation
 from .synapse_sets import AbstractSynapseSet
-# from ..learning.rewards import AbstractReward
 from ..decision.decision import AbstractDecision
-from ..learning.learning_rulers import AbstractLearningRuler
+from ..learning.learning_rule_enforcers import AbstractLearningRuleEnforcer
 
 
 class Network(torch.nn.Module):
@@ -74,9 +73,10 @@ class Network(torch.nn.Module):
 
         self.dt = dt
 
-        self.populations = {}
-        self.synapses = {}
-        self.learners = {}
+        self.NPs = {} #neural populations
+        self.SSs = {} #synapse sets
+        self.LREs = {} #learning rule enforcers
+        self.NTs = {} #neuromodulatory_tissues
 
         self.train(learning)
 
@@ -129,7 +129,7 @@ class Network(torch.nn.Module):
         """
         population.set_dt(self.dt)
         name = population.name
-        self.populations[name] = population
+        self.NPs[name] = population
         self.add_module(name, population)
 
 
@@ -157,18 +157,18 @@ class Network(torch.nn.Module):
         """
         synapse.set_dt(self.dt)
         name = synapse.name
-        self.synapses[name] = synapse
+        self.SSs[name] = synapse
         self.add_module(name, synapse)
 
 
-    def add_LR(
+    def add_learning_rule_encoder(
         self,
-        learner: AbstractLearningRuler,
-        name: str,
+        learner: AbstractLearningRuleEnforcer,
     ) -> None:
-        self.learners[name] = learner
-        self.add_module(name, learner)
         learner.set_dt(self.dt)
+        name = learner.name
+        self.LREs[name] = learner
+        self.add_module(name, learner)
 
 
     def forward(
@@ -225,33 +225,33 @@ class Network(torch.nn.Module):
 
         """
         
-        for name,synapse in self.synapses.items():
+        for name,synapse in self.SSs.items():
             synapse.forward(kwargs.get(name+"_mask", torch.tensor(True)))
         
-        for name,population in self.populations.items():
+        for name,population in self.NPs.items():
             direct_input = kwargs.get(name+"_direct_input", torch.tensor(0))
             clamp = kwargs.get(name+"_clamp", torch.tensor(False))
             unclamp = kwargs.get(name+"_unclamp", torch.tensor(False))
             population.forward(direct_input=direct_input, clamps=clamp, unclamps=unclamp)
 
         if self.learning:
-            for name,population in self.populations.items():
+            for name,population in self.NPs.items():
                 population.backward()
 
-            for name,learner in self.learners.items():
+            for name,learner in self.LREs.items():
                 learner.forward()
 
 
     def encode(self, data: dict) -> None:
         for key,value in data.items():
-            self.populations[key].encode(value)
+            self.NPs[key].encode(value)
 
 
     def backward(
         self,
         **kwargs
     ) -> None:
-        for name,learner in self.learners.items():
+        for name,learner in self.LREs.items():
             learner.backward()
 
 
@@ -270,28 +270,51 @@ class Network(torch.nn.Module):
         None
 
         """
-        for population in self.populations.values():
-            population.reset()
+        for a in self.NPs.values():
+            a.reset()
 
-        for synapse in self.synapses.values():
-            synapse.reset()
+        for a in self.SSs.values():
+            a.reset()
+
+        for a in self.LREs.values():
+            a.reset()
 
 
-    def __add__(self, other: Union[list, AbstractNeuralPopulation, AbstractSynapseSet]):
-        if type(other) is list:
+    def __iadd__(self, other: Union[Iterable, AbstractNeuralPopulation, AbstractSynapseSet, AbstractLearningRuleEnforcer]):
+        if hasattr(other, '__iter__'):
             for o in other:
-                self.__add__(o)
+                self.__iadd__(o)
         elif issubclass(type(other), AbstractNeuralPopulation):
             self.add_population(other)
         elif issubclass(type(other), AbstractSynapseSet):
             self.add_synapse(other)
+        elif issubclass(type(other), AbstractLearningRuleEnforcer):
+            self.add_learning_rule_encoder(other)
         else:
-            assert False, f"You just can add AbstractAxonSet or AbstractDendriteSet to population. Your object is {type(other)}"
+            assert False, f"You just can add AbstractNeuralPopulation, AbstractSynapseSet or AbstractLearningRuleEnforcer to network. Your object is {type(other)}"
         return self
 
 
-    def __getitem__(self, name: Union[list, str]):
-        if type(name) is list:
+    def __getitem__(self, name: Union[Iterable, str], level=0):
+        if type(name) is str:
+            return [self.NPs, self.NTs, self.SSs, self.LREs][level][name]
+        else:
+            assert hasattr(name, '__iter__'), f"getitem input must be a string or a list of strings"
             assert len(name)==1, f"Length of name list ({name}) must be 1."
-            return self.synapses[name[0]]
-        return self.populations[name]
+            return self.__getitem__(name[0], level+1)
+
+
+    def __str__(self):
+        string = "="*40+" Neural Populations:\n"
+        for a in self.NPs.values():
+            string += a.__str__()+'\n'
+        string += "="*40+" Synapse Sets:\n"
+        for a in self.SSs.values():
+            string += a.__str__()+'\n'
+        string += "="*40+" Learning Rule Enforcers:\n"
+        for a in self.LREs.values():
+            string += a.__str__()+'\n'
+        string += "="*40+" Neuromodulatory Tissues:\n"
+        for a in self.NTs.values():
+            string += a.__str__()+'\n'
+        return string

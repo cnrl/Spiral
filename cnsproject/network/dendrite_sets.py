@@ -113,14 +113,11 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
         return self.s
 
 
-    def __add__(self, other):
-        other.add_dendrite(self)
-        return other
-
-
-    def __lshift__(self, other):
-        other.set_dendrite(self)
-        return other
+    def __str__(self):
+        if self.configed:
+            return self.name
+        else:
+            return f"{self.name}(X)"
 
 
 
@@ -128,11 +125,12 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
 class SimpleDendriteSet(AbstractDendriteSet):
     def __init__(
         self,
+        name: str = None,
         w: torch.Tensor = None, # in shape (*self.terminal_shape, *self.population_shape) or *self.population_shape or 1
         config_prohibit: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(config_prohibit=True, **kwargs)
+        super().__init__(config_prohibit=True, name=name, **kwargs)
         if w is None:
             w = constant_initialization((self.wmax + self.wmin)/2)
         self.w_func = w

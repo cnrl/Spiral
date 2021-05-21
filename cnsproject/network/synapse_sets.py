@@ -47,7 +47,9 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
     def config(self) -> bool:
         if not self.config_permit():
             return False
+        assert self.axon.configed, "the axon is not configed yet. you can not config a synapse using it."
         self.dendrite.set_terminal_shape(self.axon.shape)
+        assert self.dendrite.configed, "the dendrite is not configed yet. you can not config a synapse using it."
         self.axon.set_dt(self.dt)
         self.dendrite.set_dt(self.dt)
         self.configed = True
@@ -85,20 +87,11 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
         self.dendrite.reset()
 
 
-    def __lshift__(self, other: AbstractAxonSet):
-        self.set_axon(other)
-        return self
-    def __rrshift__(self, other: AbstractAxonSet):
-        self.set_axon(other)
-        return self
-
-
-    def __rshift__(self, other: AbstractDendriteSet):
-        self.set_dendrite(other)
-        return self
-    def __rlshift__(self, other: AbstractDendriteSet):
-        self.set_dendrite(other)
-        return self
+    def __str__(self):
+        if self.configed:
+            return f"{self.axon.__str__()} -> {self.name} -> {self.dendrite.__str__()}"
+        else:
+            return f"{self.axon.__str__()} -> {self.name}(X) -> {self.dendrite.__str__()}"
 
 
 

@@ -8,8 +8,7 @@ Define your reward functions here.
 
 from abc import ABC, abstractmethod
 
-
-class AbstractReward(ABC):
+class AbstractNeuromodulatoryTissue(ABC):
     """
     Abstract class to define reward function.
 
@@ -50,3 +49,11 @@ class AbstractReward(ABC):
 
         """
         pass
+
+    def neuromodulators(self) -> torch.Tensor:
+        pass
+
+
+
+
+# class SimpleDopaminergicTissue(AbstractNeuromodulatoryTissue):

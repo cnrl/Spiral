@@ -107,17 +107,25 @@ class AbstractAxonSet(ABC, torch.nn.Module):
         return self.s
 
 
+    def __str__(self):
+        if self.configed:
+            return self.name
+        else:
+            return f"{self.name}(X)"
+
+
 
 
 class SimpleAxonSet(AbstractAxonSet):
     def __init__(
         self,
+        name: str = None,
         scale: Union[float, torch.Tensor] = 1.,
         delay: Union[int, torch.Tensor] = 0., #ms
         config_prohibit: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(config_prohibit=True, **kwargs)
+        super().__init__(config_prohibit=True, name=name, **kwargs)
         self.register_buffer("delay_time", torch.tensor(delay))
         self.register_buffer("scale", torch.tensor(scale))
         self.config_prohibit = config_prohibit
@@ -187,12 +195,13 @@ class SimpleAxonSet(AbstractAxonSet):
 class SRFAxonSet(SimpleAxonSet): #Spike response function
     def __init__(
         self,
+        name: str = None,
         tau: Union[float, torch.Tensor] = 10.,
         msatst: int = 10, #max_spikes_at_the_same_time
         config_prohibit: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(config_prohibit=True, **kwargs)
+        super().__init__(config_prohibit=True, name=name, **kwargs)
         self.register_buffer("tau", torch.tensor(tau))
         self.msatst = msatst
         self.config_prohibit = config_prohibit
