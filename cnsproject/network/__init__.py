@@ -7,4 +7,5 @@ from . import (
     connectivity_patterns,
     weight_initializations,
     encoders,
+    neuromodulatory_tissues,
 )

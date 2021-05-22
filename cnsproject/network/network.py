@@ -11,6 +11,7 @@ from .neural_populations import AbstractNeuralPopulation
 from .synapse_sets import AbstractSynapseSet
 from ..decision.decision import AbstractDecision
 from ..learning.learning_rule_enforcers import AbstractLearningRuleEnforcer
+from .neuromodulatory_tissues import AbstractNeuromodulatoryTissue
 
 
 class Network(torch.nn.Module):
@@ -173,6 +174,16 @@ class Network(torch.nn.Module):
         self.add_module(name, learner)
 
 
+    def add_neuromodulatory_tissue(
+        self,
+        tissue: AbstractLearningRuleEnforcer,
+    ) -> None:
+        tissue.set_dt(self.dt)
+        name = tissue.name
+        self.NTs[name] = tissue
+        self.add_module(name, tissue)
+
+
     def forward(
         self,
         **kwargs
@@ -243,10 +254,18 @@ class Network(torch.nn.Module):
             for name,learner in self.LREs.items():
                 learner.forward()
 
+            for name,tissue in self.NTs.items():
+                tissue.forward()
+
 
     def encode(self, data: dict) -> None:
         for key,value in data.items():
             self.NPs[key].encode(value)
+
+
+    def feedback(self, data: dict) -> None:
+        for key,value in data.items():
+            self.NTs[key].feedback(value)
 
 
     def backward(
@@ -275,6 +294,9 @@ class Network(torch.nn.Module):
         for a in self.NPs.values():
             a.reset()
 
+        for a in self.NTs.values():
+            a.reset()
+
         for a in self.SSs.values():
             a.reset()
 
@@ -292,8 +314,10 @@ class Network(torch.nn.Module):
             self.add_synapse(other)
         elif issubclass(type(other), AbstractLearningRuleEnforcer):
             self.add_learning_rule_encoder(other)
+        elif issubclass(type(other), AbstractNeuromodulatoryTissue):
+            self.add_neuromodulatory_tissue(other)
         else:
-            assert False, f"You just can add AbstractNeuralPopulation, AbstractSynapseSet or AbstractLearningRuleEnforcer to network. Your object is {type(other)}"
+            assert False, f"You just can add AbstractNeuralPopulation, AbstractNeuromodulatoryTissue, AbstractSynapseSet or AbstractLearningRuleEnforcer to network. Your object is {type(other)}"
         return self
 
 

@@ -31,10 +31,9 @@ class AbstractNeuralPopulation(torch.nn.Module):
 
     def set_dt(self, dt:float):
         self.dt = torch.tensor(dt) if dt is not None else dt
-        for dendrite_set in self.dendrites.values():
-            dendrite_set.set_dt(dt)
         for axon_set in self.axons.values():
             axon_set.set_dt(dt)
+
 
     def add_axon(self, axon_set: AbstractAxonSet) -> None:
         axon_set.set_name(self.name+"_axon_"+str(self.free_axon_index), soft=True)
@@ -60,8 +59,11 @@ class AbstractNeuralPopulation(torch.nn.Module):
         del self.dendrites[name]
 
             
-    def use(self, other: Union[list, AbstractAxonSet, AbstractDendriteSet]) -> None:
-        if issubclass(type(other), AbstractAxonSet):
+    def use(self, other: Union[Iterable, AbstractAxonSet, AbstractDendriteSet]) -> None:
+        if hasattr(other, '__iter__'):
+            for o in other:
+                self.use(o)
+        elif issubclass(type(other), AbstractAxonSet):
             self.add_axon(other)
         elif issubclass(type(other), AbstractDendriteSet):
             self.add_dendrite(other)

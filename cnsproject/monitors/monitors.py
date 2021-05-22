@@ -152,8 +152,6 @@ class Monitor:
         if reset:
             for m in monitors:
                 m.reset()
-        for m in monitors:
-            m.record()
         for _ in torch.arange(0, time, dt):
             func(**next(inputs))
             for m in monitors:

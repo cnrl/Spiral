@@ -51,7 +51,6 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
         assert self.axon.configed, "the axon is not configed yet. you can not config a synapse using it."
         self.dendrite.set_terminal_shape(self.axon.shape)
         assert self.dendrite.configed, "the dendrite is not configed yet. you can not config a synapse using it."
-        self.axon.set_dt(self.dt)
         self.dendrite.set_dt(self.dt)
         self.configed = True
         self.set_name()
@@ -101,11 +100,12 @@ class AbstractSynapseSet(ABC, torch.nn.Module):
 class SimpleSynapseSet(AbstractSynapseSet):
     def __init__(
         self,
+        name: str = None,
         connectivity: torch.Tensor = dense_connectivity(), # in shape (*self.axon.shape, self.dendrite.population_shape)
         config_prohibit: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(config_prohibit=True, **kwargs)
+        super().__init__(config_prohibit=True, name=name, **kwargs)
         self.connectivity_func = connectivity
         self.config_prohibit = config_prohibit
         self.config()
@@ -146,6 +146,7 @@ class SimpleSynapseSet(AbstractSynapseSet):
 class FilterSynapseSet(AbstractSynapseSet):
     def __init__(
         self,
+        name: str = None,
         passage: torch.Tensor = torch.tensor(True), # in shape (*self.axon_passage_shape, self.dendrite.population_shape)
         axon_passage: Iterable = None, #list
         dendrite_terminal_passage: Iterable = None, #list
@@ -153,7 +154,7 @@ class FilterSynapseSet(AbstractSynapseSet):
         connectivity: torch.Tensor = dense_connectivity(), # in shape (*self.axon.shape, self.dendrite.population_shape)
         **kwargs
     ) -> None:
-        super().__init__(config_prohibit=True, **kwargs)
+        super().__init__(config_prohibit=True, name=name, **kwargs)
         self.connectivity_func = connectivity
         self.axon_passage = axon_passage
         self.dendrite_terminal_passage = dendrite_terminal_passage

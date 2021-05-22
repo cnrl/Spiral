@@ -153,8 +153,9 @@ class SimpleAxonSet(AbstractAxonSet):
 
     def compute_response(self, s: torch.Tensor) -> None:
         self.e = s * 1.
-        self.e = self.to_singlton_terminal_shape(self.e)
-        self.e = self.e.repeat(*[1]*len(s.shape), *self.shape[len(s.shape):])
+        if len(self.shape)>0:
+            self.e = self.to_singlton_terminal_shape(self.e)
+            self.e = self.e.repeat(*[1]*len(s.shape), *self.shape[len(s.shape):])
 
 
     def update_spike_history(self, s: torch.Tensor) -> None:
@@ -237,3 +238,22 @@ class SRFAxonSet(SimpleAxonSet): #Spike response function
         self.lstd = torch.ones(self.lstd.shape)*float("Inf")
         self.sub_e.zero_()
         super().reset()
+
+
+
+
+class SimpleDecayAxonSet(SimpleAxonSet): # de/dt = -e/tau + s(t)
+    def __init__(
+        self,
+        name: str = None,
+        tau: Union[float, torch.Tensor] = 10.,
+        **kwargs
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+        self.register_buffer("tau", torch.tensor(tau))
+
+
+    def compute_response(self, s: torch.Tensor) -> None:
+        e_0 = self.e.clone()
+        super().compute_response(s)
+        self.e = self.dt * (self.e + e_0 * (1/self.dt - 1/self.tau))
