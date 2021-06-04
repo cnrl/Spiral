@@ -35,7 +35,7 @@
 # </ol>
 # </div>
 
-# In[5]:
+# In[1]:
 
 
 import warnings
@@ -50,7 +50,7 @@ import torch
 #     با توجه به هدف تمرین، در این تمرین فقط تغییرات مربوط به قوانین یادگیری تقویتی را بررسی می‌کنیم. بنابراین، می‌توانیم باقی شبکه را بسازیم و با استفاده از یک تابع کمکی، این موارد را هنگام آزمایش تعیین کنیم.
 # </div>
 
-# In[453]:
+# In[2]:
 
 
 from cnsproject.network.network import Network
@@ -63,10 +63,11 @@ from cnsproject.network.dendrite_sets import SimpleDendriteSet
 from cnsproject.network.synapse_sets import SimpleSynapseSet
 from cnsproject.network.connectivity_patterns import dense_connectivity
 from cnsproject.network.weight_initializations import norm_initialization
-from cnsproject.learning.learning_rule_enforcers import CentristWeightDecayLRE
+from cnsproject.learning.learning_rule_enforcers import CentristWeightDecayLRE, SimpleWeightDecayLRE
 from cnsproject.learning.learning_rule_enforcers import STDP, RSTDP, FlatRSTDP, FlatSTDP
 
-def build_net(dopaminergic_tissue, method, dopaminergic_scale=0.005):
+def build_net(dopaminergic_tissue, method, dopaminergic_scale=0.005, scale=5, decay=0.002,
+              decay_method=CentristWeightDecayLRE):
     net = Network(dt=1.)
     net += PoissonEncoder('encoder', shape=im1.shape, max_input=255)
     net += LIFPopulation('output', (2,))
@@ -74,14 +75,14 @@ def build_net(dopaminergic_tissue, method, dopaminergic_scale=0.005):
     net += (
         SimpleSynapseSet('synapse', connectivity=dense_connectivity())
     ) |FROM| (
-        SimpleAxonSet(scale=5)
+        SimpleAxonSet(scale=scale)
         |OF| net['encoder']
     ) |TO| (
         SimpleDendriteSet(w=norm_initialization(w_std=.5))
         |OF| net['output']
     ) |FOLLOWING| (
         (
-            CentristWeightDecayLRE(decay=0.002) + method
+            decay_method(decay=decay) + method
         ) |AFFECTED_BY| (
             SimpleAxonSet(scale=dopaminergic_scale)
             |OF| net[['dopaminergic-tissue']]
@@ -90,22 +91,22 @@ def build_net(dopaminergic_tissue, method, dopaminergic_scale=0.005):
     net.reset()
     return net
 
-def build_rstdp_net(tau=1000, dopaminergic_tau=10., dopaminergic_scale=0.005):
+def build_rstdp_net(tau=1000, dopaminergic_tau=10., **args):
     return build_net(
         SimpleDopaminergicTissue('dopaminergic-tissue', tau=dopaminergic_tau),
         RSTDP(stdp = STDP(), tau=tau),
-        dopaminergic_scale=dopaminergic_scale
+        **args
     )
 
-def build_flat_rstdp_net(time_window=10., dopaminergic_scale=0.005):
+def build_flat_rstdp_net(time_window=10., pre_time=50., post_time=50., **args):
     return build_net(
         FlatDopaminergicTissue('dopaminergic-tissue', time_window=time_window),
         FlatRSTDP(
             stdp = FlatSTDP(
-                pre_time=50.,
-                post_time=50.,
+                pre_time=pre_time,
+                post_time=post_time,
             ),
-        ), dopaminergic_scale=dopaminergic_scale)
+        ), **args)
 
 
 # <a id='2'></a>
@@ -115,7 +116,7 @@ def build_flat_rstdp_net(time_window=10., dopaminergic_scale=0.005):
 # مانند فاز قبل از دو تصویر ساده زیر استفاده خواهیم کرد:
 # </div>
 
-# In[420]:
+# In[3]:
 
 
 import matplotlib.pyplot as plt
@@ -160,7 +161,7 @@ plt.show()
 #  <font color='red'>نحوه تصمیم گیری مدل به این صورت است که پس از پایان یک دوره مشاهده تصویر، طبقه‌ای پیشبینی می‌شود که نورون مربوط به آن در بازه مذکور فعالیت بیشتری داشته است.</font>
 # </div>
 
-# In[441]:
+# In[4]:
 
 
 from cnsproject.monitors.monitors import Monitor
@@ -217,7 +218,7 @@ def simulate(net, step_time = 100, step_count = 12, delay = 1):
     return monitor,dendrite_monitor,predictions
 
 
-# In[442]:
+# In[5]:
 
 
 def plot_every_thing(monitor, dendrite_monitor, predictions, steps = 12, name = ''):
@@ -372,7 +373,7 @@ plot_every_thing(*result, name="RSTDP with reward delay = 20ms with larger tau (
 # <h2>8. روش Flat-RSTDP</h2>
 # </div>
 
-# In[458]:
+# In[46]:
 
 
 net = build_flat_rstdp_net(time_window=10., dopaminergic_scale=.2)
@@ -381,9 +382,26 @@ plot_every_thing(*result, name="Flat-RSTDP")
 
 
 # <div dir='rtl'>
-# همانطور که مشاهده می‌شود، شاهد وارونگی در فرایند یادگیری این مدل هستیم. با توجه به منطق پیچیده و غیر خطی این مدل، قادر به توجیه این رفتار نشدم. این وارونگی پایدار است و با تغییر مقادیر پارامتر‌های مقیاس و پنجره از بین نمی‌رود.
-#     <br/>
-#     تفاوتی که این مدل با مدل غیر flat داشته و مشهود است، نحوه تغییرات غلظت دوپامین است که در این مدل پله‌ای و در مدل غیر flat به صورت exponential می‌باشد.
+# مشاهده می‌کنیم که این مدل دچار خطای زیادی در یادگیری شده است. این مشکل به دلیل عدم هماهنگی ثابت‌های زمانی است. با کمی آزمون و خطا به پارامتر‌های زیر رسیدیم که این مشکل را برطرف می‌کند:
+# </div>
+
+# In[40]:
+
+
+net = build_flat_rstdp_net(time_window=10.,
+                           dopaminergic_scale=1,
+                           scale=75,
+                           decay_method=SimpleWeightDecayLRE,
+                           decay=0.01,
+                           pre_time=10,
+                           post_time=10
+                          )
+result = simulate(net, step_time=10, step_count=25)
+plot_every_thing(*result, name="Flat-RSTDP", steps=25)
+
+
+# <div dir='rtl'>
+# شاهد یادگیری این مدل بعد از طی تعداد بیشتری تصویر هستیم. توجه کنید که در این آزمایش هر تصویر فقط ۱۰۰ میلی ثانیه نمایش داده شده است، بنابراین زمان آزمایش کوتاه‌تر از قبل است. واضح است که تناسب زمان بندی اجزای مختلف شبکه بر عملکرد آن تأثیر شگرفی دارد.
 # </div>
 
 # <a id='9'></a>
@@ -393,14 +411,15 @@ plot_every_thing(*result, name="Flat-RSTDP")
 #     انتظار می‌رود این اثر مانند اثر tau در RSTDP باشد.
 # </div>
 
-# In[460]:
+# In[47]:
 
 
-net = build_flat_rstdp_net(time_window=300., dopaminergic_scale=.2)
-result = simulate(net)
-plot_every_thing(*result, name="Flat-RSTDP with Large time window (300ms)")
+net = build_flat_rstdp_net(time_window=100., dopaminergic_scale=1, scale=75, decay=0.01,
+                           decay_method=SimpleWeightDecayLRE)
+result = simulate(net, step_time=10, step_count=25)
+plot_every_thing(*result, name="Flat-RSTDP with Large time window (100ms)", steps=25)
 
 
 # <div dir='rtl'>
-# شاهد نتایج مورد انتظار هستیم.
+# شاهد نتایج مورد انتظار هستیم. تفاوت دیگری که وجود دارد این است که در این آزمایش چون از نزول به صفر استفاده شده است، فرکانس خروجی میرا می‌شود و چون میزان دوپامین به مقادیر خیلی منفی کاهش پیدا کرده است، توانایی جبران این نزول از مدل گرفته شده است
 # </div>
