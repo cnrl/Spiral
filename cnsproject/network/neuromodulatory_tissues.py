@@ -49,6 +49,7 @@ class AbstractNeuromodulatoryTissue(ABC, torch.nn.Module):
         axon_set.set_population_shape(())
         axon_set.set_dt(self.dt)
         self.axons[axon_set.name] = axon_set
+        self.add_module(axon_set.name, axon_set)
         self.free_axon_index += 1
 
 

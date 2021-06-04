@@ -42,7 +42,10 @@ class Plotter:
             x_min = x.min()
             x_max = x.max()
             grid = gs[y_min:y_max+1, x_min:x_max+1]
-            self.axes[i] = plt.subplot(grid)
+            if i[-2:]=='3D':
+                self.axes[i] = plt.subplot(grid, projection='3d')
+            else:
+                self.axes[i] = plt.subplot(grid)
 
     def __getitem__(self, name):
         return self.axes[name]
@@ -63,21 +66,26 @@ class Plotter:
         return dt
     
     def get_ax(self, ax):
-        if type(ax)!=type(next(iter(self.axes.values()))):
+        if type(ax) is str:
             ax = self[ax]
         return ax
 
-    def set_labels(self, ax, x_label=None, y_label=None, title=None, x=None, y=None):
+    def set_labels(self, ax, x_label=None, y_label=None, title=None, x=None, y=None,
+                is_3d=False, z_label=None, z=None):
         if self.auto_label:
             if y_label==None:
                 y_label = y
             if x_label==None:
                 x_label = x
+            if z_label==None:
+                z_label = z
             if title==None:
                 title = f"{y_label}-{x_label}"
         ax.set_xlabel(x_label)
         ax.set_ylabel(y_label)
         ax.set_title(title)
+        if is_3d:
+            ax.set_zlabel(z_label)
 
     def get_axis_data(self, z, data=None, monitor=None, repeat_till=None, default=None, **args):
         if data is None:
@@ -110,23 +118,30 @@ class Plotter:
                 output[line] = self.get_axis_data(line, monitor=monitor, repeat_till=len(output[x]), **args)
         return output
 
-    def set_limits(self, ax, x_lim=None, y_lim=None, x=None, y=None, data=None):
+    def set_limits(self, ax, x_lim=None, y_lim=None, x=None, y=None, data=None,
+                is_3d=False, z_lim=None, z=None):
         if data is None:
             data = {}
         if x_lim=='fit':
             x_lim = [min(data[x]), max(data[x])]
         if y_lim=='fit':
             y_lim = [min(data[y]), max(data[y])]
+        if z_lim=='fit' and is_3d:
+            z_lim = [min(data[z]), max(data[z])]
         if x_lim is not None:
             ax.set_xlim(x_lim)
         if y_lim is not None:
             ax.set_ylim(y_lim)
+        if z_lim is not None and is_3d:
+            ax.set_zlim(z_lim)
 
-    def set_axes_visibility(self, ax, x_vis=True, y_vis=True):
+    def set_axes_visibility(self, ax, x_vis=True, y_vis=True, is_3d=False, z_vis=True):
         if not x_vis:
             ax.get_xaxis().set_ticks([])
         if not y_vis:
             ax.get_yaxis().set_ticks([])
+        if is_3d and not z_vis:
+            ax.get_zaxis().set_ticks([])
 
     def plot_extra_lines(self, ax, data, blue_line=None, black_line=None, red_line=None,
                         blue_line_alpha=0.5, black_line_alpha=0.5, red_line_alpha=0.5,
@@ -278,3 +293,77 @@ class Plotter:
 
     def spike_response_function(self, ax, y='e', y_label='Spike Response', x_lim='fit', **args):
         self.population_plot(ax, y=y, y_label=y_label, x_lim=x_lim, **args)
+
+    def get_3d_data(self, z='z', y='y', x='x', monitor=None, **args):
+        output = {}
+        output[z] = self.get_axis_data(z=z, monitor=monitor, default=None, **args)
+        output[y] = self.get_axis_data(z=y, monitor=monitor, default=None, **args)
+        output[x] = self.get_axis_data(z=x, monitor=monitor, default=None, **args)
+        return output
+
+    def scatter_3d(self, ax, additive=False,
+            y='y', x='x', z='z', data=None, monitor=None,
+            title=None, x_label=None, y_label=None, z_label=None,
+            x_vis=True, y_vis=True, z_vis=True,
+            x_r=False, y_r=False, z_r=False,
+            x_lim=None, y_lim=None, z_lim=None, **args):
+        if data is None:
+            data = {}
+        monitor = self.get_monitor(monitor)
+        if z==None: z = str(ax)
+        data = self.get_3d_data(y=y, x=x, z=z, data=data, monitor=monitor)
+        ax = self.get_ax(ax)
+        ax.scatter(data[x], data[y], data[z], **args)
+        if not additive:
+            self.set_labels(ax, x_label, y_label, title, x, y, is_3d=True, z_label=z_label, z=z)
+            self.set_limits(ax, x_lim, y_lim, x, y, data, is_3d=True, z_lim=z_lim, z=z)
+            self.set_axes_visibility(ax, x_vis, y_vis, is_3d=True, z_vis=z_vis)
+        axes = ax.axes
+        if x_r:
+            axes.invert_xaxis()
+        if z_r:
+            axes.invert_zaxis()
+        if y_r:
+            axes.invert_yaxis()
+
+    def population_activity_3d_raster(self, ax, z='s', x='x', y='y', y_label='spikes', z_label='time',
+            reduction=1, **args):
+        data = self.get_3d_data(z='s', x='x', y='y', **args)
+        d = data[z]
+        d = d.reshape(d.shape[0],-1)
+        xe,ye = np.where(d)
+        ye = np.array(ye)
+        ye = ye//reduction
+        xd = (np.array(ye)//data[z].shape[0])
+        yd = (np.array(ye)%data[z].shape[1])
+        zd = np.array(xe)
+        self.scatter_3d(ax, data={z:zd, x:xd, y:yd}, z=z, x=x, y=y, z_label=z_label, **args)
+
+    def surface_3d(self, ax, z='z', x='x', y='y', data=None, monitor=None, additive=False,
+            title=None, x_label=None, y_label=None, z_label=None,
+            x_vis=True, y_vis=True, z_vis=True,
+            x_r=False, y_r=False, z_r=False,
+            x_lim=None, y_lim=None, z_lim=None, **args):
+        if data is None:
+            data = {}
+        monitor = self.get_monitor(monitor)
+        if z==None: z = str(ax)
+        data = self.get_3d_data(z=z, y=y, x=x, data=data, monitor=monitor)
+        Z = data[z].numpy()
+        X = np.arange(Z.shape[0])
+        Y = np.arange(Z.shape[1])
+        X, Y = np.meshgrid(X, Y)
+        ax = self.get_ax(ax)
+        surf = ax.plot_surface(X, Y, Z, **args)
+        if not additive:
+            self.set_labels(ax, x_label, y_label, title, x, y, is_3d=True, z_label=z_label, z=z)
+            self.set_limits(ax, x_lim, y_lim, x, y, data, is_3d=True, z_lim=z_lim, z=z)
+            self.set_axes_visibility(ax, x_vis, y_vis, is_3d=True, z_vis=z_vis)
+        axes = ax.axes
+        if x_r:
+            axes.invert_xaxis()
+        if z_r:
+            axes.invert_zaxis()
+        if y_r:
+            axes.invert_yaxis()
+        return surf

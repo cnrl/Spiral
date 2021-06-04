@@ -81,3 +81,24 @@ def masked_shift(source, mask, shift=1, replace=0):
     if replace is not None:
         source[0,mask] = replace
     return source
+
+
+## this will be removed soon ###########
+def convolution2d(image, kernel, bias=0):
+    kernel = kernel.reshape(kernel.shape[-2], kernel.shape[-1])
+    m, n = kernel.shape
+    assert m==n, "kernel shape must be squared"
+    image = image.reshape(image.shape[-2], image.shape[-1])
+    y, x = image.shape
+    y = y - m + 1
+    x = x - m + 1
+    new_image = torch.zeros((y,x))
+    for i in range(y):
+        for j in range(x):
+            new_image[i][j] = torch.sum(image[i:i+m, j:j+m]*kernel) + bias
+    new_image = new_image.view(1,1,*new_image.shape)
+    return new_image
+
+def conv2d(kernel, bias=0, **args):
+    return lambda image: convolution2d(image, kernel, args.get('bias',0))
+########################################

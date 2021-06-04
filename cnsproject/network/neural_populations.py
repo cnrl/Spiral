@@ -40,6 +40,7 @@ class AbstractNeuralPopulation(torch.nn.Module):
         axon_set.set_population_shape(self.shape)
         axon_set.set_dt(self.dt)
         self.axons[axon_set.name] = axon_set
+        self.add_module(axon_set.name, axon_set)
         self.free_axon_index += 1
 
 
@@ -52,6 +53,7 @@ class AbstractNeuralPopulation(torch.nn.Module):
         dendrite_set.set_population_shape(self.shape)
         dendrite_set.set_dt(self.dt)
         self.dendrites[dendrite_set.name] = dendrite_set
+        self.add_module(dendrite_set.name, dendrite_set)
         self.free_dendrites_index += 1
 
 
