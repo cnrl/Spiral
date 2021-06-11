@@ -214,61 +214,37 @@ class FilterSynapseSet(AbstractSynapseSet):
 
 
 
-# class ConvolutionalConnection(AbstractConnection):
-#     """
-#     Specify a convolutional synaptic connection between neural populations.
+class LazySynapseSet(AbstractSynapseSet):
+    def __init__(
+        self,
+        name: str = None,
+        config_prohibit: bool = False,
+        **kwargs
+    ) -> None:
+        super().__init__(config_prohibit=True, name=name, **kwargs)
+        self.config_prohibit = config_prohibit
+        self.config()
 
-#     Implement the convolutional connection pattern following the abstract\
-#     connection template.
-#     """
 
-#     def __init__(
-#         self,
-#         pre: NeuralPopulation,
-#         post: NeuralPopulation,
-#         lr: Union[float, Sequence[float]] = None,
-#         weight_decay: float = 0.0,
-#         **kwargs
-#     ) -> None:
-#         super().__init__(
-#             pre=pre,
-#             post=post,
-#             lr=lr,
-#             weight_decay=weight_decay,
-#             **kwargs
-#         )
-#         """
-#         TODO.
+    def config(self) -> bool:
+        if not self.config_permit():
+            return False
+        assert self.axon.configed, "the axon is not configed yet. you can not config a synapse using it."
+        self.dendrite.set_terminal_shape(self.axon.shape)
+        self.dendrite.set_dt(self.dt)
+        self.configed = True
+        self.set_name()
+        return True
 
-#         1. Add more parameters if needed.
-#         2. Fill the body accordingly.
-#         """
 
-#     def forward(self, s: torch.Tensor) -> None:
-#         """
-#         TODO.
+    def forward(self, mask: torch.Tensor = torch.tensor(True)) -> None:
+        e = self.axon.neurotransmitters()
+        e *= mask
+        self.dendrite.forward(e)
 
-#         Implement the computation of post-synaptic population activity given the
-#         activity of the pre-synaptic population.
-#         """
-#         pass
 
-#     def update(self, **kwargs) -> None:
-#         """
-#         TODO.
-
-#         Update the connection weights based on the learning rule computations.
-#         You might need to call the parent method.
-#         """
-#         pass
-
-#     def reset_state_variables(self) -> None:
-#         """
-#         TODO.
-
-#         Reset all the state variables of the connection.
-#         """
-#         pass
+    def reset(self) -> None:
+        self.dendrite.reset()
 
 
 # class PoolingConnection(AbstractConnection):

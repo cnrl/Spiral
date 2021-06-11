@@ -84,21 +84,44 @@ def masked_shift(source, mask, shift=1, replace=0):
 
 
 ## this will be removed soon ###########
-def convolution2d(image, kernel, bias=0):
+def convolution2d(image, kernel, bias=0, stride=1, padding=0):
+    if type(stride) is int:
+        stride = (stride,stride)
+    if type(padding) is int:
+        padding = (padding,padding)
+    image = image.reshape(image.shape[-2], image.shape[-1])
+    image = torch.cat([torch.zeros((padding[0],image.shape[1])),image,torch.zeros((padding[0],image.shape[1]))], axis=0)
+    image = torch.cat([torch.zeros((image.shape[0],padding[1])),image,torch.zeros((image.shape[0],padding[1]))], axis=1)
     kernel = kernel.reshape(kernel.shape[-2], kernel.shape[-1])
     m, n = kernel.shape
-    assert m==n, "kernel shape must be squared"
-    image = image.reshape(image.shape[-2], image.shape[-1])
     y, x = image.shape
     y = y - m + 1
-    x = x - m + 1
-    new_image = torch.zeros((y,x))
-    for i in range(y):
-        for j in range(x):
-            new_image[i][j] = torch.sum(image[i:i+m, j:j+m]*kernel) + bias
-    new_image = new_image.view(1,1,*new_image.shape)
+    x = x - n + 1
+    new_image = torch.zeros(((y-1)//stride[0]+1,(x-1)//stride[1]+1))
+    for i in range(0,y,stride[0]):
+        for j in range(0,x,stride[1]):
+            new_image[i//stride[0]][j//stride[1]] = torch.sum(image[i:i+m, j:j+n]*kernel) + bias
     return new_image
 
-def conv2d(kernel, bias=0, **args):
-    return lambda image: convolution2d(image, kernel, args.get('bias',0))
+def pooling2d(image, kernel_size=2, aggregation=torch.max, bias=0, stride=None, padding=0):
+    if type(kernel_size) is int:
+        kernel_size = (kernel_size,kernel_size)
+    if stride is None:
+        stride = kernel_size
+    if type(stride) is int:
+        stride = (stride,stride)
+    if type(padding) is int:
+        padding = (padding,padding)
+    image = image.reshape(image.shape[-2], image.shape[-1])
+    image = torch.cat([torch.zeros((padding[0],image.shape[1])),image,torch.zeros((padding[0],image.shape[1]))], axis=0)
+    image = torch.cat([torch.zeros((image.shape[0],padding[1])),image,torch.zeros((image.shape[0],padding[1]))], axis=1)
+    m, n = kernel_size
+    y, x = image.shape
+    y = y - m + 1
+    x = x - n + 1
+    new_image = torch.zeros(((y-1)//stride[0]+1,(x-1)//stride[1]+1))
+    for i in range(0,y,stride[0]):
+        for j in range(0,x,stride[1]):
+            new_image[i//stride[0]][j//stride[1]] = aggregation(image[i:i+m, j:j+n]) + bias
+    return new_image
 ########################################

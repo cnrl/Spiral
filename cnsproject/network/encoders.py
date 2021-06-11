@@ -212,7 +212,7 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
 
 
     def decode(self, data: torch.Tensor) -> torch.Tensor:
-        d = data.reshape(self.length,-1)
+        d = data.reshape(int(self.length),-1)
         times,neurons = torch.where(d)
         spike_times = torch.cat([neurons.reshape(*neurons.shape,1),times.reshape(*times.shape,1)], dim=1)
         spike_times = spike_times[spike_times[:,0].argsort()]

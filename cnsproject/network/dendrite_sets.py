@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union, Iterable
 import torch
 from .weight_initializations import constant_initialization
+from .filters import AbstractFilter
 
 class AbstractDendriteSet(ABC, torch.nn.Module):
     def __init__(
@@ -158,7 +159,7 @@ class SimpleDendriteSet(AbstractDendriteSet):
 
 
 
-class FilterDendriteSet(SimpleDendriteSet):
+class NanBlockerDendriteSet(SimpleDendriteSet):
     def __init__(
         self,
         name: str=None,
@@ -172,3 +173,65 @@ class FilterDendriteSet(SimpleDendriteSet):
         I = neurotransmitters_singleton * self.w
         I[neurotransmitters.isnan()] = 0
         self.I = self.I*neurotransmitters_singleton.isnan() + I
+
+
+
+
+class FilteringDendriteSet2d(AbstractDendriteSet):
+    def __init__(
+        self,
+        name: str = None,
+        filt: AbstractFilter = None,
+        config_prohibit: bool = False,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            name=name,
+            config_prohibit=True,
+            **kwargs
+        )
+        self.config_prohibit = config_prohibit
+        self.set_filter(filt)
+
+
+    def config_permit(self):
+        return (super().config_permit() and (self.filter is not None))
+
+    
+    def config(self) -> bool:
+        if not self.config_permit():
+            return False
+        assert self.required_population_shape()==self.population_shape, "terminal shape doesn't match with population shape according to filter"
+        return super().config()
+
+
+    def set_filter(self, filt) -> bool:
+        if self.configed:
+            return False
+        self.filter = filt
+        if self.filter is not None:
+            self.add_module('filter', self.filter)
+        self.config()
+        return True
+
+
+    def required_population_shape(self) -> Iterable[int]:
+        assert (self.terminal_shape is not None and self.filter is not None), \
+            "please set terminal and filter at the first place."
+        return self.filter(torch.zeros(self.terminal_shape)).shape
+
+    
+    def get_kernel_weight(self):
+        return self.filter.filter.weight.data
+
+
+    def set_kernel_weight(self, data):
+        self.filter.filter.weight.data = data
+
+
+    def forward(self, neurotransmitters: torch.Tensor) -> None: #doesn't replace nan values
+        self.I = self.filter(neurotransmitters)
+
+
+    def currents(self) -> torch.Tensor:
+        return self.I

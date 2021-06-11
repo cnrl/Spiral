@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Union, Iterable
+from typing import Union, Iterable, Callable
 from .kernels import DoG_kernel, gabor_kernel
 import torch
 
@@ -33,84 +33,107 @@ class IneffectiveFilter(AbstractFilter):
 
 
 
-class KernelConvFilter(AbstractFilter):
+class CoreCentricFilter(AbstractFilter):
     def __init__(
         self,
-        kernel, #shape=(1,c,x,x) as (batch,channel,size,size)
-        transform=lambda x: x,
-        **kwargs
+        core: Callable, # input: tensor of shape ([batch,channel,] ...) that ... is `dims` dimentional and batch exists if batch_recipient_core and channel exists if channel_recipient_core
+        dims: int = 2,
+        batch_inputing: bool = False,
+        batch_recipient_core: bool = True, #if not batch_inputing, it will run unsqueeze_(0) on inputs befor sending them to core
+        batch_outputing: bool = False, #if False and batch_recipient_core, it will drop first dim of core output before redirecting it to object output
+        channel_inputing: bool = False,
+        channel_recipient_core: bool = True, #if not channel_inputing, it will run unsqueeze_(0) on inputs befor checking batchs
+        channel_outputing: bool = False, #if False and channel_recipient_core, it will drop second dim of core output before redirecting it to object output
+        transform: Callable = lambda x: x,
+        **kwargs,
     ) -> None:
-        super().__init__(transform=transform)
-        b,c,x,y = kernel.shape
-        assert x==y, "kernel shape must be square"
-        # self.filter = torch.nn.Conv2d(
-        #     in_channels=c,
-        #     out_channels=c,
-        #     kernel_size=x,
-        #     groups=c,
-        #     **kwargs
-        # )
-        # self.filter.weight.data = kernel
-        # self.filter.weight.requires_grad = False
-        # self.add_module('filter', self.filter)
-        from ..utils import conv2d
-        self.filter = conv2d(kernel=kernel[0][0], **kwargs)
+        super().__init__(transform=transform, **kwargs)
+        self.dims = dims
+        assert not (batch_inputing and not batch_recipient_core), "What should I do with batch dimention?"
+        assert not (not batch_recipient_core and batch_outputing), "Should I generate one dimention?"
+        self.batch_inputing = batch_inputing
+        self.batch_recipient_core = batch_recipient_core
+        self.batch_outputing = batch_outputing
+        assert not (channel_inputing and not channel_recipient_core), "What should I do with batch dimention?"
+        assert not (not channel_recipient_core and channel_outputing), "Should I generate one dimention?"
+        self.channel_inputing = channel_inputing
+        self.channel_recipient_core = channel_recipient_core
+        self.channel_outputing = channel_outputing
+        self.core = core
+        self.add_module('core', self.core)
+
+
+    def input_reshape(self, tensor: torch.Tensor) -> torch.Tensor: #([batch,channel,] ...)
+        assert len(tensor.shape)==self.dims+self.channel_inputing+self.batch_inputing, "tensor shape is wrong: it should be ([batch,channel,] ...)"
+        if self.channel_recipient_core and not self.channel_inputing:
+            tensor = tensor.unsqueeze_(0)
+        if self.batch_recipient_core and not self.batch_inputing:
+            tensor = tensor.unsqueeze_(0)
+        return tensor
+
+
+    def output_reshape(self, tensor: torch.Tensor) -> torch.Tensor:
+        if not self.batch_recipient_core:
+            if self.channel_recipient_core and not self.channel_outputing:
+                return tensor[0]
+            else:
+                return tensor
+        if self.batch_recipient_core and not self.batch_outputing:
+            tensor = tensor[0]
+            if self.channel_recipient_core and not self.channel_outputing:
+                return tensor[0]
+            else:
+                return tensor
+        else:
+            if self.channel_recipient_core and not self.channel_outputing:
+                return tensor[:,0]
+            else:
+                return tensor
 
 
     def __call__(self, data) -> torch.Tensor: # data in shape=(b,c,x,y) as (batch,channels,height,width)
+        data = self.input_reshape(data)
         data = super().__call__(data)
-        if len(data.shape)==3:
-            data = data.unsqueeze_(0)
-        return self.filter(data).detach()
+        data = self.core(data).detach()
+        return self.output_reshape(data)
 
 
 
 
-class DoGFilter(KernelConvFilter):
+class Conv2dFilter(CoreCentricFilter):
     def __init__(
         self,
-        kernel_size: int = 3,
-        std1: Union[float,torch.Tensor] = 1.,
-        std2: Union[float,torch.Tensor] = 2.,
-        channels: int = 1,
-        off_center=False,
+        kernel, #([batch,channel,]size,size)
+        transform: Callable = lambda x: x,
         **kwargs
     ) -> None:
         super().__init__(
-            kernel=DoG_kernel(
-                kernel_size=kernel_size,
-                std1=std1,
-                std2=std2,
-                channels=channels,
-                off_center=off_center
-            ),
-            **kwargs
+            dims=2,
+            batch_inputing=len(kernel.shape)>=4,
+            batch_recipient_core=True,
+            batch_outputing=len(kernel.shape)>=4,
+            channel_inputing=len(kernel.shape)>=3,
+            channel_recipient_core=True,
+            channel_outputing=len(kernel.shape)>=3,
+            transform=transform,
+            core=Conv2dFilter.conv_init(kernel=kernel, **kwargs),
         )
 
 
-
-
-class GaborFilter(KernelConvFilter):
-    def __init__(
-        self,
-        kernel_size: int = 3,
-        wavelength: Union[float,torch.Tensor] = 1.,
-        orientation: torch.Tensor = torch.tensor(0.),
-        std: Union[float,torch.Tensor] = 1.,
-        aspect_ratio: Union[float,torch.Tensor] = 1.,
-        channels: int = 1,
-        off_center=False,
-        **kwargs
-    ) -> None:
-        super().__init__(
-            kernel=gabor_kernel(
-                kernel_size=kernel_size,
-                wavelength=wavelength,
-                orientation=orientation,
-                std=std,
-                aspect_ratio=aspect_ratio,
-                channels=channels,
-                off_center=off_center
-            ),
-                **kwargs
-            )
+    def conv_init(kernel, **kwargs) -> torch.nn.Conv2d:
+        while len(kernel.shape)<4:
+            kernel = kernel.unsqueeze_(0)
+        c = kernel.shape[1]
+        in_channels = kwargs.get('in_channels', c)
+        out_channels = kwargs.get('out_channels', c)
+        groups = kwargs.get('groups', c)
+        filt = torch.nn.Conv2d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=(),
+            groups=groups,
+            **kwargs
+        )
+        filt.weight.data = kernel
+        filt.weight.requires_grad = False
+        return filt

@@ -1,5 +1,8 @@
 import torch
 
+def lazy_initialization(data):
+    return lambda a_shape, b_shape:  data
+
 def constant_initialization(w_scale=1):
     return lambda a_shape, b_shape:  w_scale*torch.ones((*a_shape, *b_shape))
 
