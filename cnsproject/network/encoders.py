@@ -3,7 +3,7 @@ Module for neuronal dynamics and populations.
 """
 
 from abc import abstractmethod
-from typing import Union, Iterable
+from typing import Union, Iterable, Callable
 from torch.distributions import Normal
 import torch
 from .neural_populations import AbstractNeuralPopulation
@@ -14,22 +14,21 @@ class AbstractEncoder(AbstractNeuralPopulation):
         self,
         name: str,
         input_shape: Iterable[int],
-        output_shape: Iterable[int],
-        min_input: Union[float, torch.Tensor] = 0.,
-        max_input: Union[float, torch.Tensor] = 1.,
+        output_shape: Iterable[int] = None,
+        normalize: bool = True,
+        filt: Callable = lambda x: x,
         **kwargs
     ) -> None:
         super().__init__(
             name=name,
-            shape=output_shape,
+            shape=output_shape if output_shape is not None else filt(torch.zeros(input_shape)).shape,
             **kwargs
         )
-
+        self.filter = filt
         self.input_shape = input_shape
-        self.output_shape = output_shape
-        self.register_buffer("min", torch.tensor(min_input))
-        self.register_buffer("max", torch.tensor(max_input))
+        self.output_shape = output_shape if output_shape is not None else self.filter(torch.zeros(input_shape)).shape
         self.register_buffer("s", torch.zeros(*self.output_shape, dtype=torch.bool))
+        self.normalize = normalize
 
 
     @abstractmethod
@@ -49,19 +48,17 @@ class AbstractEncoder(AbstractNeuralPopulation):
         pass
         
 
-    @abstractmethod
-    def scale_input(self, data:torch.Tensor) -> torch.Tensor:
-        return (data-self.min)/(self.max-self.min)
-
-
-    @abstractmethod
     def encode(self, data: torch.Tensor) -> None:
-        pass
+        data = self.filter(data)
+        if self.normalize:
+            data -= data.min()
+            data /= data.max()
+        self.encode_processed_data(data)
 
 
     @abstractmethod
-    def reset(self) -> None:
-        self.s.zero_()
+    def encode_processed_data(self, data: torch.Tensor) -> None:
+        pass
 
 
 
@@ -127,9 +124,9 @@ class TemporaryEncoder(AbstractEncoder):
     def __init__(
         self,
         name: str,
-        input_shape: Iterable[int],
-        output_shape: Iterable[int],
         time: float,
+        input_shape: Iterable[int],
+        output_shape: Iterable[int] = None,
         dt: float = None,
         **kwargs
     ) -> None:
@@ -165,6 +162,7 @@ class TemporaryEncoder(AbstractEncoder):
 
     def encode(self, data: torch.Tensor) -> None:
         self.step = 0
+        super().encode(data)
 
 
     def reset(self) -> None:
@@ -189,7 +187,6 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
         super().__init__(
             name=name,
             input_shape=shape,
-            output_shape=shape,
             time = time,
             **kwargs
         )
@@ -199,11 +196,9 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
         self.s = (self.stage==(self.length-self.step))
 
 
-    def encode(self, data: torch.Tensor) -> None:
-        self.stage = self.scale_input(data)
-        self.stage *= self.length
+    def encode_processed_data(self, data: torch.Tensor) -> None:
+        self.stage = data * self.length
         self.stage = self.stage.round()
-        super().encode(data)
 
 
     def reset(self) -> None:
@@ -219,6 +214,7 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
         d = torch.zeros(d.shape[1]) - 1
         d[spike_times[:,0]] = spike_times[:,1].type(torch.float)
         d = self.length - d
+        d /= self.length
         return d.reshape(self.input_shape)
 
 
@@ -238,21 +234,23 @@ class PositionEncoder(TemporaryEncoder):
         mean: Union[float, torch.Tensor] = None,
         std: Union[float, torch.Tensor] = None,
         ignore_threshold: Union[float, torch.Tensor] = 1e-3,
+        filt: Callable = lambda x: x,
         **kwargs
     ) -> None:
         super().__init__(
             name=name,
             input_shape=shape,
-            output_shape=(*shape,k),
+            output_shape=(*filt(torch.zeros(shape)).shape, k),
             time = time,
+            filt=filt,
             **kwargs
         )
         self.k = k
         if mean is None:
-            mean = torch.linspace(self.min, self.max, self.k)
+            mean = torch.linspace(0, 1, self.k)
         self.register_buffer("mean", torch.tensor(mean))
         if std is None:
-            std = ((self.max-self.min)/(self.k-1))/2
+            std = (1/(self.k-1))/2
         self.register_buffer("std", torch.tensor(std))
         self.register_buffer("ignore_threshold", torch.tensor(ignore_threshold))
 
@@ -261,7 +259,7 @@ class PositionEncoder(TemporaryEncoder):
         self.s = (self.stage==(self.length-self.step))
 
 
-    def encode(self, data: torch.Tensor) -> None:
+    def encode_processed_data(self, data: torch.Tensor) -> None:
         normal = Normal(self.mean, self.std)
         self.stage = torch.exp(normal.log_prob(data.reshape(*data.shape,1)))
         self.stage[self.stage<self.ignore_threshold] = float('NaN')
@@ -329,9 +327,8 @@ class PoissonEncoder(AbstractEncoder):
         self.s = torch.bernoulli(self.stage).type(torch.bool)
 
 
-    def encode(self, data: torch.Tensor) -> None:
-        self.stage = self.scale_input(data)
-        self.stage *= self.rate
+    def encode_processed_data(self, data: torch.Tensor) -> None:
+        self.stage = data * self.rate
 
 
     def reset(self) -> None:
@@ -340,4 +337,31 @@ class PoissonEncoder(AbstractEncoder):
 
 
     def decode(self, data: torch.Tensor) -> torch.Tensor:
-        return data.float().mean(axis=0).reshape(self.input_shape) * (self.max-self.min) + self.min
+        return data.float().mean(axis=0).reshape(self.input_shape)
+
+
+
+
+class RankOrderEncoder(Time2FirstSpikeEncoder):
+    """
+    Time-to-First-Spike coding.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        shape: Iterable[int],
+        time: float,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            name=name,
+            shape=shape,
+            time = time,
+            **kwargs
+        )
+
+
+    def encode_processed_data(self, data: torch.Tensor) -> None:
+        data = torch.unique(data, sorted=True, return_inverse=True)[1] + 1
+        super().encode_processed_data(data)

@@ -5,7 +5,8 @@ from typing import Union, Iterable
 def gaussian_kernel(
         kernel_size: int = 3,
         std: Union[float,torch.Tensor] = 1.,
-        channels: int = None,
+        in_channel: int = None,
+        out_channel: int = None,
     ) -> torch.Tensor:
     x_coord = torch.arange(kernel_size)
     x_grid = x_coord.repeat(kernel_size).view(kernel_size, kernel_size)
@@ -20,9 +21,12 @@ def gaussian_kernel(
                           (2*variance)
                       )
     kernel = kernel / torch.sum(kernel)
-    if channels is not None:
-        kernel = kernel.view(1, *kernel.shape) #channels - x - y
-        kernel = kernel.repeat(channels, 1, 1)
+    if out_channel is not None and in_channel is None:
+        in_channel = 1
+    for channel in [in_channel, out_channel]:
+        if channel is not None:
+            kernel = kernel.view(1, *kernel.shape) #channel - x - y
+            kernel = kernel.repeat(channel, *[1]*(len(kernel.shape)-1))
     return kernel
 
 
@@ -30,11 +34,12 @@ def DoG_kernel(
         kernel_size: int = 3,
         std1: Union[float,torch.Tensor] = 1.,
         std2: Union[float,torch.Tensor] = 2.,
-        channels: int = None,
+        in_channel: int = None,
+        out_channel: int = None,
         off_center=False,
     ) -> torch.Tensor:
-    kernel = gaussian_kernel(kernel_size=kernel_size, std=std1, channels=channels) \
-            - gaussian_kernel(kernel_size=kernel_size, std=std2, channels=channels)
+    kernel = gaussian_kernel(kernel_size=kernel_size, std=std1, in_channel=in_channel, out_channel=out_channel) \
+            - gaussian_kernel(kernel_size=kernel_size, std=std2, in_channel=in_channel, out_channel=out_channel)
     kernel -= kernel.mean()
     if off_center:
         kernel *= -1
@@ -47,7 +52,8 @@ def gabor_kernel(
         orientation: torch.Tensor = torch.tensor(0.),
         std: Union[float,torch.Tensor] = 1.,
         aspect_ratio: Union[float,torch.Tensor] = 1.,
-        channels: int = None,
+        in_channel: int = None,
+        out_channel: int = None,
         off_center=False,
     ) -> torch.Tensor:
     x_coord = torch.arange(kernel_size)
@@ -69,9 +75,12 @@ def gabor_kernel(
                 (2*variance)
             ) * torch.cos(2*pi*X/wavelength)
     kernel = kernel / torch.sum(kernel)
-    if channels is not None:
-        kernel = kernel.view(1, *kernel.shape) #channels - x - y
-        kernel = kernel.repeat(channels, 1, 1)
+    if out_channel is not None and in_channel is None:
+        in_channel = 1
+    for channel in [in_channel, out_channel]:
+        if channel is not None:
+            kernel = kernel.view(1, *kernel.shape) #channel - x - y
+            kernel = kernel.repeat(channel, *[1]*(len(kernel.shape)-1))
     kernel -= kernel.mean()
     if off_center:
         kernel *= -1

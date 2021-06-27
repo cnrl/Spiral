@@ -44,10 +44,12 @@ class CoreCentricFilter(AbstractFilter):
         channel_inputing: bool = False,
         channel_recipient_core: bool = True, #if not channel_inputing, it will run unsqueeze_(0) on inputs befor checking batchs
         channel_outputing: bool = False, #if False and channel_recipient_core, it will drop second dim of core output before redirecting it to object output
-        transform: Callable = lambda x: x,
+        padding: Iterable = (),
+        post_reshape_transform: Callable = lambda x: x,
         **kwargs,
     ) -> None:
-        super().__init__(transform=transform, **kwargs)
+        super().__init__(**kwargs)
+        self.post_reshape_transform = post_reshape_transform
         self.dims = dims
         assert not (batch_inputing and not batch_recipient_core), "What should I do with batch dimention?"
         assert not (not batch_recipient_core and batch_outputing), "Should I generate one dimention?"
@@ -60,15 +62,16 @@ class CoreCentricFilter(AbstractFilter):
         self.channel_recipient_core = channel_recipient_core
         self.channel_outputing = channel_outputing
         self.core = core
+        self.padding = padding
         self.add_module('core', self.core)
 
 
     def input_reshape(self, tensor: torch.Tensor) -> torch.Tensor: #([batch,channel,] ...)
         assert len(tensor.shape)==self.dims+self.channel_inputing+self.batch_inputing, "tensor shape is wrong: it should be ([batch,channel,] ...)"
         if self.channel_recipient_core and not self.channel_inputing:
-            tensor = tensor.unsqueeze_(0)
+            tensor = tensor.reshape(1, *tensor.shape)
         if self.batch_recipient_core and not self.batch_inputing:
-            tensor = tensor.unsqueeze_(0)
+            tensor = tensor.reshape(1, *tensor.shape)
         return tensor
 
 
@@ -91,47 +94,56 @@ class CoreCentricFilter(AbstractFilter):
                 return tensor
 
 
-    def __call__(self, data) -> torch.Tensor: # data in shape=(b,c,x,y) as (batch,channels,height,width)
-        data = self.input_reshape(data)
+    def pad(self, tensor: torch.Tensor) -> torch.Tensor:
+        for i,pad in enumerate(self.padding):
+            shape = tensor.shape
+            shape[i] = pad
+            tensor = torch.cat([torch.zeros(shape),tensor,torch.zeros(shape)], axis=0)
+        return tensor
+
+    def __call__(self, data: torch.Tensor) -> torch.Tensor: # data in shape=(b,c,x,y) as (batch,channels,height,width)
         data = super().__call__(data)
+        data = self.input_reshape(data)
+        data = self.post_reshape_transform(data)
         data = self.core(data).detach()
         return self.output_reshape(data)
 
 
 
 
-class Conv2dFilter(CoreCentricFilter):
+class Conv2DFilter(CoreCentricFilter):
     def __init__(
         self,
         kernel, #([batch,channel,]size,size)
         transform: Callable = lambda x: x,
+        post_reshape_transform: Callable = lambda x: x,
+        batch_inputing: bool = False,
+        batch_outputing: bool = False,
+        channel_inputing: bool = None,
+        channel_outputing: bool = None,
         **kwargs
     ) -> None:
         super().__init__(
             dims=2,
-            batch_inputing=len(kernel.shape)>=4,
+            batch_inputing=batch_inputing,
             batch_recipient_core=True,
-            batch_outputing=len(kernel.shape)>=4,
-            channel_inputing=len(kernel.shape)>=3,
+            batch_outputing=batch_outputing,
+            channel_inputing=channel_inputing if channel_inputing is not None else len(kernel.shape)>=3,
             channel_recipient_core=True,
-            channel_outputing=len(kernel.shape)>=3,
+            channel_outputing=channel_outputing if channel_outputing is not None else len(kernel.shape)>=4,
             transform=transform,
-            core=Conv2dFilter.conv_init(kernel=kernel, **kwargs),
+            post_reshape_transform=post_reshape_transform,
+            core=Conv2DFilter.conv_init(kernel=kernel, **kwargs),
         )
 
 
     def conv_init(kernel, **kwargs) -> torch.nn.Conv2d:
         while len(kernel.shape)<4:
             kernel = kernel.unsqueeze_(0)
-        c = kernel.shape[1]
-        in_channels = kwargs.get('in_channels', c)
-        out_channels = kwargs.get('out_channels', c)
-        groups = kwargs.get('groups', c)
         filt = torch.nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=out_channels,
+            in_channels=kernel.shape[1],
+            out_channels=kernel.shape[0],
             kernel_size=(),
-            groups=groups,
             **kwargs
         )
         filt.weight.data = kernel

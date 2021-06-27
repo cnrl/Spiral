@@ -126,7 +126,20 @@ class STDPST(SimpleSynapticTagger): # STDP-SynapticTagger
 
 
 
-class FSTDPST(AbstractSynapticTagger): # Flat-STDP-SynapticTagger
+class FSTDPST(SimpleSynapticTagger): # Flat-STDP-SynapticTagger
+    def __init__(
+        self,
+        **kwargs
+    ) -> None:
+        super().__init__(**kwargs)
+
+    
+    def decay_traces(self, s: torch.Tensor) -> None: #s: spikes
+        return 0
+
+
+
+class LFSTDPST(AbstractSynapticTagger): # Limited Flat-STDP-SynapticTagger
     def __init__(
         self,
         time: float = 10.,

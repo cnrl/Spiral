@@ -10,8 +10,9 @@ import torch
 
 from ..network.synapse_sets import AbstractSynapseSet
 from .learning_rates import stdp_wdlr
-from .synaptic_taggers import AbstractSynapticTagger, STDPST, FSTDPST
+from .synaptic_taggers import AbstractSynapticTagger, STDPST, LFSTDPST, FSTDPST
 from ..network.axon_sets import AbstractAxonSet
+from ..network.filters import CoreCentricFilter
 
 
 class AbstractLearningRuleEnforcer(ABC, torch.nn.Module):
@@ -265,6 +266,32 @@ class AbstractWeightLRE(CombinableLRE):
 
 
 
+class AbstractKernelWeightLRE(CombinableLRE):
+    def __init__(
+        self,
+        name: str = None,
+        **kwargs
+    ) -> None:
+        super().__init__(name=name, **kwargs)
+
+
+    @abstractmethod
+    def compute_updatings(self) -> torch.Tensor: # output = dw
+        pass
+
+
+    def update(self, dw: torch.Tensor) -> None:
+        w = self.synapse.dendrite.filter.core.weight.data
+        wmin = self.synapse.dendrite.wmin
+        wmax = self.synapse.dendrite.wmax
+        w += dw
+        w[w<wmin] = wmin
+        w[w>wmax] = wmax
+        self.synapse.dendrite.filter.core.weight.data = w
+
+
+
+
 class SimpleWeightDecayLRE(AbstractWeightLRE):
     def __init__(
         self,
@@ -340,7 +367,7 @@ class STDP(AbstractWeightLRE):
         w = self.synapse.dendrite.w
         wmin = self.synapse.dendrite.wmin
         wmax = self.synapse.dendrite.wmax
-        ltp_lr = self.ltd_wdlr(w, wmin, wmax)
+        ltp_lr = self.ltp_wdlr(w, wmin, wmax)
         ltd_lr = self.ltd_wdlr(w, wmin, wmax)
         return ltp_lr,ltd_lr
 
@@ -367,18 +394,128 @@ class STDP(AbstractWeightLRE):
 
 
 
+class KernelSTDP(AbstractKernelWeightLRE):
+    def __init__(
+        self,
+        name: str = None,
+        dims: int = 2,
+        pre_traces: AbstractSynapticTagger = None,
+        post_traces: AbstractSynapticTagger = None,
+        ltp_wdlr: Callable = stdp_wdlr(.1), #LTP weight dependent learning rate
+        ltd_wdlr: Callable = stdp_wdlr(.1), #LTD weight dependent learning rate
+        config_prohibit: bool = False,
+        **kwargs
+    ) -> None:  
+        super().__init__(config_prohibit=True, name=name, **kwargs)
+        self.dims = dims
+        self.pre_traces = pre_traces if pre_traces is not None else STDPST()
+        self.post_traces = post_traces if post_traces is not None else STDPST()
+        self.ltp_wdlr = ltp_wdlr
+        self.ltd_wdlr = ltd_wdlr
+        self.config_prohibit = config_prohibit
+        self.config()
+
+    
+    def config(self) -> bool:
+        if not super().config():
+            return False
+        self.pre_traces.set_shape(self.synapse.axon.population_shape)
+        self.post_traces.set_shape(self.synapse.dendrite.population_shape)
+        self.pre_traces.set_dt(self.dt)
+        self.post_traces.set_dt(self.dt)
+        return True
+
+
+    def compute_lrs(self) -> tuple: # ltp_lr,ltd_lr
+        w = self.synapse.dendrite.filter.core.weight.data
+        wmin = self.synapse.dendrite.wmin
+        wmax = self.synapse.dendrite.wmax
+        ltp_lr = self.ltp_wdlr(w, wmin, wmax)
+        ltd_lr = self.ltd_wdlr(w, wmin, wmax)
+        return ltp_lr,ltd_lr
+
+
+    def presynaptic_process(self, tensor): ##### it need a better name!!!!
+        if not self.synapse.dendrite.filter.channel_inputing:
+            tensor = tensor.unsqueeze(0)
+        kernel_size = self.synapse.dendrite.filter.core.weight.data.shape[-len(tensor.shape)+1:]
+        stride = self.synapse.dendrite.filter.core.stride
+        padding = self.synapse.dendrite.filter.core.padding
+        for i,pad in enumerate(padding):
+            shape = list(tensor.shape)
+            shape[i+1] = pad
+            tensor = torch.cat([torch.zeros(shape),tensor,torch.zeros(shape)], axis=i+1)
+        for i,strd in enumerate(stride):
+            tensor = tensor.unfold(i+1,kernel_size[i],strd)
+        tensor = tensor.unsqueeze(0)
+        return tensor
+
+
+    def postsynaptic_process(self, tensor): ##### it need a better name!!!!
+        if not self.synapse.dendrite.filter.channel_outputing:
+            tensor = tensor.unsqueeze(0)
+        tensor = tensor.reshape(tensor.shape[0], 1, *tensor.shape[1:])
+        tensor = tensor.reshape(*tensor.shape, *[1]*(len(tensor.shape)-2))
+        return tensor
+
+    
+    def compute_updatings(self) -> torch.Tensor:
+        ltp_lr,ltd_lr = self.compute_lrs()
+        
+        ltp = self.presynaptic_process(self.pre_traces.traces()) * self.postsynaptic_process(self.synapse.dendrite.spikes())
+        ltp = ltp_lr * ltp.sum(axis=list(range(2,len(ltp_lr.shape))))
+
+        ltd = self.postsynaptic_process(self.post_traces.traces()) * self.presynaptic_process(self.synapse.axon.spikes())
+        ltd = ltd_lr * ltd.sum(axis=list(range(2,len(ltd_lr.shape))))
+        
+        dw = self.dt * (ltp - ltd)
+        return dw
+
+
+    def forward(self, direct_input: torch.Tensor = torch.tensor(0.)) -> None:
+        self.pre_traces.forward(self.synapse.axon.spikes())
+        self.post_traces.forward(self.synapse.dendrite.spikes())
+        super().forward()
+
+
+    def reset(self) -> None:
+        self.pre_traces.reset()
+        self.post_traces.reset()
+        super().reset()
+
+
+
+
 class FlatSTDP(STDP):
     def __init__(
         self,
         name: str = None,
-        pre_time: Union[float, torch.Tensor] = 10.,
-        post_time: Union[float, torch.Tensor] = 10.,
+        pre_time: Union[float, torch.Tensor] = 0.,
+        post_time: Union[float, torch.Tensor] = 0.,
         **kwargs
     ) -> None:
         super().__init__(
             name=name,
-            pre_traces=FSTDPST(pre_time),
-            post_traces=FSTDPST(post_time),
+            pre_traces=LFSTDPST(pre_time) if pre_time>0 else FSTDPST(),
+            post_traces=LFSTDPST(post_time) if post_time>0 else FSTDPST(),
+            **kwargs
+        )
+
+
+
+
+class FlatKernelSTDP(KernelSTDP):
+    def __init__(
+        self,
+        name: str = None,
+        pre_time: Union[float, torch.Tensor] = 0.,
+        post_time: Union[float, torch.Tensor] = 0.,
+        **kwargs
+    ) -> None:
+        super().__init__(
+            name=name,
+            pre_traces=LFSTDPST(pre_time) if pre_time>0 else FSTDPST(),
+            post_traces=LFSTDPST(post_time) if post_time>0 else FSTDPST(),
             **kwargs
         )
 

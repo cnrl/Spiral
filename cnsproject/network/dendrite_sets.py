@@ -177,7 +177,7 @@ class NanBlockerDendriteSet(SimpleDendriteSet):
 
 
 
-class FilteringDendriteSet2d(AbstractDendriteSet):
+class FilteringDendriteSet2D(AbstractDendriteSet):
     def __init__(
         self,
         name: str = None,
@@ -219,14 +219,6 @@ class FilteringDendriteSet2d(AbstractDendriteSet):
         assert (self.terminal_shape is not None and self.filter is not None), \
             "please set terminal and filter at the first place."
         return self.filter(torch.zeros(self.terminal_shape)).shape
-
-    
-    def get_kernel_weight(self):
-        return self.filter.filter.weight.data
-
-
-    def set_kernel_weight(self, data):
-        self.filter.filter.weight.data = data
 
 
     def forward(self, neurotransmitters: torch.Tensor) -> None: #doesn't replace nan values

@@ -8,7 +8,6 @@ import torch
 from .connectivity_patterns import dense_connectivity
 from .axon_sets import AbstractAxonSet
 from .dendrite_sets import AbstractDendriteSet
-from ..utils import SliceMaker
 
 
 class AbstractSynapseSet(ABC, torch.nn.Module):
@@ -195,7 +194,7 @@ class FilterSynapseSet(AbstractSynapseSet):
     def parse_slice_passage(self, passage, source_shape):
         passage = passage if passage is not None else []
         passage = [True]*(len(source_shape)-len(passage)) + passage
-        passage = [SliceMaker()[:] if p is True else p for p in passage]
+        passage = [slice(None, None, None) if p is True else p for p in passage]
         passage_shape = torch.zeros(source_shape)[passage].shape
         return passage,passage_shape
 
