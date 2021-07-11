@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import Union, Iterable, Callable
-from .kernels import DoG_kernel, gabor_kernel
+from .kernel import DoG_kernel, gabor_kernel
 import torch
 
 

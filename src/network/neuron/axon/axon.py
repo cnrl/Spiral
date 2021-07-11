@@ -3,10 +3,10 @@
 
 from abc import ABC, abstractmethod
 from typing import Union, Iterable
-from ..utils import masked_shift
+from .utils import masked_shift
 import torch
 
-class AbstractAxonSet(ABC, torch.nn.Module):
+class Axon(ABC, torch.nn.Module):
     def __init__(
         self,
         name: str = None,
@@ -116,7 +116,7 @@ class AbstractAxonSet(ABC, torch.nn.Module):
 
 
 
-class SimpleAxonSet(AbstractAxonSet):
+class SimpleAxonSet(Axon):
     def __init__(
         self,
         name: str = None,

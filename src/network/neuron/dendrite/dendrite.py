@@ -5,10 +5,10 @@ Module for connections between neural populations.
 from abc import ABC, abstractmethod
 from typing import Union, Iterable
 import torch
-from .weight_initializations import constant_initialization
-from .filters import AbstractFilter
+from .weight_initialization import constant_initialization
+from .filter.filter import AbstractFilter
 
-class AbstractDendriteSet(ABC, torch.nn.Module):
+class Dendrite(ABC, torch.nn.Module):
     def __init__(
         self,
         name: str = None,
@@ -123,7 +123,7 @@ class AbstractDendriteSet(ABC, torch.nn.Module):
 
 
 
-class SimpleDendriteSet(AbstractDendriteSet):
+class SimpleDendriteSet(Dendrite):
     def __init__(
         self,
         name: str = None,
@@ -177,7 +177,7 @@ class NanBlockerDendriteSet(SimpleDendriteSet):
 
 
 
-class FilteringDendriteSet2D(AbstractDendriteSet):
+class FilteringDendriteSet2D(Dendrite):
     def __init__(
         self,
         name: str = None,
