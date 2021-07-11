@@ -37,7 +37,7 @@ class IntegrateAndFireSoma(InterneuronSoma):
         self.potential += self.resting_potential
 
 
-    def refactoriness(self):
+    def repolarization(self):
         self.potential *= ~self.spike
         self.potential += self.spike*self.resting_potential
 
@@ -52,7 +52,7 @@ class IntegrateAndFireSoma(InterneuronSoma):
 
 
     def progress(self, **args) -> None:
-        self.refactoriness()
+        self.repolarization()
         super().progress(**args)
 
 
@@ -72,30 +72,42 @@ class LeakyMembrane(InterneuronSoma, AOD):
         AOD.__init__(self, obj=obj)
 
 
+    def compute_leakage(self) -> torch.Tensor:
+        return (self.potential-self.resting_potential) * self.dt / self.tau
+
+
+    def leak(self, leakage) -> None:
+        self.potential -= leakage
+
+
     def main_process(self, **args) -> None:
-        leaky_term = self.potential-self.resting_potential
+        leakage = self.compute_leakage()
         self.obj.main_process(**args)
-        self.potential -= leaky_term * self.dt / self.tau
+        self.leak(leakage)
 
 
 
 
-class ExponentialMembrane(InterneuronSoma, AOD):
+class ExponentialDepolaristicMembrane(InterneuronSoma, AOD):
     def __init__(
         self,
         obj: InterneuronSoma,
         sharpness: Union[float, torch.Tensor] = 2.,
-        action_threshold: Union[float, torch.Tensor] = -50.4, #mV
+        depolarization_threshold: Union[float, torch.Tensor] = -50.4, #mV
     ) -> None:
         AOD.__init__(self, obj=obj)
         self.register_buffer("sharpness", torch.tensor(sharpness))
-        self.register_buffer("action_threshold", torch.tensor(action_threshold))
+        self.register_buffer("depolarization_threshold", torch.tensor(depolarization_threshold))
+
+
+    def depolarize(self) -> None:
+        depolarisation = self.sharpness*torch.exp((self.potential-self.depolarization_threshold)/self.sharpness)
+        self.potential += self.dt/self.tau * depolarisation
 
 
     def main_process(self, **args) -> None:
         self.obj.main_process(**args)
-        action_term = self.sharpness*torch.exp((self.potential-self.action_threshold)/self.sharpness)
-        self.potential += self.dt/self.tau * action_term
+        self.depolarize()
 
 
 
@@ -116,19 +128,23 @@ class AdaptiveMembrane(InterneuronSoma, AOD):
 
     def __construct__(self, shape: Iterable[int], **args) -> None:
         self.obj.__construct__(shape=shape, **args)
-        self.register_buffer("w", torch.zeros(self.shape))
+        self.register_buffer("adaptivity", torch.zeros(self.shape))
 
 
-    def compute_w(self) -> None:
-        self.w += self.dt/self.tau_w * (self.a_w*(self.potential-self.resting_potential) - self.w + self.b_w*self.tau_w*self.spike)
+    def update_adaptivity(self) -> None:
+        self.adaptivity += self.dt/self.tau_w * (self.a_w*(self.potential-self.resting_potential) - self.adaptivity + self.b_w*self.tau_w*self.spike)
+
+
+    def adapt(self) -> None:
+        self.potential -= self.R*self.adaptivity
 
 
     def main_process(self, **args) -> None:
-        self.compute_w()
+        self.update_adaptivity()
         self.obj.main_process(**args)
-        self.potential -= self.R*self.w
+        self.adapt()
 
 
     def reset(self) -> None:
-        self.w.zero_()
+        self.adaptivity.zero_()
         self.obj.reset()
