@@ -42,18 +42,18 @@ class IntegrateAndFireSoma(InterneuronSoma):
         self.potential += self.spike*self.resting_potential
 
 
-    def main_process(self, current: torch.Tensor) -> None:
+    def update_potential(self, current: torch.Tensor) -> None:
         self.potential += self.R * current * self.dt / self.tau
+
+
+    def process(self, **args) -> None:
+        self.repolarization()
+        self.update_potential()
 
 
     def fire_axon_hillock(self, **args) -> None:
         self.spike = (self.potential > self.firing_threshold)
         super().fire_axon_hillock(**args)
-
-
-    def progress(self, **args) -> None:
-        self.repolarization()
-        super().progress(**args)
 
 
     def reset(self) -> None:
@@ -64,34 +64,34 @@ class IntegrateAndFireSoma(InterneuronSoma):
 
 
 
-class LeakyMembrane(InterneuronSoma, AOD):
+class LeakyMembrane(IntegrateAndFireSoma, AOD):
     def __init__(
         self,
-        obj: InterneuronSoma,
+        obj: IntegrateAndFireSoma,
     ) -> None:
         AOD.__init__(self, obj=obj)
 
 
     def compute_leakage(self) -> torch.Tensor:
-        return (self.potential-self.resting_potential) * self.dt / self.tau
+        return ((self.potential-self.resting_potential) * self.dt / self.tau)
 
 
     def leak(self, leakage) -> None:
         self.potential -= leakage
 
 
-    def main_process(self, **args) -> None:
+    def update_potential(self, **args) -> None:
         leakage = self.compute_leakage()
-        self.obj.main_process(**args)
+        self.obj.update_potential(**args)
         self.leak(leakage)
 
 
 
 
-class ExponentialDepolaristicMembrane(InterneuronSoma, AOD):
+class ExponentialDepolaristicMembrane(IntegrateAndFireSoma, AOD):
     def __init__(
         self,
-        obj: InterneuronSoma,
+        obj: IntegrateAndFireSoma,
         sharpness: Union[float, torch.Tensor] = 2.,
         depolarization_threshold: Union[float, torch.Tensor] = -50.4, #mV
     ) -> None:
@@ -100,51 +100,63 @@ class ExponentialDepolaristicMembrane(InterneuronSoma, AOD):
         self.register_buffer("depolarization_threshold", torch.tensor(depolarization_threshold))
 
 
-    def depolarize(self) -> None:
-        depolarisation = self.sharpness*torch.exp((self.potential-self.depolarization_threshold)/self.sharpness)
-        self.potential += self.dt/self.tau * depolarisation
+    def compute_depolarisation(self) -> torch.Tensor:
+        depolarisation = self.sharpness * torch.exp((self.potential-self.depolarization_threshold)/self.sharpness) * self.dt / self.tau
 
 
-    def main_process(self, **args) -> None:
-        self.obj.main_process(**args)
-        self.depolarize()
+    def depolarize(self, depolarisation) -> None:
+        self.potential += depolarisation
+
+
+    def update_potential(self, **args) -> None:
+        depolarisation = self.compute_depolarisation()
+        self.obj.update_potential(**args)
+        self.depolarize(depolarisation)
 
 
 
 
-class AdaptiveMembrane(InterneuronSoma, AOD):
+class AdaptiveMembrane(IntegrateAndFireSoma, AOD):
     def __init__(
         self,
-        obj: InterneuronSoma,
-        a_w: Union[float, torch.Tensor] = 4.,
-        b_w: Union[float, torch.Tensor] = .0805,
-        tau_w: Union[float, torch.Tensor] = 144.,
+        obj: IntegrateAndFireSoma,
+        subthreshold_adaptation: Union[float, torch.Tensor] = 4.,
+        spike_triggered_adaptation: Union[float, torch.Tensor] = .0805,
+        tau_adaptation: Union[float, torch.Tensor] = 144.,
     ) -> None:
         AOD.__init__(self, obj=obj)
-        self.register_buffer("a_w", torch.tensor(a_w))
-        self.register_buffer("b_w", torch.tensor(b_w))
-        self.register_buffer("tau_w", torch.tensor(tau_w))
+        self.register_buffer("subthreshold_adaptation", torch.tensor(subthreshold_adaptation))
+        self.register_buffer("spike_triggered_adaptation", torch.tensor(spike_triggered_adaptation))
+        self.register_buffer("tau_adaptation", torch.tensor(tau_adaptation))
 
 
     def __construct__(self, shape: Iterable[int], **args) -> None:
         self.obj.__construct__(shape=shape, **args)
-        self.register_buffer("adaptivity", torch.zeros(self.shape))
+        self.register_buffer("adaptation_current", torch.zeros(self.shape))
 
 
-    def update_adaptivity(self) -> None:
-        self.adaptivity += self.dt/self.tau_w * (self.a_w*(self.potential-self.resting_potential) - self.adaptivity + self.b_w*self.tau_w*self.spike)
+    def update_adaptation_current(self) -> None:
+        self.adaptation_current += (
+            self.subthreshold_adaptation*(self.potential-self.resting_potential)\
+          - self.adaptation_current\
+          + self.spike_triggered_adaptation*self.tau_adaptation*self.spike
+        ) * self.dt / self.tau_adaptation
 
 
     def adapt(self) -> None:
-        self.potential -= self.R*self.adaptivity
+        self.potential -= self.R*self.adaptation_current
 
 
-    def main_process(self, **args) -> None:
-        self.update_adaptivity()
-        self.obj.main_process(**args)
+    def update_potential(self, **args) -> None:
+        self.obj.update_potential(**args)
         self.adapt()
 
 
+    def process(self, **args) -> None:
+        self.obj.process(**args)
+        self.update_adaptation_current()
+
+
     def reset(self) -> None:
-        self.adaptivity.zero_()
+        self.adaptation_current.zero_()
         self.obj.reset()

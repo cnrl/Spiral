@@ -73,7 +73,7 @@ class Soma(torch.nn.Module, CRI):
 
 
     @abstractmethod
-    def main_process(self, inputs) -> torch.Tensor:
+    def process(self, inputs) -> torch.Tensor:
         pass
 
 
@@ -96,7 +96,7 @@ class Soma(torch.nn.Module, CRI):
             direct_input: torch.Tensor = torch.tensor(0.),
             clamps: torch.Tensor = torch.tensor(False),
             unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        self.main_process(self.integrate_inputs(direct_input=direct_input))
+        self.process(self.integrate_inputs(direct_input=direct_input))
         self.axon_hillock_fire(clamps=clamps, unclamps=unclamps)
         self.propagate_spike()
 
