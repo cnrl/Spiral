@@ -89,11 +89,11 @@ class AlwaysOnEncoder(LazyEncoder):
         self,
         name: str,
         shape: Iterable[int],
-        **args):
+        **kwargs):
         super().__init__(
             name=name,
             shape=shape,
-            **args
+            **kwargs
         )
 
     def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
@@ -107,11 +107,11 @@ class AlwaysOffEncoder(LazyEncoder):
         self,
         name: str,
         shape: Iterable[int],
-        **args):
+        **kwargs):
         super().__init__(
             name=name,
             shape=shape,
-            **args
+            **kwargs
         )
 
     def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:

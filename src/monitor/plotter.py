@@ -20,19 +20,19 @@ class empty_monitor:
         return None,None
 
 class Plotter:
-    def __init__(self, positions:list, monitor=empty_monitor(), dt:float=None, auto_label=False, **args):
+    def __init__(self, positions:list, monitor=empty_monitor(), dt:float=None, auto_label=False, **kwargs):
         self.monitor = monitor
         self.dt = dt
         self.auto_label = auto_label
-        self.make_axes(positions, **args)
+        self.make_axes(positions, **kwargs)
 
-    def make_axes(self, positions, **args):
+    def make_axes(self, positions, **kwargs):
         positions = np.array(positions)
         if len(positions.shape) == 1:
             positions = positions.reshape(1,-1)
         positions[positions == None] = 'None'
         self.axes = dict()
-        gs = gridspec.GridSpec(*positions.shape, **args)
+        gs = gridspec.GridSpec(*positions.shape, **kwargs)
         for i in np.unique(positions):
             if i == 'None':
                 continue
@@ -87,7 +87,7 @@ class Plotter:
         if is_3d:
             ax.set_zlabel(z_label)
 
-    def get_axis_data(self, z, data=None, monitor=None, repeat_till=None, default=None, **args):
+    def get_axis_data(self, z, data=None, monitor=None, repeat_till=None, default=None, **kwargs):
         if data is None:
             data = {}
         monitor = self.get_monitor(monitor)
@@ -107,15 +107,15 @@ class Plotter:
         return output
 
     def get_data(self, y, x='time', monitor=None, t0=0, dt=None, repeat_till=None,
-                black_line=None, blue_line=None, red_line=None, **args):
+                black_line=None, blue_line=None, red_line=None, **kwargs):
         output = {}
-        output[y] = self.get_axis_data(z=y, monitor=monitor, default=None, repeat_till=repeat_till, **args)
+        output[y] = self.get_axis_data(z=y, monitor=monitor, default=None, repeat_till=repeat_till, **kwargs)
         dt = self.get_dt(dt, monitor)
         output[x] = self.get_axis_data(z=x, monitor=monitor, repeat_till=repeat_till,
-                                    default=np.arange(t0,len(output[y])*dt, dt), **args)
+                                    default=np.arange(t0,len(output[y])*dt, dt), **kwargs)
         for line in [black_line, blue_line, red_line]:
             if line!=None:
-                output[line] = self.get_axis_data(line, monitor=monitor, repeat_till=len(output[x]), **args)
+                output[line] = self.get_axis_data(line, monitor=monitor, repeat_till=len(output[x]), **kwargs)
         return output
 
     def set_limits(self, ax, x_lim=None, y_lim=None, x=None, y=None, data=None,
@@ -160,7 +160,7 @@ class Plotter:
             x_lim=None, y_lim=None, repeat_till=None,
             blue_line=None, black_line=None, red_line=None,
             blue_line_alpha=0.5, black_line_alpha=0.5, red_line_alpha=0.5,
-            blue_line_label=None, black_line_label=None, red_line_label=None, **args):
+            blue_line_label=None, black_line_label=None, red_line_label=None, **kwargs):
         if data is None:
             data = {}
         monitor = self.get_monitor(monitor)
@@ -170,9 +170,9 @@ class Plotter:
                             blue_line=blue_line, black_line=black_line, red_line=red_line)
         ax = self.get_ax(ax)
         if plot_type == "plot":
-            ax.plot(data[x], data[y], **args)
+            ax.plot(data[x], data[y], **kwargs)
         elif plot_type == "scatter":
-            ax.scatter(data[x], data[y], **args)
+            ax.scatter(data[x], data[y], **kwargs)
         if not additive:
             self.set_labels(ax, x_label, y_label, title, x, y)
             self.set_limits(ax, x_lim, y_lim, x, y, data)
@@ -185,7 +185,7 @@ class Plotter:
     def show(self):
         plt.show()
 
-    def F_I_curve(self, ax, data: dict, **args):
+    def F_I_curve(self, ax, data: dict, **kwargs):
         self.plot(ax,
                 y='f',
                 x='I',
@@ -194,9 +194,9 @@ class Plotter:
                 y_label='spike frequency (1/s)',
                 x_label='I (mV)',
                 color='red',
-                **args)
+                **kwargs)
 
-    def neuron_voltage(self, ax, y='u', monitor=None, y_label='u', x_label='time', threshold='spike_threshold', **args):
+    def neuron_voltage(self, ax, y='u', monitor=None, y_label='u', x_label='time', threshold='spike_threshold', **kwargs):
         monitor = self.get_monitor(monitor)
         if monitor is not None:
             data = {
@@ -204,27 +204,27 @@ class Plotter:
                 "Threshold": [getattr(monitor.obj, threshold).tolist()],
             }
         self.plot(ax, y=y, data=data, monitor=monitor, color='green', y_label=y_label, x_label=x_label, x_lim='fit',
-                black_line="Resting Potential", blue_line="Threshold", **args)
+                black_line="Resting Potential", blue_line="Threshold", **kwargs)
         ax = self.get_ax(ax)
         ax.legend()
 
-    def neuron_spike(self, ax, y='s', x='time', y_label='spikes', **args):
-        data = self.get_data(y=y, x=x, **args)
+    def neuron_spike(self, ax, y='s', x='time', y_label='spikes', **kwargs):
+        data = self.get_data(y=y, x=x, **kwargs)
         x_data = np.array(data[x])
         y_data = np.array(data[y])
         x_data = x_data[y_data.reshape(x_data.shape)]
         self.plot(ax, y=y, x=x, data={x: x_data, y:[1]*x_data.shape[0]}, color='r',
                 y_label=y_label, y_vis=False, x_lim=[min(data[x]), max(data[x])],
-                plot_type="scatter", **args)
+                plot_type="scatter", **kwargs)
 
-    def adaptation_current_dynamic(self, ax, y='w', monitor=None, additive=False, y_label='w', x_label='time', alpha=.4, **args):
+    def adaptation_current_dynamic(self, ax, y='w', monitor=None, additive=False, y_label='w', x_label='time', alpha=.4, **kwargs):
         if additive:
-            self.plot(ax, y=y, monitor=monitor, color='red', alpha=alpha, label=y_label, additive=True, **args)
+            self.plot(ax, y=y, monitor=monitor, color='red', alpha=alpha, label=y_label, additive=True, **kwargs)
         else:
-            self.plot(ax, y=y, monitor=monitor, y_label=y_label, x_label=x_label, x_lim='fit', color='red', **args)
+            self.plot(ax, y=y, monitor=monitor, y_label=y_label, x_label=x_label, x_lim='fit', color='red', **kwargs)
 
-    def population_activity_raster(self, ax, y='s', y_label='spikes', start=0, t0=0, selection=None, s=1, x_lim=None, **args):
-        data = self.get_data(y=y, t0=t0, **args)
+    def population_activity_raster(self, ax, y='s', y_label='spikes', start=0, t0=0, selection=None, s=1, x_lim=None, **kwargs):
+        data = self.get_data(y=y, t0=t0, **kwargs)
         y = data[y]
         y = y[:,selection]
         y = y.reshape(y.shape[0], -1)
@@ -234,24 +234,24 @@ class Plotter:
         x += t0
         y += start
         ax = self.get_ax(ax)
-        self.plot(ax, data={'x':x, 'y':y}, x='x', y='y', plot_type="scatter", s=s, y_label=y_label, x_lim=x_lim, **args)
+        self.plot(ax, data={'x':x, 'y':y}, x='x', y='y', plot_type="scatter", s=s, y_label=y_label, x_lim=x_lim, **kwargs)
 
-    def population_activity(self, ax, y='s', y_label='activity', selection=None, data=None, alpha=.3, **args):
+    def population_activity(self, ax, y='s', y_label='activity', selection=None, data=None, alpha=.3, **kwargs):
         if data is None:
             data = {}
-        data_y = self.get_data(y=y, data=data, **args)
+        data_y = self.get_data(y=y, data=data, **kwargs)
         y = data_y[y]
         y = y[:,selection]
         y = y.reshape(y.shape[0], -1)
         y = y.sum(axis=1)
         data[y] = y
-        self.plot(ax, y=y, data=data, y_label=y_label, alpha=alpha, **args)
+        self.plot(ax, y=y, data=data, y_label=y_label, alpha=alpha, **kwargs)
 
     def population_plot(self, ax, y='population', population_alpha=None, color='b', alpha=1, additive=False,
-                        aggregation=lambda x: x.mean(axis=1), data=None, **args):
+                        aggregation=lambda x: x.mean(axis=1), data=None, **kwargs):
         if data is None:
             data = {}
-        data = self.get_data(y=y, data=data, **args)
+        data = self.get_data(y=y, data=data, **kwargs)
         if type(data[y])==type([]):
             data[y] = np.array(data[y])
         data['population'] = data[y].reshape(data[y].shape[0],-1)
@@ -259,31 +259,31 @@ class Plotter:
             population_alpha = 1/data['population'].shape[1]
         if aggregation is not None:
             data['vector'] = aggregation(data['population'])
-            self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **args)
+            self.plot(ax, y='vector', additive=additive, data=data, color=color, alpha=alpha, **kwargs)
             self.plot(ax, y='population', additive=True, data=data, color=color, alpha=population_alpha)
         else:
-            self.plot(ax, y='population', additive=False, data=data, color=color, alpha=population_alpha, **args)
+            self.plot(ax, y='population', additive=False, data=data, color=color, alpha=population_alpha, **kwargs)
 
-    def current_dynamic(self, ax, I=None, y='I', y_label='Current', data=None, x_lim='fit', x_label='time', **args):
+    def current_dynamic(self, ax, I=None, y='I', y_label='Current', data=None, x_lim='fit', x_label='time', **kwargs):
         if data is None:
             data = {}
         if I is not None:
             data[y] = I
-        self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label, **args)
+        self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label, **kwargs)
 
-    def dendrite_current(self, ax, I=None, y='I', y_label='Dendrite Current', data=None, x_lim='fit', x_label='time', **args):
+    def dendrite_current(self, ax, I=None, y='I', y_label='Dendrite Current', data=None, x_lim='fit', x_label='time', **kwargs):
         if data is None:
             data = {}
         if I is not None:
             data[y] = I
         self.population_plot(ax, y=y, data=data, x_label=x_label, x_lim=x_lim, y_label=y_label,
-            aggregation=lambda x: x.sum(axis=1), **args)
+            aggregation=lambda x: x.sum(axis=1), **kwargs)
 
     def imshow(self, ax, im, aspect='auto', additive=False,
             title='', x_label=None, y_label=None,
-            x_vis=True, y_vis=True, x_lim=None, y_lim=None, **args):
+            x_vis=True, y_vis=True, x_lim=None, y_lim=None, **kwargs):
         ax = self.get_ax(ax)
-        ax.imshow(im, aspect=aspect, **args)
+        ax.imshow(im, aspect=aspect, **kwargs)
         ax.set_title(title)
         self.set_axes_visibility(ax, x_vis=False, y_vis=False)
         if not additive:
@@ -291,14 +291,14 @@ class Plotter:
             self.set_limits(ax, x_lim, y_lim)
             self.set_axes_visibility(ax, x_vis, y_vis)
 
-    def spike_response_function(self, ax, y='e', y_label='Spike Response', x_lim='fit', **args):
-        self.population_plot(ax, y=y, y_label=y_label, x_lim=x_lim, **args)
+    def spike_response_function(self, ax, y='e', y_label='Spike Response', x_lim='fit', **kwargs):
+        self.population_plot(ax, y=y, y_label=y_label, x_lim=x_lim, **kwargs)
 
-    def get_3d_data(self, z='z', y='y', x='x', monitor=None, **args):
+    def get_3d_data(self, z='z', y='y', x='x', monitor=None, **kwargs):
         output = {}
-        output[z] = self.get_axis_data(z=z, monitor=monitor, default=None, **args)
-        output[y] = self.get_axis_data(z=y, monitor=monitor, default=None, **args)
-        output[x] = self.get_axis_data(z=x, monitor=monitor, default=None, **args)
+        output[z] = self.get_axis_data(z=z, monitor=monitor, default=None, **kwargs)
+        output[y] = self.get_axis_data(z=y, monitor=monitor, default=None, **kwargs)
+        output[x] = self.get_axis_data(z=x, monitor=monitor, default=None, **kwargs)
         return output
 
     def scatter_3d(self, ax, additive=False,
@@ -306,14 +306,14 @@ class Plotter:
             title=None, x_label=None, y_label=None, z_label=None,
             x_vis=True, y_vis=True, z_vis=True,
             x_r=False, y_r=False, z_r=False,
-            x_lim=None, y_lim=None, z_lim=None, **args):
+            x_lim=None, y_lim=None, z_lim=None, **kwargs):
         if data is None:
             data = {}
         monitor = self.get_monitor(monitor)
         if z==None: z = str(ax)
         data = self.get_3d_data(y=y, x=x, z=z, data=data, monitor=monitor)
         ax = self.get_ax(ax)
-        ax.scatter(data[x], data[y], data[z], **args)
+        ax.scatter(data[x], data[y], data[z], **kwargs)
         if not additive:
             self.set_labels(ax, x_label, y_label, title, x, y, is_3d=True, z_label=z_label, z=z)
             self.set_limits(ax, x_lim, y_lim, x, y, data, is_3d=True, z_lim=z_lim, z=z)
@@ -327,8 +327,8 @@ class Plotter:
             axes.invert_yaxis()
 
     def population_activity_3d_raster(self, ax, z='s', x='x', y='y', y_label='spikes', z_label='time',
-            reduction=1, **args):
-        data = self.get_3d_data(z='s', x='x', y='y', **args)
+            reduction=1, **kwargs):
+        data = self.get_3d_data(z='s', x='x', y='y', **kwargs)
         d = data[z]
         d = d.reshape(d.shape[0],-1)
         xe,ye = np.where(d)
@@ -337,13 +337,13 @@ class Plotter:
         xd = (np.array(ye)//data[z].shape[0])
         yd = (np.array(ye)%data[z].shape[1])
         zd = np.array(xe)
-        self.scatter_3d(ax, data={z:zd, x:xd, y:yd}, z=z, x=x, y=y, z_label=z_label, **args)
+        self.scatter_3d(ax, data={z:zd, x:xd, y:yd}, z=z, x=x, y=y, z_label=z_label, **kwargs)
 
     def surface_3d(self, ax, z='z', x='x', y='y', data=None, monitor=None, additive=False,
             title=None, x_label=None, y_label=None, z_label=None,
             x_vis=True, y_vis=True, z_vis=True,
             x_r=False, y_r=False, z_r=False,
-            x_lim=None, y_lim=None, z_lim=None, **args):
+            x_lim=None, y_lim=None, z_lim=None, **kwargs):
         if data is None:
             data = {}
         monitor = self.get_monitor(monitor)
@@ -354,7 +354,7 @@ class Plotter:
         Y = np.arange(Z.shape[1])
         X, Y = np.meshgrid(X, Y)
         ax = self.get_ax(ax)
-        surf = ax.plot_surface(X, Y, Z, **args)
+        surf = ax.plot_surface(X, Y, Z, **kwargs)
         if not additive:
             self.set_labels(ax, x_label, y_label, title, x, y, is_3d=True, z_label=z_label, z=z)
             self.set_limits(ax, x_lim, y_lim, x, y, data, is_3d=True, z_lim=z_lim, z=z)

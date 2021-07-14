@@ -4,13 +4,14 @@
 
 from abc import abstractmethod
 from construction_requirements_integrator import CRI, construction_required
+from constant_properties_protector import CPP
 from typing import Union, Iterable
 import torch
 from ..axon import Axon
 from ..dendrite import Dendrite
 
 
-class Soma(torch.nn.Module, CRI):
+class Soma(torch.nn.Module, CRI, CPP):
     def __init__(
         self,
         name: str,
@@ -24,24 +25,37 @@ class Soma(torch.nn.Module, CRI):
             dt=dt,
             ignore_resetting_error=True,
         )
-        self.name = name
+        CPP.__init__(
+            self,
+            protecteds=[
+                'name',
+                'shape',
+                'dt',
+                'spike'
+            ]
+        )
+        self._name = name
         self.axons = {}
         self.dendrites = {}
 
 
-    def register_organ(self, organ: Union[Axon, Dendrite]) -> None:
+    def __register_organ(self, organ: Union[Axon, Dendrite]) -> None:
         organ.meet_requirement('dt', self.dt)
         organ.meet_requirement('population_shape', self.shape)
         self.add_module(obj.name, obj)
 
 
-    def __construct__(self, shape: Iterable[int], dt: Union[float, torch.Tensor]) -> None:
-        self.shape = shape
-        self.register_buffer("spike", torch.zeros(*self.shape, dtype=torch.bool))
-        self.dt = torch.tensor(dt)
+    def __construct__(
+        self,
+        shape: Iterable[int],
+        dt: Union[float, torch.Tensor]
+    ) -> None:
+        self._shape = shape
+        self.register_buffer("_spike", torch.zeros(*self.shape, dtype=torch.bool))
+        self._dt = torch.tensor(dt)
         for organs in [self.axons, self.dendrites]:
             for name,organ in self.organs.items():
-                self.register_organ(organ)
+                self.__register_organ(organ)
                 
     
     def use(self, organ: Union[Axon, Dendrite]) -> None:
@@ -58,13 +72,13 @@ class Soma(torch.nn.Module, CRI):
 
         organs[organ.name] = organ
         if self.is_constructed:
-            self.register_organ(organ)
+            self.__register_organ(organ)
         elif organ.is_constructed:
             self.meet_requirement('shape', organ.population_shape)
             self.meet_requirement('dt', organ.dt)
 
 
-    def integrate_inputs(self, direct_input: torch.Tensor = torch.tensor(0.)) -> torch.Tensor:
+    def __integrate_inputs(self, direct_input: torch.Tensor = torch.tensor(0.)) -> torch.Tensor:
         i = torch.zeros(self.shape)
         i += direct_input
         for dendrite_set in self.dendrites.values():
@@ -73,18 +87,18 @@ class Soma(torch.nn.Module, CRI):
 
 
     @abstractmethod
-    def process(self, inputs) -> torch.Tensor:
+    def _process(self, inputs) -> torch.Tensor:
         pass
 
 
     @abstractmethod
-    def fire_axon_hillock(self,
+    def _fire_axon_hillock(self,
             clamps: torch.Tensor = torch.tensor(False),
             unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        self.spike = ((self.spike * ~unclamps) + clamps)
+        self._spike = ((self.spike * ~unclamps) + clamps)
 
 
-    def propagate_spike(self) -> None:
+    def __propagate_spike(self) -> None:
         for axon in self.axons.values():
             axon.forward(self.spike)
         for dendrite in self.dendrites.values():
@@ -96,13 +110,13 @@ class Soma(torch.nn.Module, CRI):
             direct_input: torch.Tensor = torch.tensor(0.),
             clamps: torch.Tensor = torch.tensor(False),
             unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        self.process(self.integrate_inputs(direct_input=direct_input))
-        self.axon_hillock_fire(clamps=clamps, unclamps=unclamps)
-        self.propagate_spike()
+        self._process(self.__integrate_inputs(direct_input=direct_input))
+        self._fire_axon_hillock(clamps=clamps, unclamps=unclamps)
+        self.__propagate_spike()
 
 
     def reset(self) -> None:
-        self.spike.zero_()
+        self._spike.zero_()
         for organs in [self.axons, self.dendrites]:
             for name,organ in self.organs.items():
                 organ.reset()

@@ -1,4 +1,4 @@
-from .soma import Soma
+from ..soma import Soma
 
 class InterneuronSoma(Soma):
     pass
