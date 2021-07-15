@@ -2,11 +2,27 @@
 Module for monitoring objects.
 """
 
-from typing import Union, Iterable, Optional, Callable
-
+from typing import Iterable, Optional, Callable
 import torch
 
-from ..utils import DII
+
+class DII: #Dictionary Items Iterator
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+        self.iter_dictionary = {i: iter(it) for i,it in self.dictionary.items()}
+    
+    def __next__(self):
+        output = dict()
+        for k in self.iter_dictionary:
+            v = next(self.iter_dictionary[k], None)
+            if v is None:
+                self.iter_dictionary[k] = iter(self.dictionary[k])
+                v = next(self.iter_dictionary[k])
+            output[k] = v
+        return output
+
+
+
 
 class Monitor:
     """

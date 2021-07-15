@@ -23,6 +23,7 @@ class IntegrateAndFireSoma(InterneuronSoma):
     ) -> None:
         super().__init__(
             name=name,
+            construction_permition=False,
             **kwargs
         )
         self.register_buffer("tau", torch.tensor(tau))

@@ -16,13 +16,15 @@ class Soma(torch.nn.Module, CRI, CPP):
         self,
         name: str,
         shape: Iterable[int] = None,
-        dt: Union[float, torch.Tensor] = None
+        dt: Union[float, torch.Tensor] = None,
+        construction_permition: bool = True,
     ) -> None:
         super().__init__()
         CRI.__init__(
             self,
             shape=shape,
             dt=dt,
+            construction_permition=True,
             ignore_resetting_error=True,
         )
         CPP.__init__(
@@ -48,7 +50,7 @@ class Soma(torch.nn.Module, CRI, CPP):
     def __construct__(
         self,
         shape: Iterable[int],
-        dt: Union[float, torch.Tensor]
+        dt: Union[float, torch.Tensor],
     ) -> None:
         self._shape = shape
         self.register_buffer("_spike", torch.zeros(*self.shape, dtype=torch.bool))
