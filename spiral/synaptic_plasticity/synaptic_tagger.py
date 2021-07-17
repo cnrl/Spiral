@@ -9,7 +9,6 @@ import numpy as np
 import torch
 
 from ..network.synapse_sets import AbstractSynapseSet
-from ..utils import Serializer
 from .learning_rates import constant_wdlr,stdp_wdlr
 
 

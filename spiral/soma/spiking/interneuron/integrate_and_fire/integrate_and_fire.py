@@ -2,10 +2,10 @@
 
 """
 
-from abc import abstractmethod
 from abstract_object_decorator import AOD
-from typing import Union, Iterable, Callable
+from typing import Union, Iterable
 import torch
+from spiral.analysis import Analyzer, analytics
 from ..interneuron_spiking_soma import InterneuronSpikingSoma
 
 
@@ -19,11 +19,12 @@ class IntegrateAndFireSoma(InterneuronSpikingSoma):
         R: Union[float, torch.Tensor] = 1., #Ohm
         resting_potential: Union[float, torch.Tensor] = -70.6, #mV
         firing_threshold: Union[float, torch.Tensor] = -40., #mV
+        construction_permission: bool = True,
         **kwargs
     ) -> None:
         super().__init__(
             name=name,
-            construction_permition=False,
+            construction_permission=False,
             **kwargs
         )
         self.register_buffer("tau", torch.tensor(tau))
@@ -31,7 +32,8 @@ class IntegrateAndFireSoma(InterneuronSpikingSoma):
         self.register_buffer("resting_potential", torch.tensor(resting_potential))
         self.register_buffer("firing_threshold", torch.tensor(firing_threshold))
         self.protect_properties(['potential'])
-        self.scout(state_variables=['potential'])
+        self.set_construction_permission(construction_permission)
+        Analyzer.scout(self, state_variables=['potential'])
 
 
     def __construct__(self, shape: Iterable[int], **kwargs) -> None:
@@ -143,7 +145,7 @@ class ExponentialDepolaristicMembrane(AOD, IntegrateAndFireSoma):
 
 
 
-class AdaptiveMembrane(IntegrateAndFireSoma, AOD):
+class AdaptiveMembrane(AOD, IntegrateAndFireSoma):
     def __init__(
         self,
         obj: IntegrateAndFireSoma,
@@ -156,7 +158,7 @@ class AdaptiveMembrane(IntegrateAndFireSoma, AOD):
         self.register_buffer("spike_triggered_adaptation", torch.tensor(spike_triggered_adaptation))
         self.register_buffer("tau_adaptation", torch.tensor(tau_adaptation))
         self.obj.protect_properties(['adaptation_current'])
-        self.scout(state_variables=['adaptation_current'])
+        Analyzer.scout(self, state_variables=['adaptation_current'])
 
 
     def __construct__(self, shape: Iterable[int], **kwargs) -> None:

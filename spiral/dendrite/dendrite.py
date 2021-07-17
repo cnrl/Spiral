@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Union, Iterable
 import torch
 from .weight_initialization import constant_initialization
-from .filter.filter import AbstractFilter
+from ..filter.filter import AbstractFilter
 
 class Dendrite(ABC, torch.nn.Module):
     def __init__(

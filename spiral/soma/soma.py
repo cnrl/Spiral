@@ -7,8 +7,10 @@ from construction_requirements_integrator import CRI, construction_required
 from constant_properties_protector import CPP
 from typing import Union, Iterable
 import torch
-from ..axon import Axon
-from ..dendrite import Dendrite
+from spiral.axon import Axon
+from spiral.dendrite import Dendrite
+
+
 
 
 class Soma(torch.nn.Module, CRI, CPP):
@@ -17,16 +19,8 @@ class Soma(torch.nn.Module, CRI, CPP):
         name: str,
         shape: Iterable[int] = None,
         dt: Union[float, torch.Tensor] = None,
-        construction_permition: bool = True,
+        construction_permission: bool = True,
     ) -> None:
-        super().__init__()
-        CRI.__init__(
-            self,
-            shape=shape,
-            dt=dt,
-            construction_permition=True,
-            ignore_overwrite_error=True,
-        )
         CPP.__init__(
             self,
             protecteds=[
@@ -35,9 +29,17 @@ class Soma(torch.nn.Module, CRI, CPP):
                 'dt',
             ]
         )
+        torch.nn.Module.__init__(self)
         self._name = name
         self.axons = {}
         self.dendrites = {}
+        CRI.__init__(
+            self,
+            shape=shape,
+            dt=dt,
+            construction_permission=construction_permission,
+            ignore_overwrite_error=True,
+        )
 
 
     def __register_organ(
@@ -57,7 +59,7 @@ class Soma(torch.nn.Module, CRI, CPP):
         self._shape = shape
         self._dt = torch.tensor(dt)
         for organs in [self.axons, self.dendrites]:
-            for name,organ in self.organs.items():
+            for name,organ in organs.items():
                 self.__register_organ(organ)
                 
     
@@ -109,9 +111,3 @@ class Soma(torch.nn.Module, CRI, CPP):
         for organs in [self.axons, self.dendrites]:
             for name,organ in self.organs.items():
                 organ.reset()
-
-
-    def __str__(
-        self
-    ) -> str:
-        return f"{', '.join([a.__str__() for a in self.dendrites.values()])} -> [{self.name}] -> {', '.join([a.__str__() for a in self.axons.values()])}"

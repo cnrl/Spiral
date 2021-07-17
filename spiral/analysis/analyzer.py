@@ -1,4 +1,5 @@
 from . import Monitor
+from typing import Iterable, Dict, Callable
 
 class Analyzer:
     def __init__(

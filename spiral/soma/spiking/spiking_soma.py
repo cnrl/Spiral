@@ -4,8 +4,10 @@
 
 from abc import abstractmethod
 import torch
+from spiral.analysis import Analyzer, analysis_point, analytics
 from ..soma import Soma
-from ..analysis import Analyzer, analysis_point, analytics
+
+
 
 
 class SpikingSoma(Soma):
@@ -15,10 +17,10 @@ class SpikingSoma(Soma):
         analyzable: bool = False,
         **kwargs
     ) -> None:
-        super().__init__(**kwargs)
+        super().__init__(name=name, **kwargs)
         self.protect_properties(['spike'])
         Analyzer.__init__(self, analyzable)
-        self.scout(state_variables=['spike'])
+        Analyzer.scout(self, state_variables=['spike'])
 
 
     def __construct__(

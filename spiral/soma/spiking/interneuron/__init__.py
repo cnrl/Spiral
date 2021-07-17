@@ -1,3 +1,1 @@
-from . import (
-    integrate_and_fire
-)
+from .integrate_and_fire import *

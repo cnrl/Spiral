@@ -1,4 +1,2 @@
-from . import (
-    internal
-)
+from .interneuron import *
 

@@ -7,7 +7,7 @@ from typing import Iterable, Dict, Callable, Any
 class DictionaryItemsIterator:
     def __init__(
         self,
-        dictionary: Dict[str, Iterable[Any]]:
+        dictionary: Dict[str, Iterable[Any]]
     ) -> None:
         self.dictionary = dictionary
         self.iter_dictionary = {i: iter(it) for i,it in self.dictionary.items()}

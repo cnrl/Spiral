@@ -1,3 +1,2 @@
-from . import (
-    soma,
-)
+from . import analysis
+from .soma import *
