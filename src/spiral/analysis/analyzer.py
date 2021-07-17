@@ -1,0 +1,38 @@
+from . import Monitor
+
+class Analyzer:
+    def __init__(
+        self,
+        active: bool = True
+    ) -> None:
+        self.analyzable = active
+        self.monitor = Monitor(self)
+        
+        
+    def scout(
+        self,
+        state_variables: Iterable[str] = [],
+        state_calls: Dict[str, Callable] = {},
+    ) -> None:
+        if self.analyzable:
+            self.monitor.add_to_state_variables(state_variables)
+            self.monitor.add_to_state_calls(state_calls)
+
+
+
+
+def analysis_point(function):
+    def wrapper(self, **kwargs):
+        output = function(self, **kwargs)
+        if self.analyzable:
+            self.monitor.record_all()
+        return output
+    return wrapper
+
+
+def analytics(function):
+    def wrapper(self, **kwargs):
+        if not self.analyzable:
+            raise Exception("The object is not analyzable!")
+        return function(self, **kwargs)
+    return wrapper

@@ -25,7 +25,7 @@ class Soma(torch.nn.Module, CRI, CPP):
             shape=shape,
             dt=dt,
             construction_permition=True,
-            ignore_resetting_error=True,
+            ignore_overwrite_error=True,
         )
         CPP.__init__(
             self,
@@ -33,7 +33,6 @@ class Soma(torch.nn.Module, CRI, CPP):
                 'name',
                 'shape',
                 'dt',
-                'spike'
             ]
         )
         self._name = name
@@ -41,7 +40,10 @@ class Soma(torch.nn.Module, CRI, CPP):
         self.dendrites = {}
 
 
-    def __register_organ(self, organ: Union[Axon, Dendrite]) -> None:
+    def __register_organ(
+        self,
+        organ: Union[Axon, Dendrite]
+    ) -> None:
         organ.meet_requirement('dt', self.dt)
         organ.meet_requirement('population_shape', self.shape)
         self.add_module(obj.name, obj)
@@ -53,14 +55,16 @@ class Soma(torch.nn.Module, CRI, CPP):
         dt: Union[float, torch.Tensor],
     ) -> None:
         self._shape = shape
-        self.register_buffer("_spike", torch.zeros(*self.shape, dtype=torch.bool))
         self._dt = torch.tensor(dt)
         for organs in [self.axons, self.dendrites]:
             for name,organ in self.organs.items():
                 self.__register_organ(organ)
                 
     
-    def use(self, organ: Union[Axon, Dendrite]) -> None:
+    def use(
+        self,
+        organ: Union[Axon, Dendrite]
+    ) -> None:
         if not issubclass(type(organ), Axon) and not issubclass(type(organ), Dendrite):
             raise Exception(f"You just can add Axon or Dendrite to Soma. Your object is {type(other)}")
         
@@ -80,7 +84,10 @@ class Soma(torch.nn.Module, CRI, CPP):
             self.meet_requirement('dt', organ.dt)
 
 
-    def __integrate_inputs(self, direct_input: torch.Tensor = torch.tensor(0.)) -> torch.Tensor:
+    def __integrate_inputs(
+        self,
+        direct_input: torch.Tensor = torch.tensor(0.)
+    ) -> torch.Tensor:
         i = torch.zeros(self.shape)
         i += direct_input
         for dendrite_set in self.dendrites.values():
@@ -89,40 +96,22 @@ class Soma(torch.nn.Module, CRI, CPP):
 
 
     @abstractmethod
-    def _process(self, inputs) -> torch.Tensor:
+    @construction_required
+    def progress(
+        self
+    ) -> None:
         pass
 
 
-    @abstractmethod
-    def _fire_axon_hillock(self,
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        self._spike = ((self.spike * ~unclamps) + clamps)
-
-
-    def __propagate_spike(self) -> None:
-        for axon in self.axons.values():
-            axon.forward(self.spike)
-        for dendrite in self.dendrites.values():
-            dendrite.backward(self.spike)
-        
-
-    @construction_required
-    def progress(self,
-            direct_input: torch.Tensor = torch.tensor(0.),
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
-        self._process(self.__integrate_inputs(direct_input=direct_input))
-        self._fire_axon_hillock(clamps=clamps, unclamps=unclamps)
-        self.__propagate_spike()
-
-
-    def reset(self) -> None:
-        self._spike.zero_()
+    def reset(
+        self
+    ) -> None:
         for organs in [self.axons, self.dendrites]:
             for name,organ in self.organs.items():
                 organ.reset()
 
 
-    def __str__(self):
+    def __str__(
+        self
+    ) -> str:
         return f"{', '.join([a.__str__() for a in self.dendrites.values()])} -> [{self.name}] -> {', '.join([a.__str__() for a in self.axons.values()])}"

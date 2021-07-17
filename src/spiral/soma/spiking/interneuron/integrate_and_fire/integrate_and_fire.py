@@ -6,12 +6,12 @@ from abc import abstractmethod
 from abstract_object_decorator import AOD
 from typing import Union, Iterable, Callable
 import torch
-from .interneuron_soma import InterneuronSoma
+from ..interneuron_spiking_soma import InterneuronSpikingSoma
 
 
 
 
-class IntegrateAndFireSoma(InterneuronSoma):
+class IntegrateAndFireSoma(InterneuronSpikingSoma):
     def __init__(
         self,
         name: str,
@@ -31,6 +31,7 @@ class IntegrateAndFireSoma(InterneuronSoma):
         self.register_buffer("resting_potential", torch.tensor(resting_potential))
         self.register_buffer("firing_threshold", torch.tensor(firing_threshold))
         self.protect_properties(['potential'])
+        self.scout(state_variables=['potential'])
 
 
     def __construct__(self, shape: Iterable[int], **kwargs) -> None:
@@ -62,6 +63,30 @@ class IntegrateAndFireSoma(InterneuronSoma):
         self._potential.zero_()
         self._potential += self.u_rest
         super().reset()
+
+
+    @analytics
+    def plot_potential(
+        self,
+        axes,
+        color='green',
+        alpha: float = 1.,
+        label='potential',
+        **kwargs
+    ):
+        y = self.monitor['potential'].reshape(self.monitor['potential'].shape[0],-1)
+        time_range = (0, y.shape[0])
+        x = np.arange(time_range)*self.dt
+        population_alpha = alpha/y.shape[1]
+        aggregated = y.mean(axis=1)
+        axes.plot(x, aggregated, alpha=alpha, color=color, label=label, **kwargs)
+        axes.plot(x, y, alpha=population_alpha, color=color)
+        axes.plot(self.resting_potential, 'k-.', label='resting potential')
+        axes.plot(self.firing_threshold, 'b--', label='firing threshold')
+        axes.set_ylabel('potential (mV)')
+        axes.set_xlabel('time (ms)')
+        axes.set_xlim(time_range)
+        axes.legend()
 
 
 
@@ -131,6 +156,7 @@ class AdaptiveMembrane(IntegrateAndFireSoma, AOD):
         self.register_buffer("spike_triggered_adaptation", torch.tensor(spike_triggered_adaptation))
         self.register_buffer("tau_adaptation", torch.tensor(tau_adaptation))
         self.obj.protect_properties(['adaptation_current'])
+        self.scout(state_variables=['adaptation_current'])
 
 
     def __construct__(self, shape: Iterable[int], **kwargs) -> None:
@@ -163,3 +189,23 @@ class AdaptiveMembrane(IntegrateAndFireSoma, AOD):
     def reset(self) -> None:
         self._adaptation_current.zero_()
         self.obj.reset()
+
+
+    @analytics
+    def plot_potential(
+        self,
+        axes,
+        color='red',
+        alpha: float = 1.,
+        **kwargs
+    ):
+        y = self.monitor['adaptation_current'].reshape(self.monitor['adaptation_current'].shape[0],-1)
+        time_range = (0, y.shape[0])
+        x = np.arange(time_range)*self.dt
+        population_alpha = alpha/y.shape[1]
+        aggregated = y.mean(axis=1)
+        axes.plot(x, aggregated, alpha=alpha, color=color, **kwargs)
+        axes.plot(x, y, alpha=population_alpha, color=color)
+        axes.set_ylabel('adaptation current (mA)')
+        axes.set_xlabel('time (ms)')
+        axes.set_xlim(time_range)
