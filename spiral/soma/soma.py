@@ -13,7 +13,7 @@ from spiral.dendrite import Dendrite
 
 
 
-class Soma(torch.nn.Module, CRI, CPP):
+class Soma(torch.nn.Module, CRI):
     def __init__(
         self,
         name: str,
@@ -21,15 +21,10 @@ class Soma(torch.nn.Module, CRI, CPP):
         dt: Union[float, torch.Tensor] = None,
         construction_permission: bool = True,
     ) -> None:
-        CPP.__init__(
-            self,
-            protecteds=[
-                'name',
-                'shape',
-                'dt',
-            ]
-        )
         torch.nn.Module.__init__(self)
+        CPP.protect(self, 'name')
+        CPP.protect(self, 'shape')
+        CPP.protect(self, 'dt')
         self._name = name
         self.axons = {}
         self.dendrites = {}
@@ -86,7 +81,7 @@ class Soma(torch.nn.Module, CRI, CPP):
             self.meet_requirement('dt', organ.dt)
 
 
-    def __integrate_inputs(
+    def _integrate_inputs(
         self,
         direct_input: torch.Tensor = torch.tensor(0.)
     ) -> torch.Tensor:
@@ -109,5 +104,5 @@ class Soma(torch.nn.Module, CRI, CPP):
         self
     ) -> None:
         for organs in [self.axons, self.dendrites]:
-            for name,organ in self.organs.items():
+            for name,organ in organs.items():
                 organ.reset()

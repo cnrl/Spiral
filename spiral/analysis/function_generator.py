@@ -79,5 +79,5 @@ class FunctionGenerator:
                 ),
                 shape
             ) +\
-            fg.__generate_noise(length, noise, shape)
+            fg.__generate_noise(length, population_noise, shape)
         )

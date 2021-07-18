@@ -23,8 +23,8 @@ class Analyzer:
 
 
 def analysis_point(function):
-    def wrapper(self, **kwargs):
-        output = function(self, **kwargs)
+    def wrapper(self, *args, **kwargs):
+        output = function(self, *args, **kwargs)
         if self.analyzable:
             self.monitor.record_all()
         return output
@@ -32,8 +32,8 @@ def analysis_point(function):
 
 
 def analytics(function):
-    def wrapper(self, **kwargs):
+    def wrapper(self, *args, **kwargs):
         if not self.analyzable:
             raise Exception("The object is not analyzable!")
-        return function(self, **kwargs)
+        return function(self, *args, **kwargs)
     return wrapper

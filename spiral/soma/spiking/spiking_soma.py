@@ -4,7 +4,9 @@
 
 from abc import abstractmethod
 import torch
+from constant_properties_protector import CPP
 from spiral.analysis import Analyzer, analysis_point, analytics
+from typing import Union, Iterable
 from ..soma import Soma
 
 
@@ -14,20 +16,31 @@ class SpikingSoma(Soma):
     def __init__(
         self,
         name: str,
+        shape: Iterable[int] = None,
+        dt: Union[float, torch.Tensor] = None,
         analyzable: bool = False,
-        **kwargs
+        construction_permission: bool = True,
     ) -> None:
-        super().__init__(name=name, **kwargs)
-        self.protect_properties(['spike'])
+        super().__init__(
+            name=name,
+            shape=shape,
+            dt=dt,
+            construction_permission=construction_permission,
+        )
+        CPP.protect(self, 'spike')
         Analyzer.__init__(self, analyzable)
         Analyzer.scout(self, state_variables=['spike'])
 
 
     def __construct__(
         self,
-        **kwargs,
+        shape: Iterable[int],
+        dt: Union[float, torch.Tensor],
     ) -> None:
-        super().__construct__(**kwargs)
+        super().__construct__(
+            shape=shape,
+            dt=dt,
+        )
         self.register_buffer("_spike", torch.zeros(*self.shape, dtype=torch.bool))
                 
     
@@ -43,7 +56,7 @@ class SpikingSoma(Soma):
     def _fire_axon_hillock(
         self,
         clamps: torch.Tensor = torch.tensor(False),
-        unclamps: torch.Tensor = torch.tensor(False)
+        unclamps: torch.Tensor = torch.tensor(False),
     ) -> None:
         self._spike = ((self.spike * ~unclamps) + clamps)
 
@@ -65,7 +78,7 @@ class SpikingSoma(Soma):
         unclamps: torch.Tensor = torch.tensor(False)
     ) -> None:
         super().progress()
-        self._process(self.__integrate_inputs(direct_input=direct_input))
+        self._process(inputs=self._integrate_inputs(direct_input=direct_input))
         self._fire_axon_hillock(clamps=clamps, unclamps=unclamps)
         self.__propagate_spike()
 
@@ -75,6 +88,8 @@ class SpikingSoma(Soma):
     ) -> None:
         self._spike.zero_()
         super().reset()
+        if self.analyzable:
+            self.monitor.reset()
 
 
     @analytics
@@ -86,16 +101,17 @@ class SpikingSoma(Soma):
         spikes = self.monitor['spike']
         spikes = spikes.reshape(spikes.shape[0], -1)
         time_range = (0, spikes.shape[0])
-        x,y = np.where(spikes)
-        x *= self.dt
+        x,y = torch.where(spikes)
+        x = x*self.dt
         axes.scatter(x, y, **kwargs)
+        axes.set_ylabel('spike')
         axes.set_xlabel('time (ms)')
         axes.set_xlim(time_range)
         axes.get_yaxis().set_ticks([])
 
 
     @analytics
-    def population_activity(
+    def plot_population_activity(
         self,
         axes,
         **kwargs
@@ -103,7 +119,7 @@ class SpikingSoma(Soma):
         spikes = self.monitor['spike']
         spikes = spikes.reshape(spikes.shape[0], -1)
         time_range = (0, spikes.shape[0])
-        x = np.arange(time_range)*self.dt
+        x = torch.arange(*time_range)*self.dt
         y = spikes.sum(axis=1)
         axes.plot(x, y, **kwargs)
         axes.set_xlabel('time (ms)')
