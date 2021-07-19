@@ -3,7 +3,7 @@ Spiking soma is a type of soma that propagates spikes on its axons as output sig
 """
 
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import torch
 from constant_properties_protector import CPP
 from spiral.analysis import Analyzer, analysis_point, analytics
@@ -16,7 +16,7 @@ from construction_requirements_integrator import construction_required
 
 
 @typechecked
-class SpikingSoma(Soma):
+class SpikingSoma(Soma, ABC):
     """
     Basic class for all types of spiking soma.
 
@@ -182,9 +182,9 @@ class SpikingSoma(Soma):
         
         """
         for axon in self.axons.values():
-            axon.forward(self.spike)
+            axon.forward(action_potential=self.spike)
         for dendrite in self.dendrites.values():
-            dendrite.backward(self.spike)
+            dendrite.backward(action_potential=self.spike)
         
 
     @construction_required

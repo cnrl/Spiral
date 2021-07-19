@@ -10,12 +10,14 @@ from typing import Union, Iterable
 import torch
 from constant_properties_protector import CPP
 from spiral.analysis import Analyzer, analytics
+from typeguard import typechecked
 from ..interneuron_spiking_soma import InterneuronSpikingSoma
 from construction_requirements_integrator import construction_required
 
 
 
 
+@typechecked
 class IntegrateAndFireSoma(InterneuronSpikingSoma):
     """
     Class presenting integrate & fire neuron model as an interneuron spiking soma.
@@ -302,6 +304,7 @@ class IntegrateAndFireSoma(InterneuronSpikingSoma):
 
 
 
+@typechecked
 class LeakyMembrane(AOC):
     """
     Add-on class to add leakage to membrane potential dynamics in an integrate & fire neuron model.
@@ -390,6 +393,7 @@ class LeakyMembrane(AOC):
 
 
 
+@typechecked
 class ExponentialDepolaristicMembrane(AOC):
     """
     Add-on class to add depolarisation to membrane potential dynamics in an integrate & fire neuron model.
@@ -517,6 +521,7 @@ class ExponentialDepolaristicMembrane(AOC):
 
 
 
+@typechecked
 class AdaptiveMembrane(AOC):
     """
     Add-on class to add adaptation to membrane potential dynamics in an integrate & fire neuron model.

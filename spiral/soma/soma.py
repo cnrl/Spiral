@@ -6,7 +6,7 @@ The same module will be responsible for calculating the spike or current intensi
 """
 
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from construction_requirements_integrator import CRI, construction_required
 from constant_properties_protector import CPP
 from typing import Union, Iterable
@@ -19,7 +19,7 @@ from spiral.dendrite import Dendrite
 
 
 @typechecked
-class Soma(torch.nn.Module, CRI):
+class Soma(torch.nn.Module, CRI, ABC):
     """
     Basic class for all types of soma.
 
@@ -83,6 +83,7 @@ class Soma(torch.nn.Module, CRI):
         self._name = name
         self.axons = {}
         self.dendrites = {}
+        self.__unregistered_organs = []
         CRI.__init__(
             self,
             shape=shape,
@@ -111,9 +112,20 @@ class Soma(torch.nn.Module, CRI):
         None
         
         """
-        organ.meet_requirement('dt', self.dt)
-        organ.meet_requirement('population_shape', self.shape)
-        self.add_module(obj.name, obj)
+        organs = [self.dendrites, self.axons][issubclass(type(organ), Axon)]
+
+        suggested_name = f"{self.name}_{organ.__class__.__name__}_{len(organs)}"
+        organ.meet_requirement(name=suggested_name)
+        organ.meet_requirement(dt=self.dt)
+        organ.meet_requirement(shape=self.shape)
+
+        if organ.name in self.dendrites.keys():
+            raise Exception(f"The soma is already using a dendrite named {organ.name}.")
+        if organ.name in self.axons.keys():
+            raise Exception(f"The soma is already using an axon named {organ.name}.")
+
+        self.add_module(organ.name, organ)
+        organs[organ.name] = organ
 
 
     def __construct__(
@@ -138,10 +150,11 @@ class Soma(torch.nn.Module, CRI):
         
         """
         self._shape = shape
-        self._dt = torch.tensor(dt)
+        self.register_buffer("_dt", torch.tensor(dt))
         for organs in [self.axons, self.dendrites]:
             for name,organ in organs.items():
                 self.__register_organ(organ)
+        del self.__unregistered_organs
                 
     
     def use(
@@ -161,20 +174,13 @@ class Soma(torch.nn.Module, CRI):
         None
         
         """
-        organs = [self.dendrites, self.axons][issubclass(type(organ), Axon)]
-        organ.meet_requirement('name', f"{self.name}_{type(organ)}_{len(organs)}")
-
-        if organ.name in self.dendrites.keys():
-            raise Exception(f"The soma is already using a dendrite named {organ.name}.")
-        if organ.name in self.axons.keys():
-            raise Exception(f"The soma is already using an axon named {organ.name}.")
-
-        organs[organ.name] = organ
         if self.is_constructed:
             self.__register_organ(organ)
-        elif organ.is_constructed:
-            self.meet_requirement('shape', organ.population_shape)
-            self.meet_requirement('dt', organ.dt)
+        else:
+            self.__unregistered_organs.append(organ)
+            if organ.is_constructed:
+                self.meet_requirement(shape=organ.shape)
+                self.meet_requirement(dt=organ.dt)
 
 
     def _integrate_inputs(

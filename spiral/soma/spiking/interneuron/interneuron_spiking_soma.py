@@ -4,11 +4,12 @@ Interneuron spiking soma is a type of spiking soma that is used to transmit info
 
 
 from ..spiking_soma import SpikingSoma
+from abc import ABC
 
 
 
 
-class InterneuronSpikingSoma(SpikingSoma):
+class InterneuronSpikingSoma(SpikingSoma, ABC):
     """
     Basic class for all types of interneuron spiking soma.
 
