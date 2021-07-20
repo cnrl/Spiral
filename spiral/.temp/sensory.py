@@ -33,9 +33,9 @@ class AbstractEncoder(AbstractNeuralPopulation):
 
     @abstractmethod
     def forward(self,
-            direct_input: torch.Tensor = torch.tensor(False),
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+            direct_input: torch.Tensor = torch.as_tensor(False),
+            clamps: torch.Tensor = torch.as_tensor(False),
+            unclamps: torch.Tensor = torch.as_tensor(False)) -> None:
         self.compute_spike(direct_input)
         self.s *= ~unclamps
         self.s += clamps
@@ -44,7 +44,7 @@ class AbstractEncoder(AbstractNeuralPopulation):
 
 
     @abstractmethod
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         pass
         
 
@@ -78,7 +78,7 @@ class LazyEncoder(AbstractEncoder):
 
 
     @abstractmethod
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = direct_input.type(torch.bool).reshape(self.output_shape)
 
 
@@ -96,7 +96,7 @@ class AlwaysOnEncoder(LazyEncoder):
             **kwargs
         )
 
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = torch.ones(self.output_shape).type(torch.bool)
 
 
@@ -114,7 +114,7 @@ class AlwaysOffEncoder(LazyEncoder):
             **kwargs
         )
 
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = torch.zeros(self.output_shape).type(torch.bool)
 
 
@@ -149,14 +149,14 @@ class TemporaryEncoder(AbstractEncoder):
 
 
     def forward(self,
-            direct_input: torch.Tensor = torch.tensor(False),
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)):
+            direct_input: torch.Tensor = torch.as_tensor(False),
+            clamps: torch.Tensor = torch.as_tensor(False),
+            unclamps: torch.Tensor = torch.as_tensor(False)):
         assert self.step<self.length, "There is no more encoded information in encoder."
         super().forward(
-            direct_input = torch.tensor(False),
-            clamps = torch.tensor(False),
-            unclamps = torch.tensor(False))
+            direct_input = torch.as_tensor(False),
+            clamps = torch.as_tensor(False),
+            unclamps = torch.as_tensor(False))
         self.step += 1
 
 
@@ -192,7 +192,7 @@ class Time2FirstSpikeEncoder(TemporaryEncoder):
         )
 
 
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = (self.stage==(self.length-self.step))
 
 
@@ -248,14 +248,14 @@ class PositionEncoder(TemporaryEncoder):
         self.k = k
         if mean is None:
             mean = torch.linspace(0, 1, self.k)
-        self.register_buffer("mean", torch.tensor(mean))
+        self.register_buffer("mean", torch.as_tensor(mean))
         if std is None:
             std = (1/(self.k-1))/2
-        self.register_buffer("std", torch.tensor(std))
-        self.register_buffer("ignore_threshold", torch.tensor(ignore_threshold))
+        self.register_buffer("std", torch.as_tensor(std))
+        self.register_buffer("ignore_threshold", torch.as_tensor(ignore_threshold))
 
 
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = (self.stage==(self.length-self.step))
 
 
@@ -286,8 +286,8 @@ class PositionEncoder(TemporaryEncoder):
         normal = Normal(self.mean, self.std)
         d /= self.length
         d *= torch.exp(normal.log_prob(self.mean))
-        d_left = normal.icdf(torch.tensor(d))
-        d_right = normal.icdf(torch.tensor(1-d))
+        d_left = normal.icdf(torch.as_tensor(d))
+        d_right = normal.icdf(torch.as_tensor(1-d))
         d = torch.cat([d_left.reshape(*d_left.shape,1),d_right.reshape(*d_right.shape,1)], dim=-1)
         mean = d.nansum(axis=(-2,-1))/(~d.isnan()).sum(axis=(-2,-1))
         diff = torch.abs(d-mean.reshape(*mean.shape,1,1))
@@ -319,11 +319,11 @@ class PoissonEncoder(AbstractEncoder):
             output_shape=shape,
             **kwargs
         )
-        self.register_buffer("rate", torch.tensor(rate))
-        self.register_buffer("rate", torch.tensor(rate))
+        self.register_buffer("rate", torch.as_tensor(rate))
+        self.register_buffer("rate", torch.as_tensor(rate))
 
 
-    def compute_spike(self, direct_input: torch.Tensor = torch.tensor(False)) -> None:
+    def compute_spike(self, direct_input: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = torch.bernoulli(self.stage).type(torch.bool)
 
 

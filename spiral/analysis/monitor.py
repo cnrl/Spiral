@@ -43,7 +43,7 @@ class Monitor:
         self,
         variable: str
     ) -> torch.Tensor:
-        return torch.tensor([a.tolist() for a in self.recording[variable]])
+        return torch.as_tensor([a.tolist() for a in self.recording[variable]])
 
 
     def __getitem__(

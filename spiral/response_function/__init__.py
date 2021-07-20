@@ -3,4 +3,6 @@ from .response_function import (
     CompositeResponseFunction,
     ScalingResponseFunction,
     LeakyResponseFunction,
+    FlatResponseFunction,
+    LimitedFlatResponseFunction,
 )

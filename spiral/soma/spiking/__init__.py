@@ -1,2 +1,2 @@
-from .interneuron import *
+from .integrate_and_fire import *
 

@@ -49,7 +49,7 @@ def DoG_kernel(
 def gabor_kernel(
         kernel_size: int = 3,
         wavelength: Union[float,torch.Tensor] = 1.,
-        orientation: torch.Tensor = torch.tensor(0.),
+        orientation: torch.Tensor = torch.as_tensor(0.),
         std: Union[float,torch.Tensor] = 1.,
         aspect_ratio: Union[float,torch.Tensor] = 1.,
         in_channel: int = None,

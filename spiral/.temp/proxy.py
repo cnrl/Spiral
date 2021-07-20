@@ -27,9 +27,9 @@ class AbstractPopulationProxy(AbstractNeuralPopulation):
 
 
     def forward(self,
-            direct_input: torch.Tensor = torch.tensor(0.),
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+            direct_input: torch.Tensor = torch.as_tensor(0.),
+            clamps: torch.Tensor = torch.as_tensor(False),
+            unclamps: torch.Tensor = torch.as_tensor(False)) -> None:
         self.population.forward(direct_input=self.collect_I(direct_input), clamps=clamps, unclamps=unclamps)
         self.compute_spike(self.population.spikes())
         spikes = self.spikes()
@@ -39,8 +39,8 @@ class AbstractPopulationProxy(AbstractNeuralPopulation):
     
     @abstractmethod
     def compute_spike(self, plain_spikes: torch.Tensor,
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+            clamps: torch.Tensor = torch.as_tensor(False),
+            unclamps: torch.Tensor = torch.as_tensor(False)) -> None:
         super().compute_spike(clamps, unclamps)
 
 
@@ -66,8 +66,8 @@ class DisposablePopulationProxy(AbstractPopulationProxy):
 
     def compute_spike(self,
             plain_spikes: torch.Tensor,
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+            clamps: torch.Tensor = torch.as_tensor(False),
+            unclamps: torch.Tensor = torch.as_tensor(False)) -> None:
         self.s = plain_spikes * ~self.consumed
         super().compute_spike(plain_spikes, clamps, unclamps)
         self.consumed += self.s
@@ -103,8 +103,8 @@ class KWinnerTakeAllPopulationProxy(AbstractPopulationProxy):
 
     def compute_spike(self,
             plain_spikes: torch.Tensor,
-            clamps: torch.Tensor = torch.tensor(False),
-            unclamps: torch.Tensor = torch.tensor(False)) -> None:
+            clamps: torch.Tensor = torch.as_tensor(False),
+            unclamps: torch.Tensor = torch.as_tensor(False)) -> None:
         s = plain_spikes.clone()
         comparable = self.critical_comparable(self.population)
         self.s.zero_()

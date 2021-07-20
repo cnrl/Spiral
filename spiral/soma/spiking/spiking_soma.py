@@ -20,8 +20,7 @@ class SpikingSoma(Soma, ABC):
     """
     Basic class for all types of spiking soma.
 
-    There are several types of spiking soma: interneuron soma, sensory soma and etc.\
-    Each of these types also has several modelings: integrate and fire, hodgkin huxley and etc.\
+    There are several types of spiking soma: integrate and fire, hodgkin huxley and etc.\
     Each of these types has a different purpose and behaves differently.\
     But in the end, they are all types of spiking neurons and have common features in their bodies,\
     including how they propagate spikes on their axons and how they can be analyzed.\
@@ -148,8 +147,8 @@ class SpikingSoma(Soma, ABC):
     @abstractmethod
     def _fire_axon_hillock(
         self,
-        clamps: torch.Tensor = torch.tensor(False),
-        unclamps: torch.Tensor = torch.tensor(False),
+        clamps: torch.Tensor = torch.as_tensor(False),
+        unclamps: torch.Tensor = torch.as_tensor(False),
     ) -> None:
         """
         Compute spikes.\
@@ -191,9 +190,9 @@ class SpikingSoma(Soma, ABC):
     @analysis_point
     def progress(
         self,
-        direct_input: torch.Tensor = torch.tensor(0.),
-        clamps: torch.Tensor = torch.tensor(False),
-        unclamps: torch.Tensor = torch.tensor(False)
+        direct_input: torch.Tensor = torch.as_tensor(0.),
+        clamps: torch.Tensor = torch.as_tensor(False),
+        unclamps: torch.Tensor = torch.as_tensor(False)
     ) -> None:
         """
         Simulate the soma activity for a single step.

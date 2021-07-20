@@ -239,12 +239,12 @@ class Network(torch.nn.Module):
         """
         
         for name,synapse in self.SSs.items():
-            synapse.forward(kwargs.get(name+"_mask", torch.tensor(True)))
+            synapse.forward(kwargs.get(name+"_mask", torch.as_tensor(True)))
         
         for name,population in self.NPs.items():
-            direct_input = kwargs.get(name+"_direct_input", torch.tensor(0))
-            clamp = kwargs.get(name+"_clamp", torch.tensor(False))
-            unclamp = kwargs.get(name+"_unclamp", torch.tensor(False))
+            direct_input = kwargs.get(name+"_direct_input", torch.as_tensor(0))
+            clamp = kwargs.get(name+"_clamp", torch.as_tensor(False))
+            unclamp = kwargs.get(name+"_unclamp", torch.as_tensor(False))
             population.forward(direct_input=direct_input, clamps=clamp, unclamps=unclamp)
 
         if self.learning:

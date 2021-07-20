@@ -11,16 +11,16 @@ import torch
 from constant_properties_protector import CPP
 from spiral.analysis import Analyzer, analytics
 from typeguard import typechecked
-from ..interneuron_spiking_soma import InterneuronSpikingSoma
 from construction_requirements_integrator import construction_required
+from ..spiking_soma import SpikingSoma
 
 
 
 
 @typechecked
-class IntegrateAndFireSoma(InterneuronSpikingSoma):
+class IntegrateAndFireSoma(SpikingSoma):
     """
-    Class presenting integrate & fire neuron model as an interneuron spiking soma.
+    Class presenting integrate & fire neuron model is a spiking soma.
 
     This module keeps and updates dynamic of membrane potential\
     and compute spikes (action potentials) based on the membrane potential.\
@@ -123,10 +123,10 @@ class IntegrateAndFireSoma(InterneuronSpikingSoma):
             analyzable=analyzable,
             construction_permission=False,
         )
-        self.register_buffer("tau", torch.tensor(tau))
-        self.register_buffer("R", torch.tensor(R))
-        self.register_buffer("resting_potential", torch.tensor(resting_potential))
-        self.register_buffer("firing_threshold", torch.tensor(firing_threshold))
+        self.register_buffer("tau", torch.as_tensor(tau))
+        self.register_buffer("R", torch.as_tensor(R))
+        self.register_buffer("resting_potential", torch.as_tensor(resting_potential))
+        self.register_buffer("firing_threshold", torch.as_tensor(firing_threshold))
         CPP.protect(self, 'potential')
         self.set_construction_permission(construction_permission)
         Analyzer.scout(self, state_variables=['potential'])
@@ -222,8 +222,8 @@ class IntegrateAndFireSoma(InterneuronSpikingSoma):
 
     def _fire_axon_hillock(
         self,
-        clamps: torch.Tensor = torch.tensor(False),
-        unclamps: torch.Tensor = torch.tensor(False),
+        clamps: torch.Tensor = torch.as_tensor(False),
+        unclamps: torch.Tensor = torch.as_tensor(False),
     ) -> None:
         """
         Compute spikes.\
@@ -458,8 +458,8 @@ class ExponentialDepolaristicMembrane(AOC):
         None
         
         """
-        self.register_buffer("sharpness", torch.tensor(sharpness))
-        self.register_buffer("depolarization_threshold", torch.tensor(depolarization_threshold))
+        self.register_buffer("sharpness", torch.as_tensor(sharpness))
+        self.register_buffer("depolarization_threshold", torch.as_tensor(depolarization_threshold))
 
 
     def __compute_depolarisation(
@@ -597,9 +597,9 @@ class AdaptiveMembrane(AOC):
         None
         
         """
-        self.register_buffer("subthreshold_adaptation", torch.tensor(subthreshold_adaptation))
-        self.register_buffer("spike_triggered_adaptation", torch.tensor(spike_triggered_adaptation))
-        self.register_buffer("tau_adaptation", torch.tensor(tau_adaptation))
+        self.register_buffer("subthreshold_adaptation", torch.as_tensor(subthreshold_adaptation))
+        self.register_buffer("spike_triggered_adaptation", torch.as_tensor(spike_triggered_adaptation))
+        self.register_buffer("tau_adaptation", torch.as_tensor(tau_adaptation))
         CPP.protect(self, 'adaptation_current')
         Analyzer.scout(self, state_variables=['adaptation_current'])
 

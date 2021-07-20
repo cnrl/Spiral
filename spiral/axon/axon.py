@@ -36,6 +36,10 @@ class Axon(torch.nn.Module, CRI):
         CPP.protect(self, 'action_potential_history')
         CPP.protect(self, 'neurotransmitter')
         CPP.protect(self, 'is_excitatory')
+        self.register_buffer("_is_excitatory", torch.as_tensor(is_excitatory))
+        self.response_function = ResponseFunction() if response_function is None else response_function
+        Analyzer.__init__(self, analyzable)
+        Analyzer.scout(self, state_variables=['neurotransmitter'])
         CRI.__init__(
             self,
             name=name,
@@ -46,10 +50,13 @@ class Axon(torch.nn.Module, CRI):
             construction_permission=construction_permission,
             ignore_overwrite_error=True,
         )
-        self.register_buffer("_is_excitatory", torch.tensor(is_excitatory))
-        self.response_function = ResponseFunction() if response_function is None else response_function
-        Analyzer.__init__(self, analyzable)
-        Analyzer.scout(self, state_variables=['neurotransmitter'])
+
+
+    @property
+    def terminal_shape(
+        self
+    ) -> Iterable[int]:
+        return (*self.shape, *self.terminal)
 
 
     def __construct__(
@@ -66,8 +73,10 @@ class Axon(torch.nn.Module, CRI):
         self._is_excitatory = self.is_excitatory.reshape(
             *self.is_excitatory.shape, *[1]*(len(self.shape)+len(self.terminal)-len(self.is_excitatory.shape))
         )
-        self.register_buffer("_dt", torch.tensor(dt))
-        self.register_buffer("_delay", (torch.tensor(delay)//self.dt).type(torch.int64))
+        self.register_buffer("_dt", torch.as_tensor(dt))
+        self.register_buffer("_delay", (torch.as_tensor(delay)//self.dt).type(torch.int64))
+        if len(self.delay.shape)!=0 and self.delay.shape!=self.terminal_shape[-len(self.delay.shape):]:
+            raise Exception(f"Wrong shape for axon delay. Expected {' or '.join([str(self.terminal_shape[-i:]) for i in range(len(self.terminal_shape))])} or a single value but got {self.delay.shape}")
         history_length = self.delay.max()+1
         self.register_buffer("_action_potential_history", torch.zeros((history_length,*self.shape)))
         self.register_buffer("_neurotransmitter", torch.zeros(*self.shape, *self.terminal))
@@ -86,7 +95,11 @@ class Axon(torch.nn.Module, CRI):
         self
     ) -> torch.Tensor:
         if self.delay.numel()==1:
-            return self.action_potential_history[self.delay]
+            return self.action_potential_history[self.delay].reshape(
+                *self.shape, *[1]*len(self.terminal)
+            ).repeat(
+                *[1]*len(self.shape), *self.terminal
+            )
         else:
             history = self.action_potential_history.reshape(
                 *self.action_potential_history.shape, *[1]*len(self.terminal)
@@ -94,11 +107,11 @@ class Axon(torch.nn.Module, CRI):
                 *[1]*len(self.action_potential_history.shape), *self.terminal
             )
             delay = self.delay.reshape(
-                1, self.delay.shape, *[1]*(len(self.shape)+len(self.terminal)-len(self.delay.shape))
+                1, *[1]*(len(self.shape)+len(self.terminal)-len(self.delay.shape)), *self.delay.shape
             ).repeat(
-                1, *[1]*len(self.delay.shape), *self.action_potential_history.shape[-1-len(self.delay.shape):]
+                1, *history.shape[1:-len(self.delay.shape)], *[1]*len(self.delay.shape)
             )
-            return torch.gather(history, dim=0, index=delay)
+            return history.gather(dim=0, index=delay)[0]
 
 
     @construction_required
@@ -122,6 +135,8 @@ class Axon(torch.nn.Module, CRI):
     ) -> None:
         self._neurotransmitter.zero_()
         self.response_function.reset()
+        if self.analyzable:
+            self.monitor.reset()
 
 
     @analytics

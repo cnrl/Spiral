@@ -32,9 +32,8 @@ class FunctionGenerator:
         for left,right in fg.__get_steps(length, slope):
             v = slope[left]
             if v!=0:
-                output[left:right+1] += torch.arange(0, (right+1-left)*v, v)
-            if right<length:
-                output[right+1:] = output[right]
+                output[left:right] += torch.arange(0, (right-left)*v, v)
+            output[right:] = output[right-1]+v
         return output
     
     @classmethod
@@ -48,7 +47,7 @@ class FunctionGenerator:
         for left,right in fg.__get_steps(length, noise):
             v = noise[left]
             if v!=0:
-                output[left:right] += torch.normal(.0, torch.tensor(float(v)), (right-left,*shape))
+                output[left:right] += torch.normal(.0, torch.as_tensor(float(v)), (right-left,*shape))
         return output
     
     

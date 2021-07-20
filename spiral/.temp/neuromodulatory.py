@@ -15,7 +15,7 @@ class AbstractNeuromodulatoryTissue(ABC, torch.nn.Module):
         self.configed = False
         self.axons = {}
         self.free_axon_index = 0
-        self.register_buffer("d", torch.tensor(0.))
+        self.register_buffer("d", torch.as_tensor(0.))
         self.config_prohibit = config_prohibit
         self.name = name
         self.set_dt(dt)
@@ -39,7 +39,7 @@ class AbstractNeuromodulatoryTissue(ABC, torch.nn.Module):
     def set_dt(self, dt:float):
         if self.configed:
             return False
-        self.dt = torch.tensor(dt) if dt is not None else dt
+        self.dt = torch.as_tensor(dt) if dt is not None else dt
         self.config()
         return True
             
@@ -99,7 +99,7 @@ class AbstractDopaminergicTissue(AbstractNeuromodulatoryTissue):
         **kwargs
     ) -> None:
         super().__init__(name=name, **kwargs)
-        self.register_buffer("da", torch.tensor(0.))
+        self.register_buffer("da", torch.as_tensor(0.))
 
 
     def forward(self) -> None:
@@ -108,7 +108,7 @@ class AbstractDopaminergicTissue(AbstractNeuromodulatoryTissue):
 
     
     def feedback(self, da: Union[float, torch.Tensor]) -> None:
-        self.da = torch.tensor(da)
+        self.da = torch.as_tensor(da)
 
 
     def reset(self) -> None:
@@ -126,7 +126,7 @@ class SimpleDopaminergicTissue(AbstractDopaminergicTissue):
         **kwargs
     ) -> None:
         super().__init__(name=name, **kwargs)
-        self.register_buffer("tau", torch.tensor(tau))
+        self.register_buffer("tau", torch.as_tensor(tau))
 
 
     def forward(self) -> None:

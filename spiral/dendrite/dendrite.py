@@ -2,48 +2,64 @@
 Module for connections between neural populations.
 """
 
+
 from abc import ABC, abstractmethod
 from typing import Union, Iterable
+from typeguard import typechecked
 import torch
 from .weight_initialization import constant_initialization
 from ..filter.filter import AbstractFilter
 
-class Dendrite(ABC, torch.nn.Module):
+
+
+
+@typechecked
+class Dendrite(torch.nn.Module, CRI, ABC):
     def __init__(
         self,
         name: str = None,
-        terminal: Iterable[int] = None,
-        population: Iterable[int] = None,
-        wmin: Union[float, torch.Tensor] = 0.,
-        wmax: Union[float, torch.Tensor] = 1.,
+        shape: Iterable[int] = None,
+        spine: Iterable[int] = None,
         dt: float = None,
-        config_prohibit: bool = False,
-        **kwargs
+        synaptic_plasticity: SynapticPlasticity = None,
+        analyzable: bool = False,
+        construction_permission: bool = True,
     ) -> None:
-        super().__init__()
-
-        self.name = None
-        self.set_name(name)
-        self.register_buffer("wmin", torch.tensor(wmin))
-        self.register_buffer("wmax", torch.tensor(wmax))
-        self.population_shape = None
-        self.terminal_shape = None
-        self.dt = None
-        self.configed = False
-        self.config_prohibit = config_prohibit
-        self.set_dt(dt)
-        self.set_terminal_shape(terminal)
-        self.set_population_shape(population)
-
-
-    def config_permit(self):
-        return (
-            self.population_shape is not None and
-            self.terminal_shape is not None and
-            self.dt is not None and
-            not self.config_prohibit and
-            not self.configed
+        torch.nn.Module.__init__(self)
+        CPP.protect(self, 'name')
+        CPP.protect(self, 'shape')
+        CPP.protect(self, 'spine')
+        CPP.protect(self, 'dt')
+        CPP.protect(self, 'current')
+        self.synaptic_plasticity = SynapticPlasticity() if synaptic_plasticity is None else synaptic_plasticity
+        Analyzer.__init__(self, analyzable)
+        Analyzer.scout(self, state_variables=['current'])
+        CRI.__init__(
+            self,
+            name=name,
+            shape=shape,
+            spine=spine,
+            dt=dt,
+            construction_permission=construction_permission,
+            ignore_overwrite_error=True,
         )
+
+
+    def __construct__(
+        self,
+        name: str,
+        shape: Iterable[int],
+        spine: Iterable[int],
+        dt: Union[float, torch.Tensor],
+    ) -> None:
+        self._name = name
+        self._shape = shape
+        self._spine = spine
+        self.register_buffer("_dt", torch.as_tensor(dt))
+        self.register_buffer("_current", torch.zeros(self.shape))
+        self.response_function.meet_requirement(spine=self.spine)
+        self.response_function.meet_requirement(shape=self.shape)
+        self.response_function.meet_requirement(dt=self.dt)
 
 
     def config(self) -> bool:
@@ -64,7 +80,7 @@ class Dendrite(ABC, torch.nn.Module):
     def set_dt(self, dt:float) -> bool:
         if self.configed:
             return False
-        self.dt = torch.tensor(dt) if dt is not None else dt
+        self.dt = torch.as_tensor(dt) if dt is not None else dt
         self.config()
         return True
 
@@ -159,24 +175,6 @@ class SimpleDendriteSet(Dendrite):
 
 
 
-class NanBlockerDendriteSet(SimpleDendriteSet):
-    def __init__(
-        self,
-        name: str=None,
-        **kwargs
-    ) -> None:
-        super().__init__(name=name, **kwargs)
-
-
-    def forward(self, neurotransmitters: torch.Tensor) -> None: #doesn't replace nan values
-        neurotransmitters_singleton = self.to_singlton_population_shape(neurotransmitters)
-        I = neurotransmitters_singleton * self.w
-        I[neurotransmitters.isnan()] = 0
-        self.I = self.I*neurotransmitters_singleton.isnan() + I
-
-
-
-
 class FilteringDendriteSet2D(Dendrite):
     def __init__(
         self,
@@ -227,3 +225,28 @@ class FilteringDendriteSet2D(Dendrite):
 
     def currents(self) -> torch.Tensor:
         return self.I
+
+
+
+# class AbstractKernelWeightLRE(CombinableLRE):
+#     def __init__(
+#         self,
+#         name: str = None,
+#         **kwargs
+#     ) -> None:
+#         super().__init__(name=name, **kwargs)
+
+
+#     @abstractmethod
+#     def compute_updatings(self) -> torch.Tensor: # output = dw
+#         pass
+
+
+#     def update(self, dw: torch.Tensor) -> None:
+#         w = self.synapse.dendrite.filter.core.weight.data
+#         wmin = self.synapse.dendrite.wmin
+#         wmax = self.synapse.dendrite.wmax
+#         w += dw
+#         w[w<wmin] = wmin
+#         w[w>wmax] = wmax
+#         self.synapse.dendrite.filter.core.weight.data = w
