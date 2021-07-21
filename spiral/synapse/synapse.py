@@ -6,7 +6,7 @@ Module for connections between neural populations.
 from __future__ import annotations
 from construction_requirements_integrator import CRI, construction_required
 from add_on_class import AOC
-from typing import Union
+from typing import Union, Iterable
 from typeguard import typechecked
 import torch
 from spiral.axon import Axon
@@ -21,62 +21,108 @@ class Synapse(torch.nn.Module, CRI):
     def __init__(
         self,
         name: str = None,
-        construction_permission: bool = False,
+        source: Iterable[int] = None,
+        target: Iterable[int] = None,
+        batch: int = None,
+        dt: Union[float, torch.Tensor] = None,
+        construction_permission: bool = True,
     ) -> None:
         torch.nn.Module.__init__(self)
         CPP.protect(self, 'name')
-        self._name = name
+        CPP.protect(self, 'source')
+        CPP.protect(self, 'target')
         CPP.protect(self, 'dt')
+        CPP.protect(self, 'axon')
+        CPP.protect(self, 'dendrite')
         self.neuromodulatory_axons = {}
         self.__unregistered_neuromodulatory_axons = []
+        self._axon = None
+        self._dendrite = None
         CRI.__init__(
             self,
-            axon=axon,
-            dendrite=dendrite,
+            name=name,
+            source=source,
+            target=target,
+            batch=batch,
+            dt=dt,
             construction_permission=construction_permission,
         )
 
 
+    @property
+    def occupied(
+        self
+    ) -> bool:
+        return (self.axon is not None) and (self.dendrite is not None)
+
+
     def __register_neuromodulatory_axon(
         self,
-        axon: Axon,
+        organ: Axon,
     ) -> None:
-        if not axon.is_constructed:
-            raise Exception(f"Can not register an unconstructed axon: {axon} as neuromodulatory axon")
-        if axon.dt!=self.dt:
-            raise Exception(f"Neuromodulatory axon {axon.name} with dt={axon.dt} doesn't match synapse {self.name} with dt={self.dt}.")
-        if axon.terminal_shape!=self.axon.terminal_shape:
-            raise Exception(f"Neuromodulatory axon {axon.name} with terminal_shape={axon.terminal_shape} doesn't match synapse {self.name} with axon terminal_shape={self.axon.terminal_shape}.")
-        if axon.name in self.neuromodulatory_axons.keys():
-            raise Exception(f"The synapse is already using a neuromodulatory axon named {axon.name}.")
+        suggested_name = f"{self.name}_neuromodulatory_{organ.__class__.__name__}_{len(self.neuromodulatory_axons)}"
+        for key,arg in {
+            'name': suggested_name,
+            'dt'  : self.dt,
+            'shape': (1,),
+            'batch': self.batch,
+            }.items():
+            if not organ.is_constructed:
+                organ.meet_requirement(**{key: arg})
 
-        self.add_module(axon.name, axon)
-        self.neuromodulatory_axons[axon.name] = axon
+        if organ.dt!=self.dt:
+            raise Exception(f"Neuromodulatory axon {organ.name} with dt={organ.dt} doesn't match synapse {self.name} with dt={self.dt}.")
+        if organ.name in self.neuromodulatory_axons.keys():
+            raise Exception(f"The synapse is already using a neuromodulatory axon named {organ.name}.")
+
+        self.add_module(organ.name, organ)
+        self.neuromodulatory_axons[organ.name] = organ
 
 
     def __construct__(
         self,
-        axon: Axon,
-        dendrite: Dendrite,
+        name: str,
+        source: Iterable[int],
+        target: Iterable[int],
+        batch: int,
+        dt: Union[float, torch.Tensor],
     ):
-        if not axon.is_constructed or not dendrite.is_constructed:
-            raise Exception("Synapse can not connect unconstructed organs to each other.")
-        
-        if axon.dt!=dendrite.dt:
-            raise Exception(f"Axon {axon.name} with dt={axon.dt} doesn't match dendrite {dendrite.name} with dt={dendrite.dt}.")
-        self._dt = axon.dt
-        
-        if axon.terminal_shape!=dendrite.spine:
-            raise Exception(f"Axon {axon.name} with terminal_shape={axon.terminal_shape} doesn't match dendrite {dendrite.name} with spine={dendrite.spine}.")
+        self._name = name
+        self._source = (batch, *self.source)
+        self._target = (batch, *self.target)
+        self.register_buffer("_dt", torch.as_tensor(dt))
 
-        if self.name is None:
-            self._name = f"{self.__class__.__name__}_from_{axon.name}_to_{dendrite.name}"
+        self._axon.meet_requirement(name=name+"_axon")
+        self._axon.meet_requirement(shape=source)
+        self._axon.meet_requirement(batch=batch)
+        self._axon.meet_requirement(dt=dt)
 
-        self.axon = axon
-        self.dendrite = dendrite
+        self._dendrite.meet_requirement(name=name+"_dendrite")
+        self._dendrite.meet_requirement(shape=target)
+        self._dendrite.meet_requirement(batch=batch)
+        self._dendrite.meet_requirement(spine=source)
+        self._dendrite.meet_requirement(dt=dt)
 
-        for neuromodulatory_axons in self.__unregistered_neuromodulatory_axons:
-            self.__register_neuromodulatory_axon(neuromodulatory_axons)
+        if self.axon.dt!=self.dt:
+            raise Exception(f"Axon {self.axon.name} with dt={self.axon.dt} doesn't match synapse {self.name} with dt={self.dt}.")
+        if self._dendrite.dt!=self.dt:
+            raise Exception(f"Dendrite {self.dendrite.name} with dt={self.dendrite.dt} doesn't match synapse {self.name} with dt={self.dt}.")
+
+        if (*self.axon.shape[1:], self.axon.terminal)!=self.source:
+            raise Exception(f"Axon {self.axon.name} with shape={self.axon.shape} and terminal={self.axon.terminal} doesn't match synapse {self.name} with source={self.source}.")
+        if self.dendrite.spine!=self.source:
+            raise Exception(f"Dendrite {self.dendrite.name} with spine={self.dendrite.spine} doesn't match synapse {self.name} with source={self.source}.")
+
+        if self.dendrite.shape!=self.target:
+            raise Exception(f"Dendrite {self.dendrite.name} with shape={self.dendrite.shape} doesn't match synapse {self.name} with target={self.target}.")
+
+        if self.axon.batch!=self.batch:
+            raise Exception(f"Axon {self.axon.name} with batch={self.axon.batch} doesn't match synapse {self.name} with batch={self.batch}.")
+        if self.dendrite.batch!=self.batch:
+            raise Exception(f"Dendrite {self.dendrite.name} with batch={self.dendrite.batch} doesn't match synapse {self.name} with batch={self.batch}.")
+
+        for neuromodulatory_axon in self.__unregistered_neuromodulatory_axons:
+            self.__register_neuromodulatory_axon(neuromodulatory_axon)
         del self.__unregistered_neuromodulatory_axons
 
 
@@ -95,10 +141,45 @@ class Synapse(torch.nn.Module, CRI):
         self,
         organ: Union[Axon, Dendrite],
     ) -> Synapse:
-        if issubclass(type(organ), Axon):
-            self.meet_requirement(axon=organ)
+        organ_is_axon = issubclass(type(organ), Axon)
+        
+        if organ_is_axon:
+            self._axon = organ
         else:
-            self.meet_requirement(dendrite=organ)
+            self._dendrite = organ
+
+        batch = organ.shape[1] if organ.is_constructed else organ.requirement_value('batch')
+        dt = organ.dt if organ.is_constructed else organ.requirement_value('dt')
+        source = organ.spine[1:]                        if (not organ_is_axon and     organ.is_constructed) \
+            else (*organ.shape[1:], *organ.terminal)    if (    organ_is_axon and     organ.is_constructed) \
+            else organ.requirement_value('spine')       if (not organ_is_axon and not organ.is_constructed) \
+            else (*organ.requirement_value('shape'), *organ.requirement_value('terminal'))
+        target = organ.shape[1:]                        if (not organ_is_axon and     organ.is_constructed) \
+            else organ.requirement_value('shape')       if (not organ_is_axon and not organ.is_constructed) \
+            else None
+
+        name = None
+        if self.occupied:
+            organ_names = {}
+            for organ_type,registered_organ in {'axon': self._axon, 'dendrite': self._dendrite}.items():
+                if registered_organ.is_constructed:
+                    organ_names[organ_type] = registered_organ.name
+                elif registered_organ.requirement_value('name') is not None:
+                        organ_names[organ_type] = registered_organ.requirement_value('name')
+            if all([name is not None for name in organ_names.values()]):
+                name = f"{self.__class__.__name__}_from_{organ_names['axon']}_to_{organ_names['dendrite']}"
+
+
+        for key,arg in {
+            'name': name,
+            'dt'  : dt,
+            'source': source,
+            'target': target,
+            'batch': batch,
+            }.items():
+            if (not self.is_constructed) and (arg not None):
+                self.meet_requirement(**{key: arg})
+
         return self
 
 
@@ -158,9 +239,10 @@ class DisconnectorSynapticCover(AOC):
             axon=axon,
             dendrite=dendrite,
         )
-        self.connectivity_pattern.meet_requirement(source=self.axon.terminal_shape)
-        self.connectivity_pattern.meet_requirement(target=self.dendrite.shape)
+        self.connectivity_pattern.meet_requirement(source=self.source[1:])
+        self.connectivity_pattern.meet_requirement(target=self.target[1:])
         self.connectivity_pattern.meet_requirement(dt=self.dt)
+        self.connectivity_pattern.meet_requirement(batch=self.source[1])
 
 
     @construction_required

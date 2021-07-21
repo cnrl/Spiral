@@ -56,9 +56,9 @@ class SynapticPlasticityRate(torch.nn.Module, CRI):
 class WeightDependentRate(SynapticPlasticityRate):
     def __init__(
         self,
+        rate: Union[float, torch.Tensor],
         minimum: Union[float, torch.Tensor] = 0.,
         maximum: Union[float, torch.Tensor] = 1.,
-        rate: Union[float, torch.Tensor],
         dt: Union[float, torch.Tensor] = None,
     ) -> None:
         super().__init__(
@@ -83,8 +83,8 @@ class WeightDependentRate(SynapticPlasticityRate):
 class DescendingSynapticPlasticityRate(SynapticPlasticityRate):
     def __init__(
         self,
-        tau: Union[float, torch.Tensor] = 1000.,
         rate: Union[float, torch.Tensor],
+        tau: Union[float, torch.Tensor] = 1000.,
         dt: Union[float, torch.Tensor] = None,
     ) -> None:
         super().__init__(

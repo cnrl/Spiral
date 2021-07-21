@@ -36,7 +36,7 @@ class Soma(torch.nn.Module, CRI, ABC):
     name : str, Protected
         The name to be uniquely accessible in Spiral network.\
         Read more about protected properties in constant-properties-protector package documentation.
-    shape: Iterable of Int, Protected
+    shape: Iterable of int, Protected
         The topology of somas in the population.\
         Read more about protected properties in constant-properties-protector package documentation.
     dt: float or torch.Tensor, Protected
@@ -56,10 +56,13 @@ class Soma(torch.nn.Module, CRI, ABC):
     ---------
     name : str, Necessary
         Each module in a Spiral network needs a name to be uniquely accessible.
-    shape : Iterable of Int, Construction Requirement
+    shape : Iterable of int, Construction Requirement
         Defines the topology of somas in the population.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
         Read more about construction requirement in construction-requirements-integrator package documentation.
+    batch : int, Construction Requirement, Optional, default: 1
+        Determines the batch size.\
+        Will be added to the top of the topology shape.
     dt : float or torch.Tensor, Construction Requirement
         Time step in milliseconds.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
@@ -74,6 +77,7 @@ class Soma(torch.nn.Module, CRI, ABC):
         self,
         name: str,
         shape: Iterable[int] = None,
+        batch: int = None,
         dt: Union[float, torch.Tensor] = None,
         construction_permission: bool = True,
     ) -> None:
@@ -88,6 +92,7 @@ class Soma(torch.nn.Module, CRI, ABC):
         CRI.__init__(
             self,
             shape=shape,
+            batch=batch,
             dt=dt,
             construction_permission=construction_permission,
             ignore_overwrite_error=True,
@@ -117,30 +122,33 @@ class Soma(torch.nn.Module, CRI, ABC):
         for key,arg in {
             'name': suggested_name,
             'dt'  : self.dt,
-            'shape':self.shape
+            'shape': self.shape[1:],
+            'batch': self.shape[0],
             }.items():
             if not organ.is_constructed:
                 organ.meet_requirement(**{key: arg})
         
-        if not organ.is_constructed:
-            raise Exception(f"Can not register an unconstructed organ: {organ}")
-        if organ.dt!=self.dt:
-            raise Exception(f"Organ {organ.name} with dt={organ.dt} doesn't match soma {self.name} with dt={self.dt}.")
-        if organ.shape!=self.shape:
-            raise Exception(f"Organ {organ.name} with shape={organ.shape} doesn't match soma {self.name} with shape={self.shape}.")
-        if organ.name in self.dendrites.keys():
-            raise Exception(f"The soma is already using a dendrite named {organ.name}.")
-        if organ.name in self.axons.keys():
-            raise Exception(f"The soma is already using an axon named {organ.name}.")
+        name, shape, dt = organ.name, organ.shape, organ.dt if organ.is_constructed else \
+            organ.requirement_value('name'), organ.requirement_value('shape'), organ.requirement_value('dt')
 
-        self.add_module(organ.name, organ)
+        if dt!=self.dt:
+            raise Exception(f"Organ {name} with dt={dt} doesn't match soma {self.name} with dt={self.dt}.")
+        if shape!=self.shape:
+            raise Exception(f"Organ {name} with shape={shape} doesn't match soma {self.name} with shape={self.shape}.")
+        if name in self.dendrites.keys():
+            raise Exception(f"The soma is already using a dendrite named {name}.")
+        if name in self.axons.keys():
+            raise Exception(f"The soma is already using an axon named {name}.")
+
+        self.add_module(name, organ)
         organs = [self.dendrites, self.axons][issubclass(type(organ), Axon)]
-        organs[organ.name] = organ
+        organs[name] = organ
 
 
     def __construct__(
         self,
         shape: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         """
@@ -149,8 +157,11 @@ class Soma(torch.nn.Module, CRI, ABC):
         
         Arguments
         ---------
-        shape : Iterable of Int
+        shape : Iterable of int
             Defines the topology of somas in the population.
+        batch : int
+            Determines the batch size.\
+            Will be added to the top of the topology shape.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -159,13 +170,13 @@ class Soma(torch.nn.Module, CRI, ABC):
         None
         
         """
-        self._shape = shape
+        self._shape = (batch, *shape)
         self.register_buffer("_dt", torch.as_tensor(dt))
         for organ in self.__unregistered_organs:
             self.__register_organ(organ)
         del self.__unregistered_organs
-                
-    
+
+
     def use(
         self,
         organ: Union[Axon, Dendrite]
@@ -188,6 +199,19 @@ class Soma(torch.nn.Module, CRI, ABC):
             self.__register_organ(organ)
         else:
             self.__unregistered_organs.append(organ)
+            
+            shape = organ.shape[1:] if organ.is_constructed else organ.requirement_value('shape')
+            batch = organ.batch[1]  if organ.is_constructed else organ.requirement_value('batch')
+            dt    = organ.dt        if organ.is_constructed else organ.requirement_value('dt')
+
+            for key,arg in {
+                'dt'  : dt,
+                'shape': shape,
+                'batch': batch,
+                }.items():
+                if (not self.is_constructed) and (arg not None):
+                    self.meet_requirement(**{key: arg})
+            
         return self
 
 
@@ -211,8 +235,8 @@ class Soma(torch.nn.Module, CRI, ABC):
         """
         i = torch.zeros(self.shape)
         i += direct_input
-        for dendrite_set in self.dendrites.values():
-            i += dendrite_set.currents()
+        for dendrite in self.dendrites.values():
+            i += dendrite.transmit_current()
         return i
 
 

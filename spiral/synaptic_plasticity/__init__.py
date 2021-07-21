@@ -1,4 +1,4 @@
-from .synapse import (
+from .synaptic_plasticity import (
     SynapticPlasticity,
     CompositeSynapticPlasticity,
     ConvergentSynapticPlasticity,

@@ -39,7 +39,7 @@ class IntegrateAndFireSoma(SpikingSoma):
     name : str, Protected
         The name to be uniquely accessible in Spiral network.\
         Read more about protected properties in constant-properties-protector package documentation.
-    shape: Iterable of Int, Protected
+    shape: Iterable of int, Protected
         The topology of somas in the population.\
         Read more about protected properties in constant-properties-protector package documentation.
     spike: torch.Tensor[bool], Protected
@@ -79,10 +79,13 @@ class IntegrateAndFireSoma(SpikingSoma):
     ---------
     name : str, Necessary
         Each module in a Spiral network needs a name to be uniquely accessible.
-    shape : Iterable of Int, Construction Requirement
+    shape : Iterable of int, Construction Requirement
         Defines the topology of somas in the population.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
         Read more about construction requirement in construction-requirements-integrator package documentation.
+    batch : int, Construction Requirement, Optional, default: 1
+        Determines the batch size.\
+        Will be added to the top of the topology shape.
     tau : float or torch.Tensor, Optional, default: 20.0
         The time constant of membrane potential dynamics in milliseconds.
     R : float or torch.Tensor, Optional, default: 1.0
@@ -108,6 +111,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         self,
         name: str,
         shape: Iterable[int] = None,
+        batch: int = 1,
         tau: Union[float, torch.Tensor] = 20.,
         R: Union[float, torch.Tensor] = 1.,
         resting_potential: Union[float, torch.Tensor] = -70.6,
@@ -119,6 +123,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         super().__init__(
             name=name,
             shape=shape,
+            batch=batch,
             dt=dt,
             analyzable=analyzable,
             construction_permission=False,
@@ -135,6 +140,7 @@ class IntegrateAndFireSoma(SpikingSoma):
     def __construct__(
         self,
         shape: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         """
@@ -143,8 +149,11 @@ class IntegrateAndFireSoma(SpikingSoma):
         
         Arguments
         ---------
-        shape : Iterable of Int
+        shape : Iterable of int
             Defines the topology of somas in the population.
+        batch : int
+            Determines the batch size.\
+            Will be added to the top of the topology shape.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -155,6 +164,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         """
         super().__construct__(
             shape=shape,
+            batch=batch,
             dt=dt
         )
         self.register_buffer("_potential", torch.zeros(self.shape))
@@ -607,6 +617,7 @@ class AdaptiveMembrane(AOC):
     def __construct__(
         self,
         shape: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         """
@@ -615,8 +626,11 @@ class AdaptiveMembrane(AOC):
         
         Arguments
         ---------
-        shape : Iterable of Int
+        shape : Iterable of int
             Defines the topology of somas in the population.
+        batch : int, Construction Requirement, Optional, default: 1
+            Determines the batch size.\
+            Will be added to the top of the topology shape.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -628,6 +642,7 @@ class AdaptiveMembrane(AOC):
         self.__core.__construct__(
             self,
             shape=shape,
+            batch=batch,
             dt=dt
         )
         self.register_buffer("_adaptation_current", torch.zeros(self.shape))

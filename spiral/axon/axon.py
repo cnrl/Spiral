@@ -19,6 +19,7 @@ class Axon(torch.nn.Module, CRI):
         self,
         name: str = None,
         shape: Iterable[int] = None,
+        batch: int = None,
         terminal: Iterable[int] = (),
         response_function: ResponseFunction = None,
         is_excitatory: Union[bool, torch.Tensor] = True,
@@ -44,6 +45,7 @@ class Axon(torch.nn.Module, CRI):
             self,
             name=name,
             shape=shape,
+            batch=batch,
             terminal=terminal,
             delay=delay,
             dt=dt,
@@ -52,31 +54,31 @@ class Axon(torch.nn.Module, CRI):
         )
 
 
-    @property
-    def terminal_shape(
-        self
-    ) -> Iterable[int]:
-        return (*self.shape, *self.terminal)
-
-
     def __construct__(
         self,
         name: str,
         shape: Iterable[int],
+        batch: int,
         terminal: Iterable[int],
         delay: Union[float, torch.Tensor],
         dt: Union[float, torch.Tensor],
     ) -> None:
         self._name = name
-        self._shape = shape
+        self._shape = (batch, *shape)
         self._terminal = terminal
         self._is_excitatory = self.is_excitatory.reshape(
             *self.is_excitatory.shape, *[1]*(len(self.shape)+len(self.terminal)-len(self.is_excitatory.shape))
         )
         self.register_buffer("_dt", torch.as_tensor(dt))
         self.register_buffer("_delay", (torch.as_tensor(delay)//self.dt).type(torch.int64))
-        if len(self.delay.shape)!=0 and self.delay.shape!=self.terminal_shape[-len(self.delay.shape):]:
-            raise Exception(f"Wrong shape for axon delay. Expected {' or '.join([str(self.terminal_shape[-i:]) for i in range(len(self.terminal_shape))])} or a single value but got {self.delay.shape}")
+        
+        terminal_shape = (*self.shape, *self.terminal)
+        if (
+            len(self.delay.shape)>(len(terminal_shape)-1)
+        ) or (
+            len(self.delay.shape)!=0 and self.delay.shape!=terminal_shape[-len(self.delay.shape):]
+        ) :
+            raise Exception(f"Wrong shape for axon delay. Expected {' or '.join([str(terminal_shape[-i:]) for i in range(1,len(terminal_shape))])} or a single value but got {self.delay.shape}")
         history_length = self.delay.max()+1
         self.register_buffer("_action_potential_history", torch.zeros((history_length,*self.shape)))
         self.register_buffer("_neurotransmitter", torch.zeros(*self.shape, *self.terminal))

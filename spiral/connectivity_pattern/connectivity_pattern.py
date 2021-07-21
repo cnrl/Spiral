@@ -18,16 +18,19 @@ class ConnectivityPattern(torch.nn.Module, CRI, ABC):
         self,
         source: Iterable[int] = None,
         target: Iterable[int] = None,
+        batch: int = None,
         dt: Union[float, torch.Tensor] = None,
     ) -> None:
         torch.nn.Module.__init__(self)
         CPP.protect(self, 'source')
         CPP.protect(self, 'target')
+        CPP.protect(self, 'batch')
         CPP.protect(self, 'dt')
         CRI.__init__(
             self,
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
             ignore_overwrite_error=True,
         )
@@ -37,11 +40,23 @@ class ConnectivityPattern(torch.nn.Module, CRI, ABC):
         self,
         source: Iterable[int],
         target: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         self._source = source
         self._target = target
+        self._batch = batch
         self.register_buffer("_dt", torch.as_tensor(dt))
+
+
+    def _add_batch_dims(
+        self,
+        connectivity: torch.Tensor,
+    ) -> torch.Tensor:
+        output = torch.zeros(self.batch, *self.source, self.batch, *self.target)
+        for i in range(self.batch):
+            output[i, :, i, :] = connectivity
+        return output
 
 
     @abstractmethod
@@ -203,13 +218,15 @@ class AutapseConnectivity(ConnectivityPattern):
             target=target,
             dt=dt,
         )
-        
+        self.connectivity = torch.diag(torch.ones(torch.prod(torch.as_tensor(self.source)))).reshape(*self.source, *self.target).bool()
+        self.connectivity = self._add_batch_dims(self.connectivity)
+
 
     @construction_required
     def __call__(
         self,
     ) -> torch.Tensor:
-        return torch.diag(torch.ones(torch.prod(torch.as_tensor(source)))).reshape(*source, *target).bool()
+        return self.connectivity
 
 
 
@@ -232,12 +249,21 @@ class RandomConnectivity(ConnectivityPattern):
         if rate.numel()!=1:
             raise Exception("Rate must be a single float value.")
         self.register_buffer("rate", rate)
+        self.connectivity = self._generate_connectivity()
+        self.connectivity = _add_batch_dims(self.connectivity)
+
+
+    def _generate_connectivity(
+        self
+    ) -> torch.Tensor:
+        return torch.rand(*self.source, *self.target).uniform_() > self.rate
+
 
     @construction_required
     def __call__(
         self,
     ) -> torch.Tensor:
-        return torch.rand(*self.source, *self.target).uniform_() > self.rate
+        return self.connectivity
 
 
 
@@ -245,8 +271,7 @@ class RandomConnectivity(ConnectivityPattern):
 
 @typechecked
 class RandomFixedCouplingConnectivity(RandomConnectivity):
-    @construction_required
-    def __call__(
+    def _generate_connectivity(
         self,
     ) -> torch.Tensor:
         count = int(torch.prod(torch.as_tensor(*self.source, *self.target))*self.rate)
@@ -259,8 +284,7 @@ class RandomFixedCouplingConnectivity(RandomConnectivity):
 
 @typechecked
 class RandomFixedPresynapticPartnersConnectivity(RandomConnectivity):
-    @construction_required
-    def __call__(
+    def _generate_connectivity(
         self,
     ) -> torch.Tensor:
         count = int(torch.prod(torch.as_tensor(self.source))*self.rate)

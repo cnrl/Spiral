@@ -31,7 +31,7 @@ class SpikingSoma(Soma, ABC):
     name : str, Protected
         The name to be uniquely accessible in Spiral network.\
         Read more about protected properties in constant-properties-protector package documentation.
-    shape: Iterable of Int, Protected
+    shape: Iterable of int, Protected
         The topology of somas in the population.\
         Read more about protected properties in constant-properties-protector package documentation.
     spike: torch.Tensor[bool], Protected
@@ -60,10 +60,13 @@ class SpikingSoma(Soma, ABC):
     ---------
     name : str, Necessary
         Each module in a Spiral network needs a name to be uniquely accessible.
-    shape : Iterable of Int, Construction Requirement
+    shape : Iterable of int, Construction Requirement
         Defines the topology of somas in the population.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
         Read more about construction requirement in construction-requirements-integrator package documentation.
+    batch : int, Construction Requirement, Optional, default: 1
+        Determines the batch size.\
+        Will be added to the top of the topology shape.
     dt : float or torch.Tensor, Construction Requirement
         Time step in milliseconds.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
@@ -80,6 +83,7 @@ class SpikingSoma(Soma, ABC):
         self,
         name: str,
         shape: Iterable[int] = None,
+        batch: int = 1,
         dt: Union[float, torch.Tensor] = None,
         analyzable: bool = False,
         construction_permission: bool = True,
@@ -87,6 +91,7 @@ class SpikingSoma(Soma, ABC):
         super().__init__(
             name=name,
             shape=shape,
+            batch=batch,
             dt=dt,
             construction_permission=construction_permission,
         )
@@ -98,6 +103,7 @@ class SpikingSoma(Soma, ABC):
     def __construct__(
         self,
         shape: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         """
@@ -106,8 +112,11 @@ class SpikingSoma(Soma, ABC):
         
         Arguments
         ---------
-        shape : Iterable of Int
+        shape : Iterable of int
             Defines the topology of somas in the population.
+        batch : int
+            Determines the batch size.\
+            Will be added to the top of the topology shape.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -118,6 +127,7 @@ class SpikingSoma(Soma, ABC):
         """
         super().__construct__(
             shape=shape,
+            batch=batch,
             dt=dt,
         )
         self.register_buffer("_spike", torch.zeros(*self.shape, dtype=torch.bool))

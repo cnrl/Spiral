@@ -1,4 +1,5 @@
-from .synapse import (
-    Synapse,
-    DisconnectorSynapticCover
+from .synaptic_plasticity_rate import (
+    SynapticPlasticityRate,
+    WeightDependentRate,
+    DescendingSynapticPlasticityRate,
 )
