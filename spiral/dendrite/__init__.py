@@ -1,1 +1,3 @@
-from .dendrite import Dendrite
+from .dendrite import (
+    LinearDendrite,
+)

@@ -13,8 +13,8 @@ from constant_properties_protector import CPP
 from typing import Union, Iterable
 from typeguard import typechecked
 import torch
-from spiral.axon import Axon
-from spiral.dendrite import Dendrite
+from spiral.axon.axon import Axon
+from spiral.dendrite.dendrite import Dendrite
 
 
 
@@ -39,6 +39,9 @@ class Soma(torch.nn.Module, CRI, ABC):
     shape: Iterable of int, Protected
         The topology of somas in the population.\
         Read more about protected properties in constant-properties-protector package documentation.
+    batch : int, Protected
+        Determines the batch size.\
+        Read more about protected properties in constant-properties-protector package documentation.
     dt: float or torch.Tensor, Protected
         Time step in milliseconds.\
         Read more about protected properties in constant-properties-protector package documentation.
@@ -60,9 +63,9 @@ class Soma(torch.nn.Module, CRI, ABC):
         Defines the topology of somas in the population.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
         Read more about construction requirement in construction-requirements-integrator package documentation.
-    batch : int, Construction Requirement, Optional, default: 1
+    batch : int, Construction Requirement
         Determines the batch size.\
-        Will be added to the top of the topology shape.
+        Read more about construction requirement in construction-requirements-integrator package documentation.
     dt : float or torch.Tensor, Construction Requirement
         Time step in milliseconds.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
@@ -84,6 +87,7 @@ class Soma(torch.nn.Module, CRI, ABC):
         torch.nn.Module.__init__(self)
         CPP.protect(self, 'name')
         CPP.protect(self, 'shape')
+        CPP.protect(self, 'batch')
         CPP.protect(self, 'dt')
         self._name = name
         self.axons = {}
@@ -122,19 +126,21 @@ class Soma(torch.nn.Module, CRI, ABC):
         for key,arg in {
             'name': suggested_name,
             'dt'  : self.dt,
-            'shape': self.shape[1:],
-            'batch': self.shape[0],
+            'shape': self.shape,
+            'batch': self.batch,
             }.items():
             if not organ.is_constructed:
                 organ.meet_requirement(**{key: arg})
         
-        name, shape, dt = organ.name, organ.shape, organ.dt if organ.is_constructed else \
-            organ.requirement_value('name'), organ.requirement_value('shape'), organ.requirement_value('dt')
+        name, shape, batch, dt = (organ.name, organ.shape, organ.batch, organ.dt) if organ.is_constructed else \
+            [organ.requirement_value(attr) for attr in ['name','shape','batch','dt']]
 
         if dt!=self.dt:
             raise Exception(f"Organ {name} with dt={dt} doesn't match soma {self.name} with dt={self.dt}.")
         if shape!=self.shape:
             raise Exception(f"Organ {name} with shape={shape} doesn't match soma {self.name} with shape={self.shape}.")
+        if batch!=self.batch:
+            raise Exception(f"Organ {name} with batch={batch} doesn't match soma {self.name} with batch={self.batch}.")
         if name in self.dendrites.keys():
             raise Exception(f"The soma is already using a dendrite named {name}.")
         if name in self.axons.keys():
@@ -160,8 +166,7 @@ class Soma(torch.nn.Module, CRI, ABC):
         shape : Iterable of int
             Defines the topology of somas in the population.
         batch : int
-            Determines the batch size.\
-            Will be added to the top of the topology shape.
+            Determines the batch size.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -170,7 +175,8 @@ class Soma(torch.nn.Module, CRI, ABC):
         None
         
         """
-        self._shape = (batch, *shape)
+        self._shape = (*shape,)
+        self._batch = batch
         self.register_buffer("_dt", torch.as_tensor(dt))
         for organ in self.__unregistered_organs:
             self.__register_organ(organ)
@@ -197,19 +203,20 @@ class Soma(torch.nn.Module, CRI, ABC):
         """
         if self.is_constructed:
             self.__register_organ(organ)
+
         else:
             self.__unregistered_organs.append(organ)
             
-            shape = organ.shape[1:] if organ.is_constructed else organ.requirement_value('shape')
-            batch = organ.batch[1]  if organ.is_constructed else organ.requirement_value('batch')
-            dt    = organ.dt        if organ.is_constructed else organ.requirement_value('dt')
+            shape = organ.shape if organ.is_constructed else organ.requirement_value('shape')
+            batch = organ.batch if organ.is_constructed else organ.requirement_value('batch')
+            dt    = organ.dt    if organ.is_constructed else organ.requirement_value('dt')
 
             for key,arg in {
                 'dt'  : dt,
                 'shape': shape,
                 'batch': batch,
                 }.items():
-                if (not self.is_constructed) and (arg not None):
+                if (not self.is_constructed) and (arg is not None):
                     self.meet_requirement(**{key: arg})
             
         return self
@@ -233,7 +240,7 @@ class Soma(torch.nn.Module, CRI, ABC):
             The sum of currents from dendrites or direct inputs in milliamperes.
         
         """
-        i = torch.zeros(self.shape)
+        i = torch.zeros(self.batch, *self.shape)
         i += direct_input
         for dendrite in self.dendrites.values():
             i += dendrite.transmit_current()

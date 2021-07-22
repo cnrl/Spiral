@@ -31,6 +31,7 @@ class Axon(torch.nn.Module, CRI):
         torch.nn.Module.__init__(self)
         CPP.protect(self, 'name')
         CPP.protect(self, 'shape')
+        CPP.protect(self, 'batch')
         CPP.protect(self, 'terminal')
         CPP.protect(self, 'delay')
         CPP.protect(self, 'dt')
@@ -64,25 +65,33 @@ class Axon(torch.nn.Module, CRI):
         dt: Union[float, torch.Tensor],
     ) -> None:
         self._name = name
-        self._shape = (batch, *shape)
+        self._shape = (*shape,)
+        self._batch = batch
         self._terminal = terminal
-        self._is_excitatory = self.is_excitatory.reshape(
-            *self.is_excitatory.shape, *[1]*(len(self.shape)+len(self.terminal)-len(self.is_excitatory.shape))
-        )
+
+        if self.is_excitatory.numel()>1 and self.is_excitatory.shape!=self.shape and self.is_excitatory.shape!=(*self.shape, *self.terminal):
+            raise Exception(f"`is_excitatory` with shape={self.is_excitatory} does not match the axon with shape={self.shape} and terminal={self.terminal}. Expected {self.shape} or {(*self.shape, *self.terminal)} or a single vale.")
+        if self.is_excitatory.numel()==1:
+            self._is_excitatory = self.is_excitatory.reshape(1, *[1]*len(self.shape), *[1]*len(self.terminal))
+        elif self.is_excitatory.shape==self.shape:
+            self._is_excitatory = self.is_excitatory.reshape(1, *self.is_excitatory.shape, *[1]*len(self.terminal))
+        else:
+            self._is_excitatory = self.is_excitatory.reshape(1, *self.is_excitatory.shape)
+
         self.register_buffer("_dt", torch.as_tensor(dt))
         self.register_buffer("_delay", (torch.as_tensor(delay)//self.dt).type(torch.int64))
         
         terminal_shape = (*self.shape, *self.terminal)
         if (
-            len(self.delay.shape)>(len(terminal_shape)-1)
+            len(self.delay.shape)>(len(terminal_shape))
         ) or (
             len(self.delay.shape)!=0 and self.delay.shape!=terminal_shape[-len(self.delay.shape):]
         ) :
-            raise Exception(f"Wrong shape for axon delay. Expected {' or '.join([str(terminal_shape[-i:]) for i in range(1,len(terminal_shape))])} or a single value but got {self.delay.shape}")
+            raise Exception(f"Wrong shape for axon delay. Expected {' or '.join([str(terminal_shape[-i:]) for i in range(len(terminal_shape))])} or a single value but got {self.delay.shape}")
         history_length = self.delay.max()+1
-        self.register_buffer("_action_potential_history", torch.zeros((history_length,*self.shape)))
-        self.register_buffer("_neurotransmitter", torch.zeros(*self.shape, *self.terminal))
-        self.response_function.meet_requirement(shape=(*self.shape, *self.terminal))
+        self.register_buffer("_action_potential_history", torch.zeros((history_length, self.batch, *self.shape)))
+        self.register_buffer("_neurotransmitter", torch.zeros(self.batch, *self.shape, *self.terminal))
+        self.response_function.meet_requirement(shape=(self.batch, *self.shape, *self.terminal))
         self.response_function.meet_requirement(dt=self.dt)
 
 
@@ -98,9 +107,9 @@ class Axon(torch.nn.Module, CRI):
     ) -> torch.Tensor:
         if self.delay.numel()==1:
             return self.action_potential_history[self.delay].reshape(
-                *self.shape, *[1]*len(self.terminal)
+                *self.action_potential_history.shape[1:], *[1]*len(self.terminal)
             ).repeat(
-                *[1]*len(self.shape), *self.terminal
+                *[1]*len(self.action_potential_history.shape[1:]), *self.terminal
             )
         else:
             history = self.action_potential_history.reshape(
@@ -109,7 +118,7 @@ class Axon(torch.nn.Module, CRI):
                 *[1]*len(self.action_potential_history.shape), *self.terminal
             )
             delay = self.delay.reshape(
-                1, *[1]*(len(self.shape)+len(self.terminal)-len(self.delay.shape)), *self.delay.shape
+                1, *[1]*(len(self.action_potential_history.shape[1:])-len(self.delay.shape)), *self.delay.shape
             ).repeat(
                 1, *history.shape[1:-len(self.delay.shape)], *[1]*len(self.delay.shape)
             )
@@ -142,7 +151,7 @@ class Axon(torch.nn.Module, CRI):
 
 
     @analytics
-    def plot__neurotransmitter(
+    def plot_neurotransmitter(
         self,
         axes,
         **kwargs

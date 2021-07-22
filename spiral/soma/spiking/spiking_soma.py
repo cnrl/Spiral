@@ -34,6 +34,9 @@ class SpikingSoma(Soma, ABC):
     shape: Iterable of int, Protected
         The topology of somas in the population.\
         Read more about protected properties in constant-properties-protector package documentation.
+    batch : int, Protected
+        Determines the batch size.\
+        Read more about protected properties in constant-properties-protector package documentation.
     spike: torch.Tensor[bool], Protected
         Indicates which neurons are firing.\
         Read more about protected properties in constant-properties-protector package documentation.
@@ -64,9 +67,9 @@ class SpikingSoma(Soma, ABC):
         Defines the topology of somas in the population.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
         Read more about construction requirement in construction-requirements-integrator package documentation.
-    batch : int, Construction Requirement, Optional, default: 1
+    batch : int, Construction Requirement
         Determines the batch size.\
-        Will be added to the top of the topology shape.
+        Read more about construction requirement in construction-requirements-integrator package documentation.
     dt : float or torch.Tensor, Construction Requirement
         Time step in milliseconds.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
@@ -83,7 +86,7 @@ class SpikingSoma(Soma, ABC):
         self,
         name: str,
         shape: Iterable[int] = None,
-        batch: int = 1,
+        batch: int = None,
         dt: Union[float, torch.Tensor] = None,
         analyzable: bool = False,
         construction_permission: bool = True,
@@ -115,8 +118,7 @@ class SpikingSoma(Soma, ABC):
         shape : Iterable of int
             Defines the topology of somas in the population.
         batch : int
-            Determines the batch size.\
-            Will be added to the top of the topology shape.
+            Determines the batch size.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -130,7 +132,7 @@ class SpikingSoma(Soma, ABC):
             batch=batch,
             dt=dt,
         )
-        self.register_buffer("_spike", torch.zeros(*self.shape, dtype=torch.bool))
+        self.register_buffer("_spike", torch.zeros((self.batch, *self.shape), dtype=torch.bool))
                 
     
     @abstractmethod

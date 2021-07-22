@@ -30,7 +30,7 @@ class SynapticPlasticity(torch.nn.Module, CRI):
         CPP.protect(self, 'dt')
         CRI.__init__(
             self,
-            source=shape,
+            source=source,
             target=target,
             batch=batch,
             dt=dt,
@@ -221,9 +221,9 @@ class STDP(SynapticPlasticity):
             batch=batch,
             dt=dt,
         )
-        self.presynaptic_tagging.meet_requirement(shape=self.source)
+        self.presynaptic_tagging.meet_requirement(shape=(self.batch, *self.source))
         self.presynaptic_tagging.meet_requirement(dt=self.dt)
-        self.postsynaptic_tagging.meet_requirement(shape=self.target)
+        self.postsynaptic_tagging.meet_requirement(shape=(self.batch, *self.target))
         self.postsynaptic_tagging.meet_requirement(dt=self.dt)
         self.ltp_rate.meet_requirement(dt=self.dt)
         self.ltd_rate.meet_requirement(dt=self.dt)
@@ -239,12 +239,12 @@ class STDP(SynapticPlasticity):
     ) -> torch.Tensor:
         presynaptic_tag = self.presynaptic_tagging(action_potential=neurotransmitters)
         postsynaptic_tag = self.postsynaptic_tagging(action_potential=action_potential)
-        ltp_rate = self.ltp_rate(synaptic_weights=synaptic_weights)
-        ltd_rate = self.ltd_rate(synaptic_weights=synaptic_weights)
-        ltp = ltp_rate * presynaptic_tag.reshape(*self.source, *[1]*len(self.target)) * action_potential
-        ltd = ltd_rate * neurotransmitters.reshape(*self.source, *[1]*len(self.target)) * postsynaptic_tag
+        ltp_rate = self.ltp_rate(synaptic_weights=synaptic_weights.reshape(1, *self.source, 1, *self.target))
+        ltd_rate = self.ltd_rate(synaptic_weights=synaptic_weights.reshape(1, *self.source, 1, *self.target))
+        ltp = ltp_rate * presynaptic_tag.reshape(self.batch, *self.source, *[1]*len(self.target)) * action_potential
+        ltd = ltd_rate * neurotransmitters.reshape(self.batch *self.source, *[1]*len(self.target)) * postsynaptic_tag
         dw = (ltp - ltd) * self.dt
-        return dw.sum([0, len(self.source)])
+        return dw.mean([0, len(self.source)])
 
 
     def reset(

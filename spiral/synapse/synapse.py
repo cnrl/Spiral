@@ -9,8 +9,8 @@ from add_on_class import AOC
 from typing import Union, Iterable
 from typeguard import typechecked
 import torch
-from spiral.axon import Axon
-from spiral.dendrite import Dendrite
+from spiral.axon.axon import Axon
+from spiral.dendrite.dendrite import Dendrite
 from spiral.connectivity_pattern.connectivity_pattern import ConnectivityPattern
 
 
@@ -31,6 +31,7 @@ class Synapse(torch.nn.Module, CRI):
         CPP.protect(self, 'name')
         CPP.protect(self, 'source')
         CPP.protect(self, 'target')
+        CPP.protect(self, 'batch')
         CPP.protect(self, 'dt')
         CPP.protect(self, 'axon')
         CPP.protect(self, 'dendrite')
@@ -64,8 +65,9 @@ class Synapse(torch.nn.Module, CRI):
         for key,arg in {
             'name': suggested_name,
             'dt'  : self.dt,
-            'shape': (1,),
             'batch': self.batch,
+            'shape': (),
+            'terminal': self.source,
             }.items():
             if not organ.is_constructed:
                 organ.meet_requirement(**{key: arg})
@@ -74,7 +76,11 @@ class Synapse(torch.nn.Module, CRI):
             raise Exception(f"Neuromodulatory axon {organ.name} with dt={organ.dt} doesn't match synapse {self.name} with dt={self.dt}.")
         if organ.name in self.neuromodulatory_axons.keys():
             raise Exception(f"The synapse is already using a neuromodulatory axon named {organ.name}.")
-
+        if (*organ.shape, organ.terminal)!=self.source:
+            raise Exception(f"Neuromodulatory axon {organ.name} with shape={organ.shape} and terminal={organ.terminal} doesn't match synapse {self.name} with source={self.source}.")
+        if organ.batch!=self.batch:
+            raise Exception(f"Neuromodulatory axon {organ.name} with batch={organ.batch} doesn't match synapse {self.name} with batch={self.batch}.")
+        
         self.add_module(organ.name, organ)
         self.neuromodulatory_axons[organ.name] = organ
 
@@ -88,27 +94,29 @@ class Synapse(torch.nn.Module, CRI):
         dt: Union[float, torch.Tensor],
     ):
         self._name = name
-        self._source = (batch, *self.source)
-        self._target = (batch, *self.target)
+        self._source = (*source,)
+        self._target = (*target,)
+        self._batch = batch
         self.register_buffer("_dt", torch.as_tensor(dt))
 
-        self._axon.meet_requirement(name=name+"_axon")
-        self._axon.meet_requirement(shape=source)
-        self._axon.meet_requirement(batch=batch)
-        self._axon.meet_requirement(dt=dt)
+        self._axon.meet_requirement(name=self.name+"_axon")
+        self._axon.meet_requirement(batch=self.batch)
+        self._axon.meet_requirement(shape=self.source)
+        self._axon.meet_requirement(terminal=())
+        self._axon.meet_requirement(dt=self.dt)
 
-        self._dendrite.meet_requirement(name=name+"_dendrite")
-        self._dendrite.meet_requirement(shape=target)
-        self._dendrite.meet_requirement(batch=batch)
-        self._dendrite.meet_requirement(spine=source)
-        self._dendrite.meet_requirement(dt=dt)
+        self._dendrite.meet_requirement(name=self.name+"_dendrite")
+        self._dendrite.meet_requirement(batch=self.batch)
+        self._dendrite.meet_requirement(shape=self.target)
+        self._dendrite.meet_requirement(spine=self.source)
+        self._dendrite.meet_requirement(dt=self.dt)
 
         if self.axon.dt!=self.dt:
             raise Exception(f"Axon {self.axon.name} with dt={self.axon.dt} doesn't match synapse {self.name} with dt={self.dt}.")
         if self._dendrite.dt!=self.dt:
             raise Exception(f"Dendrite {self.dendrite.name} with dt={self.dendrite.dt} doesn't match synapse {self.name} with dt={self.dt}.")
 
-        if (*self.axon.shape[1:], self.axon.terminal)!=self.source:
+        if (*self.axon.shape, *self.axon.terminal)!=self.source:
             raise Exception(f"Axon {self.axon.name} with shape={self.axon.shape} and terminal={self.axon.terminal} doesn't match synapse {self.name} with source={self.source}.")
         if self.dendrite.spine!=self.source:
             raise Exception(f"Dendrite {self.dendrite.name} with spine={self.dendrite.spine} doesn't match synapse {self.name} with source={self.source}.")
@@ -148,14 +156,14 @@ class Synapse(torch.nn.Module, CRI):
         else:
             self._dendrite = organ
 
-        batch = organ.shape[1] if organ.is_constructed else organ.requirement_value('batch')
+        batch = organ.batch if organ.is_constructed else organ.requirement_value('batch')
         dt = organ.dt if organ.is_constructed else organ.requirement_value('dt')
-        source = organ.spine[1:]                        if (not organ_is_axon and     organ.is_constructed) \
-            else (*organ.shape[1:], *organ.terminal)    if (    organ_is_axon and     organ.is_constructed) \
-            else organ.requirement_value('spine')       if (not organ_is_axon and not organ.is_constructed) \
+        source = organ.spine                      if (not organ_is_axon and     organ.is_constructed) \
+            else (*organ.shape, *organ.terminal)  if (    organ_is_axon and     organ.is_constructed) \
+            else organ.requirement_value('spine') if (not organ_is_axon and not organ.is_constructed) \
             else (*organ.requirement_value('shape'), *organ.requirement_value('terminal'))
-        target = organ.shape[1:]                        if (not organ_is_axon and     organ.is_constructed) \
-            else organ.requirement_value('shape')       if (not organ_is_axon and not organ.is_constructed) \
+        target = organ.shape                      if (not organ_is_axon and     organ.is_constructed) \
+            else organ.requirement_value('shape') if (not organ_is_axon and not organ.is_constructed) \
             else None
 
         name = None
@@ -177,7 +185,7 @@ class Synapse(torch.nn.Module, CRI):
             'target': target,
             'batch': batch,
             }.items():
-            if (not self.is_constructed) and (arg not None):
+            if (not self.is_constructed) and (arg is not None):
                 self.meet_requirement(**{key: arg})
 
         return self
@@ -239,10 +247,10 @@ class DisconnectorSynapticCover(AOC):
             axon=axon,
             dendrite=dendrite,
         )
-        self.connectivity_pattern.meet_requirement(source=self.source[1:])
-        self.connectivity_pattern.meet_requirement(target=self.target[1:])
+        self.connectivity_pattern.meet_requirement(source=self.source)
+        self.connectivity_pattern.meet_requirement(target=self.target)
         self.connectivity_pattern.meet_requirement(dt=self.dt)
-        self.connectivity_pattern.meet_requirement(batch=self.source[1])
+        self.connectivity_pattern.meet_requirement(batch=self.batch)
 
 
     @construction_required

@@ -42,6 +42,9 @@ class IntegrateAndFireSoma(SpikingSoma):
     shape: Iterable of int, Protected
         The topology of somas in the population.\
         Read more about protected properties in constant-properties-protector package documentation.
+    batch : int, Protected
+        Determines the batch size.\
+        Read more about protected properties in constant-properties-protector package documentation.
     spike: torch.Tensor[bool], Protected
         Indicates which neurons are firing.\
         Read more about protected properties in constant-properties-protector package documentation.
@@ -83,9 +86,9 @@ class IntegrateAndFireSoma(SpikingSoma):
         Defines the topology of somas in the population.\
         It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
         Read more about construction requirement in construction-requirements-integrator package documentation.
-    batch : int, Construction Requirement, Optional, default: 1
+    batch : int, Construction Requirement
         Determines the batch size.\
-        Will be added to the top of the topology shape.
+        Read more about construction requirement in construction-requirements-integrator package documentation.
     tau : float or torch.Tensor, Optional, default: 20.0
         The time constant of membrane potential dynamics in milliseconds.
     R : float or torch.Tensor, Optional, default: 1.0
@@ -111,7 +114,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         self,
         name: str,
         shape: Iterable[int] = None,
-        batch: int = 1,
+        batch: int = None,
         tau: Union[float, torch.Tensor] = 20.,
         R: Union[float, torch.Tensor] = 1.,
         resting_potential: Union[float, torch.Tensor] = -70.6,
@@ -152,8 +155,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         shape : Iterable of int
             Defines the topology of somas in the population.
         batch : int
-            Determines the batch size.\
-            Will be added to the top of the topology shape.
+            Determines the batch size.
         dt : float or torch.Tensor
             Time step in milliseconds.
         
@@ -167,7 +169,7 @@ class IntegrateAndFireSoma(SpikingSoma):
             batch=batch,
             dt=dt
         )
-        self.register_buffer("_potential", torch.zeros(self.shape))
+        self.register_buffer("_potential", torch.zeros((self.batch, *self.shape)))
         self._potential += self.resting_potential
 
 
@@ -645,7 +647,7 @@ class AdaptiveMembrane(AOC):
             batch=batch,
             dt=dt
         )
-        self.register_buffer("_adaptation_current", torch.zeros(self.shape))
+        self.register_buffer("_adaptation_current", torch.zeros((self.batch, *self.shape)))
 
 
     def __update_adaptation_current(
