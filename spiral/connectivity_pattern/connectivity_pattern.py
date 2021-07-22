@@ -20,6 +20,7 @@ class ConnectivityPattern(torch.nn.Module, CRI, ABC):
         target: Iterable[int] = None,
         batch: int = None,
         dt: Union[float, torch.Tensor] = None,
+        construction_permission: bool = True,
     ) -> None:
         torch.nn.Module.__init__(self)
         CPP.protect(self, 'source')
@@ -33,6 +34,7 @@ class ConnectivityPattern(torch.nn.Module, CRI, ABC):
             batch=batch,
             dt=dt,
             ignore_overwrite_error=True,
+            construction_permission=construction_permission,
         )
 
 
@@ -49,6 +51,7 @@ class ConnectivityPattern(torch.nn.Module, CRI, ABC):
         self.register_buffer("_dt", torch.as_tensor(dt))
 
 
+    @construction_required
     def _add_batch_dims(
         self,
         connectivity: torch.Tensor,
@@ -82,12 +85,16 @@ class NotConnectivity(ConnectivityPattern):
         connectivity_pattern: ConnectivityPattern,
         source: Iterable[int] = None,
         target: Iterable[int] = None,
+        batch: int = None,
         dt: Union[float, torch.Tensor] = None,
+        construction_permission: bool = True,
     ) -> None:
         super().__init__(
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
+            construction_permission=construction_permission,
         )
         self.connectivity_pattern = connectivity_pattern
 
@@ -96,15 +103,18 @@ class NotConnectivity(ConnectivityPattern):
         self,
         source: Iterable[int],
         target: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         super().__construct__(
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
         )
         self.connectivity_pattern.meet_requirement(source=source)
         self.connectivity_pattern.meet_requirement(target=target)
+        self.connectivity_pattern.meet_requirement(batch=batch)
         self.connectivity_pattern.meet_requirement(dt=dt)
 
 
@@ -112,7 +122,7 @@ class NotConnectivity(ConnectivityPattern):
     def __call__(
         self,
     ) -> torch.Tensor:
-        return ~self.connectivity_pattern()
+        return ~(self.connectivity_pattern()).bool()
 
 
     def reset(
@@ -130,12 +140,16 @@ class AggConnectivity(ConnectivityPattern, ABC):
         connectivity_patterns: Iterable[ConnectivityPattern],
         source: Iterable[int] = None,
         target: Iterable[int] = None,
+        batch: int = None,
         dt: Union[float, torch.Tensor] = None,
+        construction_permission: bool = True,
     ) -> None:
         super().__init__(
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
+            construction_permission=construction_permission,
         )
         self.connectivity_patterns = connectivity_patterns
 
@@ -144,16 +158,19 @@ class AggConnectivity(ConnectivityPattern, ABC):
         self,
         source: Iterable[int],
         target: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         super().__construct__(
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
         )
         for connectivity_pattern in self.connectivity_patterns:
             connectivity_pattern.meet_requirement(source=source)
             connectivity_pattern.meet_requirement(target=target)
+            connectivity_pattern.meet_requirement(batch=batch)
             connectivity_pattern.meet_requirement(dt=dt)
 
 
@@ -183,7 +200,7 @@ class AndConnectivity(AggConnectivity):
         pattern = torch.as_tensor(True)
         for connectivity_pattern in self.connectivity_patterns:
             pattern = pattern * connectivity_pattern()
-        return pattern
+        return pattern.bool()
 
 
 
@@ -197,18 +214,72 @@ class OrConnectivity(AggConnectivity):
         pattern = torch.as_tensor(True)
         for connectivity_pattern in self.connectivity_patterns:
             pattern = pattern + connectivity_pattern()
-        return pattern
-
+        return pattern.bool()
 
 
 
 
 @typechecked
-class AutapseConnectivity(ConnectivityPattern):
+class FixedConnectivity(ConnectivityPattern, ABC):
+    def __init__(
+        self,
+        source: Iterable[int] = None,
+        target: Iterable[int] = None,
+        batch: int = None,
+        dt: Union[float, torch.Tensor] = None,
+        construction_permission: bool = True,
+    ) -> None:
+        super().__init__(
+            source=source,
+            target=target,
+            batch=batch,
+            dt=dt,
+            construction_permission=construction_permission,
+        )
+
+
     def __construct__(
         self,
         source: Iterable[int],
         target: Iterable[int],
+        batch: int,
+        dt: Union[float, torch.Tensor],
+    ) -> None:
+        super().__construct__(
+            source=source,
+            target=target,
+            batch=batch,
+            dt=dt,
+        )
+        self.is_constructed = True
+        self.connectivity = self._generate_connectivity()
+        self.connectivity = self._add_batch_dims(connectivity=self.connectivity)
+
+
+    @abstractmethod
+    @construction_required
+    def _generate_connectivity(
+        self
+    ) -> torch.Tensor:
+        pass
+
+
+    @construction_required
+    def __call__(
+        self,
+    ) -> torch.Tensor:
+        return self.connectivity
+
+
+
+
+@typechecked
+class AutapseConnectivity(FixedConnectivity):
+    def __construct__(
+        self,
+        source: Iterable[int],
+        target: Iterable[int],
+        batch: int,
         dt: Union[float, torch.Tensor],
     ) -> None:
         if source!=target:
@@ -216,61 +287,56 @@ class AutapseConnectivity(ConnectivityPattern):
         super().__construct__(
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
         )
-        self.connectivity = torch.diag(torch.ones(torch.prod(torch.as_tensor(self.source)))).reshape(*self.source, *self.target).bool()
-        self.connectivity = self._add_batch_dims(self.connectivity)
 
 
     @construction_required
-    def __call__(
+    def _generate_connectivity(
         self,
     ) -> torch.Tensor:
-        return self.connectivity
+        return torch.diag(torch.ones(torch.prod(torch.as_tensor(self.source)))).reshape(*self.source, *self.target).bool()
 
 
 
 
 @typechecked
-class RandomConnectivity(ConnectivityPattern):
+class RandomConnectivity(FixedConnectivity):
     def __init__(
         self,
         rate: Union[float, torch.Tensor],
         source: Iterable[int] = None,
         target: Iterable[int] = None,
+        batch: int = None,
         dt: Union[float, torch.Tensor] = None,
+        construction_permission: bool = True,
     ) -> None:
         super().__init__(
             source=source,
             target=target,
+            batch=batch,
             dt=dt,
+            construction_permission=False,
         )
-        rate = torch.as_tensor(rate)
-        if rate.numel()!=1:
+        self.register_buffer('rate', torch.as_tensor(rate))
+        if self.rate.numel()!=1:
             raise Exception("Rate must be a single float value.")
-        self.register_buffer("rate", rate)
-        self.connectivity = self._generate_connectivity()
-        self.connectivity = _add_batch_dims(self.connectivity)
+        self.set_construction_permission(construction_permission)
 
 
+    @construction_required
     def _generate_connectivity(
         self
     ) -> torch.Tensor:
         return torch.rand(*self.source, *self.target).uniform_() > self.rate
 
 
-    @construction_required
-    def __call__(
-        self,
-    ) -> torch.Tensor:
-        return self.connectivity
-
-
-
 
 
 @typechecked
 class RandomFixedCouplingConnectivity(RandomConnectivity):
+    @construction_required
     def _generate_connectivity(
         self,
     ) -> torch.Tensor:
@@ -284,6 +350,7 @@ class RandomFixedCouplingConnectivity(RandomConnectivity):
 
 @typechecked
 class RandomFixedPresynapticPartnersConnectivity(RandomConnectivity):
+    @construction_required
     def _generate_connectivity(
         self,
     ) -> torch.Tensor:

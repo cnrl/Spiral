@@ -6,8 +6,11 @@ class Analyzer:
         self,
         active: bool = True
     ) -> None:
+        if 'analyzable' in self.__dict__:
+            raise Exception(f"Object {self} already has an alanyzer.")
         self.analyzable = active
-        self.monitor = Monitor(self)
+        if self.analyzable:
+            self.monitor = Monitor(self)
         
         
     def scout(

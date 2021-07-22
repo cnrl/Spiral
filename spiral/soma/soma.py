@@ -103,6 +103,36 @@ class Soma(torch.nn.Module, CRI, ABC):
         )
 
 
+    def __share_info_with_organ(
+        self,
+        organ: Union[Axon, Dendrite],
+    ) -> None:
+        suggested_name = f"{self.name}_{organ.__class__.__name__}_{len(self.dendrites)+len(self.axons)}"
+        for key,arg in {
+            'name': suggested_name,
+            'dt'  : self.dt if self.is_constructed else self.requirement_value('dt'),
+            'shape': self.shape if self.is_constructed else self.requirement_value('shape'),
+            'batch': self.batch if self.is_constructed else self.requirement_value('batch'),
+            }.items():
+            if (not organ.is_constructed) and (arg is not None):
+                organ.meet_requirement(**{key: arg})
+    
+    
+    def __fetch_info_from_organ(
+        self,
+        organ: Union[Axon, Dendrite],
+    ) -> None:
+        if self.is_constructed:
+            return
+        for key,arg in {
+            'dt'  : organ.dt    if organ.is_constructed else organ.requirement_value('dt'),
+            'shape': organ.shape if organ.is_constructed else organ.requirement_value('shape'),
+            'batch': organ.batch if organ.is_constructed else organ.requirement_value('batch'),
+            }.items():
+            if (not self.is_constructed) and (arg is not None):
+                self.meet_requirement(**{key: arg})
+
+
     def __register_organ(
         self,
         organ: Union[Axon, Dendrite],
@@ -122,16 +152,8 @@ class Soma(torch.nn.Module, CRI, ABC):
         None
         
         """
-        suggested_name = f"{self.name}_{organ.__class__.__name__}_{len(self.dendrites)+len(self.axons)}"
-        for key,arg in {
-            'name': suggested_name,
-            'dt'  : self.dt,
-            'shape': self.shape,
-            'batch': self.batch,
-            }.items():
-            if not organ.is_constructed:
-                organ.meet_requirement(**{key: arg})
-        
+        self.__share_info_with_organ(organ)
+
         name, shape, batch, dt = (organ.name, organ.shape, organ.batch, organ.dt) if organ.is_constructed else \
             [organ.requirement_value(attr) for attr in ['name','shape','batch','dt']]
 
@@ -206,19 +228,10 @@ class Soma(torch.nn.Module, CRI, ABC):
 
         else:
             self.__unregistered_organs.append(organ)
-            
-            shape = organ.shape if organ.is_constructed else organ.requirement_value('shape')
-            batch = organ.batch if organ.is_constructed else organ.requirement_value('batch')
-            dt    = organ.dt    if organ.is_constructed else organ.requirement_value('dt')
+            self.__fetch_info_from_organ(organ)
+        
+        self.__share_info_with_organ(organ)
 
-            for key,arg in {
-                'dt'  : dt,
-                'shape': shape,
-                'batch': batch,
-                }.items():
-                if (not self.is_constructed) and (arg is not None):
-                    self.meet_requirement(**{key: arg})
-            
         return self
 
 

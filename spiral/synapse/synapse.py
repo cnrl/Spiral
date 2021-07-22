@@ -5,6 +5,7 @@ Module for connections between neural populations.
 
 from __future__ import annotations
 from construction_requirements_integrator import CRI, construction_required
+from constant_properties_protector import CPP
 from add_on_class import AOC
 from typing import Union, Iterable
 from typeguard import typechecked
@@ -46,15 +47,11 @@ class Synapse(torch.nn.Module, CRI):
             target=target,
             batch=batch,
             dt=dt,
+            axon=None,
+            dendrite=None,
             construction_permission=construction_permission,
+            ignore_overwrite_error=True,
         )
-
-
-    @property
-    def occupied(
-        self
-    ) -> bool:
-        return (self.axon is not None) and (self.dendrite is not None)
 
 
     def __register_neuromodulatory_axon(
@@ -85,6 +82,77 @@ class Synapse(torch.nn.Module, CRI):
         self.neuromodulatory_axons[organ.name] = organ
 
 
+    def __share_info_with_organ(
+        self,
+        organ: Union[Axon, Dendrite],
+    ) -> None:
+        organ_is_axon = issubclass(type(organ), Axon)
+
+        if organ_is_axon:
+            name = self.name if self.is_constructed else self.requirement_value('name')
+            if name is not None: name += '_axon'
+            for key,arg in {
+                'name': name,
+                'dt'  : self.dt if self.is_constructed else self.requirement_value('dt'),
+                'shape': self.source if self.is_constructed else self.requirement_value('source'),
+                'terminal': (),
+                'batch': self.batch if self.is_constructed else self.requirement_value('batch'),
+                }.items():
+                if (not organ.is_constructed) and (arg is not None):
+                    organ.meet_requirement(**{key: arg})
+
+        else:
+            name = self.name if self.is_constructed else self.requirement_value('name')
+            if name is not None: name += '_dendrite'
+            for key,arg in {
+                'name': name,
+                'dt'  : self.dt if self.is_constructed else self.requirement_value('dt'),
+                'shape': self.target if self.is_constructed else self.requirement_value('target'),
+                'spine': self.source if self.is_constructed else self.requirement_value('source'),
+                'batch': self.batch if self.is_constructed else self.requirement_value('batch'),
+                }.items():
+                if (not organ.is_constructed) and (arg is not None):
+                    organ.meet_requirement(**{key: arg})
+
+
+    def __fetch_info_from_organ(
+        self,
+        organ: Union[Axon, Dendrite],
+    ) -> None:
+        if self.is_constructed:
+            return
+        organ_is_axon = issubclass(type(organ), Axon)
+
+        batch = organ.batch if organ.is_constructed else organ.requirement_value('batch')
+        dt = organ.dt if organ.is_constructed else organ.requirement_value('dt')
+        source = organ.spine                      if (not organ_is_axon and     organ.is_constructed) \
+            else (*organ.shape, *organ.terminal)  if (    organ_is_axon and     organ.is_constructed) \
+            else organ.requirement_value('spine') if (not organ_is_axon and not organ.is_constructed) \
+            else (*organ.requirement_value('shape'), *organ.requirement_value('terminal'))
+        target = organ.shape                      if (not organ_is_axon and     organ.is_constructed) \
+            else organ.requirement_value('shape') if (not organ_is_axon and not organ.is_constructed) \
+            else None
+
+        name = None
+        axon = self.requirement_value('axon')
+        dendrite = self.requirement_value('dendrite')
+        if (axon is not None) and (dendrite is not None):
+            axon = axon.name if axon.is_constructed else axon.requirement_value('name')
+            dendrite = dendrite.name if dendrite.is_constructed else dendrite.requirement_value('name')
+            if axon is not None and dendrite is not None:
+                name = f"{self.__class__.__name__}_from_{axon}_to_{dendrite}"
+
+        for key,arg in {
+            'name': name,
+            'dt'  : dt,
+            'source': source,
+            'target': target,
+            'batch': batch,
+            }.items():
+            if (not self.is_constructed) and (arg is not None):
+                self.meet_requirement(**{key: arg})
+
+
     def __construct__(
         self,
         name: str,
@@ -92,24 +160,19 @@ class Synapse(torch.nn.Module, CRI):
         target: Iterable[int],
         batch: int,
         dt: Union[float, torch.Tensor],
-    ):
+        axon: Axon,
+        dendrite: Dendrite,
+    ) -> None:
         self._name = name
         self._source = (*source,)
         self._target = (*target,)
         self._batch = batch
         self.register_buffer("_dt", torch.as_tensor(dt))
+        self._axon = axon
+        self._dendrite = dendrite
 
-        self._axon.meet_requirement(name=self.name+"_axon")
-        self._axon.meet_requirement(batch=self.batch)
-        self._axon.meet_requirement(shape=self.source)
-        self._axon.meet_requirement(terminal=())
-        self._axon.meet_requirement(dt=self.dt)
-
-        self._dendrite.meet_requirement(name=self.name+"_dendrite")
-        self._dendrite.meet_requirement(batch=self.batch)
-        self._dendrite.meet_requirement(shape=self.target)
-        self._dendrite.meet_requirement(spine=self.source)
-        self._dendrite.meet_requirement(dt=self.dt)
+        self.__share_info_with_organ(self._axon)
+        self.__share_info_with_organ(self._dendrite)
 
         if self.axon.dt!=self.dt:
             raise Exception(f"Axon {self.axon.name} with dt={self.axon.dt} doesn't match synapse {self.name} with dt={self.dt}.")
@@ -152,41 +215,12 @@ class Synapse(torch.nn.Module, CRI):
         organ_is_axon = issubclass(type(organ), Axon)
         
         if organ_is_axon:
-            self._axon = organ
+            self.meet_requirement(axon=organ)
         else:
-            self._dendrite = organ
+            self.meet_requirement(dendrite=organ)
 
-        batch = organ.batch if organ.is_constructed else organ.requirement_value('batch')
-        dt = organ.dt if organ.is_constructed else organ.requirement_value('dt')
-        source = organ.spine                      if (not organ_is_axon and     organ.is_constructed) \
-            else (*organ.shape, *organ.terminal)  if (    organ_is_axon and     organ.is_constructed) \
-            else organ.requirement_value('spine') if (not organ_is_axon and not organ.is_constructed) \
-            else (*organ.requirement_value('shape'), *organ.requirement_value('terminal'))
-        target = organ.shape                      if (not organ_is_axon and     organ.is_constructed) \
-            else organ.requirement_value('shape') if (not organ_is_axon and not organ.is_constructed) \
-            else None
-
-        name = None
-        if self.occupied:
-            organ_names = {}
-            for organ_type,registered_organ in {'axon': self._axon, 'dendrite': self._dendrite}.items():
-                if registered_organ.is_constructed:
-                    organ_names[organ_type] = registered_organ.name
-                elif registered_organ.requirement_value('name') is not None:
-                        organ_names[organ_type] = registered_organ.requirement_value('name')
-            if all([name is not None for name in organ_names.values()]):
-                name = f"{self.__class__.__name__}_from_{organ_names['axon']}_to_{organ_names['dendrite']}"
-
-
-        for key,arg in {
-            'name': name,
-            'dt'  : dt,
-            'source': source,
-            'target': target,
-            'batch': batch,
-            }.items():
-            if (not self.is_constructed) and (arg is not None):
-                self.meet_requirement(**{key: arg})
+        self.__fetch_info_from_organ(organ)
+        self.__share_info_with_organ(organ)
 
         return self
 
@@ -195,8 +229,8 @@ class Synapse(torch.nn.Module, CRI):
         self,
         direct_neuromodulators: torch.Tensor = torch.as_tensor(0.)
     ) -> torch.Tensor:
-        neuromodulators = torch.zeros(self.axon.terminal_shape)
-        neuromodulators += direct_input
+        neuromodulators = torch.zeros(*self.axon.shape, *self.axon.terminal)
+        neuromodulators += direct_neuromodulators
         for axon in self.neuromodulatory_axons.values():
             neuromodulators += axon.release()
         return neuromodulators
@@ -239,11 +273,21 @@ class DisconnectorSynapticCover(AOC):
 
     def __construct__(
         self,
+        name: str,
+        source: Iterable[int],
+        target: Iterable[int],
+        batch: int,
+        dt: Union[float, torch.Tensor],
         axon: Axon,
         dendrite: Dendrite,
     ) -> None:
         self.__core.__construct__(
             self,
+            name=name,
+            source=source,
+            target=target,
+            batch=batch,
+            dt=dt,
             axon=axon,
             dendrite=dendrite,
         )
