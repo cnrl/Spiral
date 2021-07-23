@@ -5,13 +5,13 @@ An action potential (spike) is generated when the membrane potential reaches a t
 """
 
 
-from add_on_class import AOC
-from typing import Union, Iterable
 import torch
-from constant_properties_protector import CPP
-from spiral.analysis import Analyzer, analytics
+from typing import Union, Iterable
 from typeguard import typechecked
+from constant_properties_protector import CPP
 from construction_requirements_integrator import construction_required
+from add_on_class import AOC
+from spiral.analysis import Analyzer, analytics
 from ..spiking_soma import SpikingSoma
 
 

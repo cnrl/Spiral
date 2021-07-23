@@ -4,12 +4,12 @@ Module for connections between neural populations.
 
 
 from __future__ import annotations
-from construction_requirements_integrator import CRI, construction_required
-from constant_properties_protector import CPP
-from add_on_class import AOC
+import torch
 from typing import Union, Iterable
 from typeguard import typechecked
-import torch
+from constant_properties_protector import CPP
+from construction_requirements_integrator import CRI, construction_required
+from add_on_class import AOC
 from spiral.axon.axon import Axon
 from spiral.dendrite.dendrite import Dendrite
 from spiral.connectivity_pattern.connectivity_pattern import ConnectivityPattern

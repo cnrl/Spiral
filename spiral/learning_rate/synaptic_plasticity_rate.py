@@ -2,12 +2,12 @@
 """
 
 
-from abc import ABC, abstractmethod
-from construction_requirements_integrator import CRI, construction_required
-from constant_properties_protector import CPP
+import torch
 from typing import Union, Iterable
 from typeguard import typechecked
-import torch
+from abc import ABC, abstractmethod
+from constant_properties_protector import CPP
+from construction_requirements_integrator import CRI, construction_required
 
 
 

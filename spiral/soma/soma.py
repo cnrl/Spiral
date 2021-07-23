@@ -7,12 +7,12 @@ The same module will be responsible for calculating the spike or current intensi
 
 
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from construction_requirements_integrator import CRI, construction_required
-from constant_properties_protector import CPP
+import torch
 from typing import Union, Iterable
 from typeguard import typechecked
-import torch
+from abc import ABC, abstractmethod
+from constant_properties_protector import CPP
+from construction_requirements_integrator import CRI, construction_required
 from spiral.axon.axon import Axon
 from spiral.dendrite.dendrite import Dendrite
 
@@ -290,3 +290,14 @@ class Soma(torch.nn.Module, CRI, ABC):
         for organs in [self.axons, self.dendrites]:
             for name,organ in organs.items():
                 organ.reset()
+    
+
+    def __getitem__(
+        self,
+        name: str
+    ) -> Union[Axon, Dendrite]:
+        if name in self.axons.keys():
+            return self.axons[name]
+        if name in self.dendrites.keys():
+            return self.dendrites[name]
+        raise Exception(f"The soma has no axon or dendrite named {name}")

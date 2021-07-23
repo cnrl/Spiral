@@ -1,6 +1,13 @@
-from . import Monitor
-from typing import Iterable, Dict, Callable
+"""
+"""
 
+
+from typing import Iterable, Dict, Callable
+from typeguard import typechecked
+from .monitor import Monitor
+
+
+@typechecked
 class Analyzer:
     def __init__(
         self,

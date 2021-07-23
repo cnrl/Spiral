@@ -1,6 +1,15 @@
+"""
+"""
+
+
 import torch
 from typing import Iterable, Dict
+from typeguard import typechecked
 
+
+
+
+@typechecked
 class FunctionGenerator:
     @staticmethod
     def __get_steps(

@@ -3,14 +3,14 @@ Spiking soma is a type of soma that propagates spikes on its axons as output sig
 """
 
 
-from abc import ABC, abstractmethod
 import torch
-from constant_properties_protector import CPP
-from spiral.analysis import Analyzer, analysis_point, analytics
 from typing import Union, Iterable
 from typeguard import typechecked
-from ..soma import Soma
+from abc import ABC, abstractmethod
+from constant_properties_protector import CPP
 from construction_requirements_integrator import construction_required
+from spiral.analysis import Analyzer, analysis_point, analytics
+from ..soma import Soma
 
 
 

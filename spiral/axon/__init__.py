@@ -1,1 +1,3 @@
-from .axon import Axon
+from .axon import (
+    Axon
+)

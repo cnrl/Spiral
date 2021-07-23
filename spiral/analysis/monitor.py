@@ -1,10 +1,15 @@
 """
 """
 
-from typing import Iterable, Dict, Callable, Any
+
 import torch
+from typing import Iterable, Dict, Callable, Any
+from typeguard import typechecked
 
 
+
+
+@typechecked
 class Monitor:
     def __init__(
         self,

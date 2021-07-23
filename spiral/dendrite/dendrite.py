@@ -1,16 +1,15 @@
 """
-Module for connections between neural populations.
 """
 
 
-from abc import ABC, abstractmethod
+import torch
 from typing import Union, Iterable, Callable
 from typeguard import typechecked
-import torch
+from abc import ABC, abstractmethod
 from constant_properties_protector import CPP
 from construction_requirements_integrator import CRI, construction_required
 from spiral.analysis import Analyzer, analysis_point, analytics
-from spiral.synaptic_plasticity import SynapticPlasticity
+from spiral.synaptic_plasticity.synaptic_plasticity import SynapticPlasticity
 
 
 
@@ -131,6 +130,8 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         if hasattr(self, '_action_potential'):
             del self._action_potential
         self.plasticity_model.reset()
+        if self.analyzable:
+            self.monitor.reset()
 
 
     @analytics

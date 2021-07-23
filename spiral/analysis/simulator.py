@@ -1,17 +1,26 @@
 """
 """
 
-from typing import Iterable, Dict, Callable, Any
+
+from typing import Iterable, Dict, Callable, Union, Any
+from typeguard import typechecked
 
 
+
+
+@typechecked
 class DictionaryItemsIterator:
     def __init__(
         self,
-        dictionary: Dict[str, Iterable[Any]]
+        dictionary: Dict[str, Union[Iterable[Any], dict]],
     ) -> None:
         self.dictionary = dictionary
-        self.iter_dictionary = {i: iter(it) for i,it in self.dictionary.items()}
-    
+        self.iter_dictionary = {
+            i: iter(it) if type(it) is not dict else DictionaryItemsIterator(it)
+            for i,it in self.dictionary.items()
+        }
+
+
     def __next__(
         self
     ) -> Dict[str, Any]:
@@ -25,6 +34,9 @@ class DictionaryItemsIterator:
         return output
 
 
+
+
+@typechecked
 class Simulator:
     def __init__(
         self,

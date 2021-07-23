@@ -2,13 +2,14 @@
 """
 
 
-from construction_requirements_integrator import CRI, construction_required
-from constant_properties_protector import CPP
+import torch
 from typing import Union, Iterable
 from typeguard import typechecked
-import torch
-from spiral.response_function import ResponseFunction
+from constant_properties_protector import CPP
+from construction_requirements_integrator import CRI, construction_required
 from spiral.analysis import Analyzer, analysis_point, analytics
+from spiral.response_function.response_function import ResponseFunction
+from spiral.myelination.myelination import Myelination
 
 
 
@@ -25,6 +26,8 @@ class Axon(torch.nn.Module, CRI):
         is_excitatory: Union[bool, torch.Tensor] = True,
         delay: Union[float, torch.Tensor] = 0.,
         dt: Union[float, torch.Tensor] = None,
+        myelination_model: Myelination = None, # Does nothing now. [TODO]
+        myelination: bool = True, # Does nothing now. [TODO]
         analyzable: bool = False,
         construction_permission: bool = True,
     ) -> None:

@@ -2,13 +2,13 @@
 """
 
 
-from construction_requirements_integrator import CRI, construction_required
-from constant_properties_protector import CPP
+import torch
 from typing import Union, Iterable
 from typeguard import typechecked
-import torch
-from spiral.response_function import ResponseFunction
-from spiral.learning_rate import SynapticPlasticityRate
+from constant_properties_protector import CPP
+from construction_requirements_integrator import CRI, construction_required
+from spiral.response_function.response_function import ResponseFunction
+from spiral.learning_rate.synaptic_plasticity_rate import SynapticPlasticityRate
 
 
 
