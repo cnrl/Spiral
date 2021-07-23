@@ -203,7 +203,7 @@ class STDP(SynapticPlasticity):
         )
         self.presynaptic_tagging = presynaptic_tagging
         self.postsynaptic_tagging = postsynaptic_tagging
-        self.ltp_rate = SynapticPlasticityRate(rate=0.05) if ltp_rate is None else ltp_rate
+        self.ltp_rate = SynapticPlasticityRate(rate=0.01) if ltp_rate is None else ltp_rate
         self.ltd_rate = SynapticPlasticityRate(rate=0.01) if ltd_rate is None else ltd_rate
         self.set_construction_permission(construction_permission)
 

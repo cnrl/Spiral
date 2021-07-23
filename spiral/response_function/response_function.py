@@ -7,6 +7,7 @@ from typing import Union, Iterable
 from typeguard import typechecked
 from constant_properties_protector import CPP
 from construction_requirements_integrator import CRI, construction_required
+from spiral.analysis import Analyzer, analysis_point, analytics
 
 
 
@@ -141,6 +142,7 @@ class LeakyResponseFunction(ResponseFunction):
         tau: Union[float, torch.Tensor] = 15.,
         shape: Iterable[int] = None,
         dt: Union[float, torch.Tensor] = None,
+        analyzable: bool = False,
         construction_permission: bool = True,
     ) -> None:
         super().__init__(
@@ -150,6 +152,8 @@ class LeakyResponseFunction(ResponseFunction):
         )
         self.register_buffer("tau", torch.as_tensor(tau))
         CPP.protect(self, 'response')
+        Analyzer.__init__(self, analyzable)
+        Analyzer.scout(self, state_variables=['response'])
 
 
     def __construct__(
@@ -165,11 +169,12 @@ class LeakyResponseFunction(ResponseFunction):
 
 
     @construction_required
+    @analysis_point
     def __call__(
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
-        self._response += action_potential - self.response * self.dt / self.tau
+        self._response += action_potential.float() - self.response * self.dt / self.tau
         return self.response
 
 
@@ -178,6 +183,41 @@ class LeakyResponseFunction(ResponseFunction):
         self,
     ) -> None:
         self._response.zero_()
+        if self.analyzable:
+            self.monitor.reset()
+
+
+    @analytics
+    def plot_response(
+        self,
+        axes,
+        **kwargs
+    ) -> None:
+        """
+        Draw a plot of response value on `axes`.
+
+        Arguments
+        ---------
+        axes : Matplotlib plotable module
+            The axes to draw on.
+        **kwargs : keyword arguments
+            kwargs will be directly passed to matplotlib plot function.
+        
+        Returns
+        -------
+        None
+        
+        """
+        y = self.monitor['response'].reshape(self.monitor['response'].shape[0],-1)
+        time_range = (0, y.shape[0])
+        x = torch.arange(*time_range)*self.dt
+        population_alpha = 1/y.shape[1]
+        aggregated = y.mean(axis=1)
+        axes.plot(x, aggregated, color='black', **kwargs)
+        axes.plot(x, y, alpha=population_alpha, color='black')
+        axes.set_ylabel('response')
+        axes.set_xlabel('time (ms)')
+        axes.set_xlim(time_range)
 
 
 

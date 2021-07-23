@@ -6,6 +6,7 @@ from .synapse import *
 from .response_function import *
 from .connectivity_pattern import *
 from .synaptic_plasticity import *
+from .learning_rate import *
 from .myelination import *
 from . import analysis
 from . import operators
