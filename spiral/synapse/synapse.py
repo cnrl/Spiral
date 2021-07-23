@@ -9,7 +9,7 @@ from typing import Union, Iterable
 from typeguard import typechecked
 from constant_properties_protector import CPP
 from construction_requirements_integrator import CRI, construction_required
-from add_on_class import AOC
+from add_on_class import AOC, covering_around
 from spiral.axon.axon import Axon
 from spiral.dendrite.dendrite import Dendrite
 from spiral.connectivity_pattern.connectivity_pattern import ConnectivityPattern
@@ -256,14 +256,8 @@ class Synapse(torch.nn.Module, CRI):
 
 
 @typechecked
+@covering_around([Synapse])
 class DisconnectorSynapticCover(AOC):
-    def __pre_init__(
-        self,
-    ) -> None:
-        if not issubclass(self.__core, Synapse):
-            raise Exception("DisconnectorSynapticCover can only be added to Synapse or Synapse subclasses.")
-
-
     def __post_init__(
         self,
         connectivity_pattern: ConnectivityPattern,

@@ -10,7 +10,7 @@ from typing import Union, Iterable
 from typeguard import typechecked
 from constant_properties_protector import CPP
 from construction_requirements_integrator import construction_required
-from add_on_class import AOC
+from add_on_class import AOC, covering_around
 from spiral.analysis import Analyzer, analytics
 from ..spiking_soma import SpikingSoma
 
@@ -317,6 +317,7 @@ class IntegrateAndFireSoma(SpikingSoma):
 
 
 @typechecked
+@covering_around([IntegrateAndFireSoma])
 class LeakyMembrane(AOC):
     """
     Add-on class to add leakage to membrane potential dynamics in an integrate & fire neuron model.
@@ -329,22 +330,6 @@ class LeakyMembrane(AOC):
     Then will call original `update_potential()`.\
     At the end, it will applies computed leakage on membrane potential by `leak()`.
     """
-
-    def __pre_init__(
-        self,
-    ) -> None:
-        """
-        This function will be called before the original `__init__()` call\
-        and ensures that the core is an integrate & fire model.
-
-        Returns
-        -------
-        None
-        
-        """
-        if not issubclass(self.__core, IntegrateAndFireSoma):
-            raise Exception("LeakyMembrane can only be added to IntegrateAndFireSoma or IntegrateAndFireSoma subclasses.")
-
 
     def __compute_leakage(
         self
@@ -406,6 +391,7 @@ class LeakyMembrane(AOC):
 
 
 @typechecked
+@covering_around([IntegrateAndFireSoma])
 class ExponentialDepolaristicMembrane(AOC):
     """
     Add-on class to add depolarisation to membrane potential dynamics in an integrate & fire neuron model.
@@ -432,22 +418,6 @@ class ExponentialDepolaristicMembrane(AOC):
     depolarization_threshold : float or torch.Tensor, Optional, default: -50.4
         Determines the membrane potential threshold of the depolarisation process in millivolts.
     """
-
-    def __pre_init__(
-        self,
-    ) -> None:
-        """
-        This function will be called before the original `__init__()` call\
-        and ensures that the core is an integrate & fire model.
-
-        Returns
-        -------
-        None
-        
-        """
-        if not issubclass(self.__core, IntegrateAndFireSoma):
-            raise Exception("ExponentialDepolaristicMembrane can only be added to IntegrateAndFireSoma or IntegrateAndFireSoma subclasses.")
-
 
     def __post_init__(
         self,
@@ -534,6 +504,7 @@ class ExponentialDepolaristicMembrane(AOC):
 
 
 @typechecked
+@covering_around([IntegrateAndFireSoma])
 class AdaptiveMembrane(AOC):
     """
     Add-on class to add adaptation to membrane potential dynamics in an integrate & fire neuron model.
@@ -568,22 +539,6 @@ class AdaptiveMembrane(AOC):
     tau_adaptation : float or torch.Tensor, Optional, default: 144.0
         Determines time constant of membrane adaptation current dynamics in milliseconds.
     """
-
-    def __pre_init__(
-        self,
-    ) -> None:
-        """
-        This function will be called before the original `__init__()` call\
-        and ensures that the core is an integrate & fire model.
-
-        Returns
-        -------
-        None
-        
-        """
-        if not issubclass(self.__core, IntegrateAndFireSoma):
-            raise Exception("AdaptiveMembrane can only be added to IntegrateAndFireSoma or IntegrateAndFireSoma subclasses.")
-
 
     def __post_init__(
         self,
