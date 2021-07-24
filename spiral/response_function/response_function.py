@@ -1,4 +1,5 @@
 """
+This module will provide response functions for action potentials.
 """
 
 
@@ -14,6 +15,42 @@ from spiral.analysis import Analyzer, analysis_point, analytics
 
 @typechecked
 class ResponseFunction(torch.nn.Module, CRI):
+    """
+    Basic class for response functions.\
+    This module will provide no-operation response function and always returns the input.\
+    Since this is a base class, it receives different inputs for construction that it\
+    may not use all of them. But its children will need them.
+
+    Properties
+    ----------
+    shape : Iterable of int, Protected
+        The topology of input action potential.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    is_constructed: bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+
+    Arguments
+    ---------
+    shape : Iterable of int, Construction Requirement
+        The topology of input action potential.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         shape: Iterable[int] = None,
@@ -37,6 +74,22 @@ class ResponseFunction(torch.nn.Module, CRI):
         shape: Iterable[int],
         dt: Union[float, torch.Tensor],
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        shape : Iterable of int
+            The topology of input action potential.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        
+        Returns
+        -------
+        None
+        
+        """
         self._shape = shape
         self.register_buffer("_dt", torch.as_tensor(dt))
 
@@ -46,12 +99,34 @@ class ResponseFunction(torch.nn.Module, CRI):
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Simulate the module activity for a single step and returns the response.
+        
+        Arguments
+        ---------
+        action_potential : torch.Tensor
+            Input action potential.
+
+        Returns
+        -------
+        response: torch.Tensor
+            The response.
+        
+        """
         return action_potential.float()
 
 
     def reset(
         self
     ) -> None:
+        """
+        Refractor and reset the axon and related moduls.
+        
+        Returns
+        -------
+        None
+        
+        """
         pass
 
 
@@ -59,6 +134,44 @@ class ResponseFunction(torch.nn.Module, CRI):
 
 @typechecked
 class CompositeResponseFunction(ResponseFunction): #In order
+    """
+    It will make a composition of response functions and pass the output of one as input of the other.\
+    The response functions will be chained in order that they are inserted.
+
+    Properties
+    ----------
+    response_functions: Iterable[ResponseFunction]
+        The compositing response functions.
+    shape : Iterable of int, Protected
+        The topology of input action potential.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    is_constructed: bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+
+    Arguments
+    ---------
+    response_functions: Iterable[ResponseFunction], Necessary
+        The compositing response functions.
+    shape : Iterable of int, Construction Requirement
+        The topology of input action potential.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         response_functions: Iterable[ResponseFunction],
@@ -80,6 +193,23 @@ class CompositeResponseFunction(ResponseFunction): #In order
         shape: Iterable[int],
         dt: Union[float, torch.Tensor],
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        It will help the given response functions to be constructed too.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        shape : Iterable of int
+            The topology of input action potential.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        
+        Returns
+        -------
+        None
+        
+        """
         super().__construct__(
             shape=shape,
             dt=dt,
@@ -94,6 +224,20 @@ class CompositeResponseFunction(ResponseFunction): #In order
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Simulate the module activity for a single step and returns the response.
+        
+        Arguments
+        ---------
+        action_potential : torch.Tensor
+            Input action potential.
+
+        Returns
+        -------
+        response: torch.Tensor
+            The response.
+        
+        """
         for response_function in self.response_functions:
             action_potential = response_function(action_potential=action_potential)
         return action_potential
@@ -102,6 +246,14 @@ class CompositeResponseFunction(ResponseFunction): #In order
     def reset(
         self
     ) -> None:
+        """
+        Refractor and reset the axon and related moduls.
+        
+        Returns
+        -------
+        None
+        
+        """
         for response_function in self.response_functions:
             response_function.reset()
 
@@ -110,6 +262,43 @@ class CompositeResponseFunction(ResponseFunction): #In order
 
 @typechecked
 class ScalingResponseFunction(ResponseFunction):
+    """
+    This module simply multiplies the input by a scaling factor.
+
+    Properties
+    ----------
+    scale : torch.Tensor
+        Scaling factor that applies on inputs.
+    shape : Iterable of int, Protected
+        The topology of input action potential.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    is_constructed: bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+
+    Arguments
+    ---------
+    scale : float or torch.Tensor, Necessary
+        Scaling factor that applies on inputs.
+    shape : Iterable of int, Construction Requirement
+        The topology of input action potential.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         scale: Union[float, torch.Tensor],
@@ -130,6 +319,20 @@ class ScalingResponseFunction(ResponseFunction):
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Simulate the module activity for a single step and returns the response.
+        
+        Arguments
+        ---------
+        action_potential : torch.Tensor
+            Input action potential.
+
+        Returns
+        -------
+        response: torch.Tensor
+            The response.
+        
+        """
         return action_potential*self.scale
 
 
@@ -137,6 +340,55 @@ class ScalingResponseFunction(ResponseFunction):
 
 @typechecked
 class LeakyResponseFunction(ResponseFunction):
+    """
+    This module will model a leaky response function that integrates inputs in all steps and\
+    has leakage through the time.
+
+    Properties
+    ----------
+    tau : torch.Tensor
+        Leakage time constant.
+    response : torch.Tensor, Protected
+        Last updated response.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    shape : Iterable of int, Protected
+        The topology of input action potential.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    is_constructed: bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+    analyzable : bool
+        Indicates the analyzability status of the module.
+    monitor : Monitor
+        Exists just if the module be analyzable.\
+        You can get a recorded sequence of important features through the `monitor`.\
+        Read more about `Monitor` in monitor module documentation.
+
+    Arguments
+    ---------
+    tau : float or torch.Tensor, Optional, default: 15.
+        Determines leakage time constant.
+    shape : Iterable of int, Construction Requirement
+        The topology of input action potential.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    analyzable: bool, Optional, default: False
+        If it is `True`, it will record its behavior and provide you with functions for drawing plots.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         tau: Union[float, torch.Tensor] = 15.,
@@ -161,6 +413,22 @@ class LeakyResponseFunction(ResponseFunction):
         shape: Iterable[int],
         dt: Union[float, torch.Tensor],
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        shape : Iterable of int
+            The topology of input action potential.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        
+        Returns
+        -------
+        None
+        
+        """
         super().__construct__(
             shape=shape,
             dt=dt,
@@ -174,6 +442,20 @@ class LeakyResponseFunction(ResponseFunction):
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Simulate the module activity for a single step and returns the response.
+        
+        Arguments
+        ---------
+        action_potential : torch.Tensor
+            Input action potential.
+
+        Returns
+        -------
+        response: torch.Tensor
+            The response.
+        
+        """
         self._response += action_potential.float() - self.response * self.dt / self.tau
         return self.response
 
@@ -182,6 +464,14 @@ class LeakyResponseFunction(ResponseFunction):
     def reset(
         self,
     ) -> None:
+        """
+        Refractor and reset the axon and related moduls.
+        
+        Returns
+        -------
+        None
+        
+        """
         self._response.zero_()
         if self.analyzable:
             self.monitor.reset()
@@ -224,6 +514,42 @@ class LeakyResponseFunction(ResponseFunction):
 
 @typechecked
 class FlatResponseFunction(ResponseFunction):
+    """
+    This module will get inputs and integrate them through time, as response value.
+
+    Properties
+    ----------
+    response : torch.Tensor, Protected
+        Last updated response.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    shape : Iterable of int, Protected
+        The topology of input action potential.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    is_constructed: bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+
+    Arguments
+    ---------
+    shape : Iterable of int, Construction Requirement
+        The topology of input action potential.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         shape: Iterable[int] = None,
@@ -243,6 +569,22 @@ class FlatResponseFunction(ResponseFunction):
         shape: Iterable[int],
         dt: Union[float, torch.Tensor],
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        shape : Iterable of int
+            The topology of input action potential.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        
+        Returns
+        -------
+        None
+        
+        """
         super().__construct__(
             shape=shape,
             dt=dt,
@@ -255,6 +597,20 @@ class FlatResponseFunction(ResponseFunction):
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Simulate the module activity for a single step and returns the response.
+        
+        Arguments
+        ---------
+        action_potential : torch.Tensor
+            Input action potential.
+
+        Returns
+        -------
+        response: torch.Tensor
+            The response.
+        
+        """
         self._response += action_potential
         return self.response
 
@@ -263,6 +619,14 @@ class FlatResponseFunction(ResponseFunction):
     def reset(
         self,
     ) -> None:
+        """
+        Refractor and reset the axon and related moduls.
+        
+        Returns
+        -------
+        None
+        
+        """
         self._response.zero_()
 
 
@@ -270,6 +634,50 @@ class FlatResponseFunction(ResponseFunction):
 
 @typechecked
 class LimitedFlatResponseFunction(ResponseFunction):
+    """
+    This module will integrate inputs in a limited time period as response value.
+
+    Properties
+    ----------
+    duration : torch.Tensor, Protected
+        The watching time period length in milliseconds.
+        Read more about protected properties in constant-properties-protector package documentation.
+    action_potential_history : torch.Tensor, Protected
+        The history of input action potentials in watching time period.
+        Read more about protected properties in constant-properties-protector package documentation.
+    response : torch.Tensor, Protected
+        Last updated response.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    shape : Iterable of int, Protected
+        The topology of input action potential.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    is_constructed: bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+
+    Arguments
+    ---------
+    duration : float or torch.Tensor, Optional, default=10.
+        The watching time period length in milliseconds.
+    shape : Iterable of int, Construction Requirement
+        The topology of input action potential.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the axon or synaptic plasticity, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         duration: Union[float, torch.Tensor] = 10.,
@@ -294,6 +702,22 @@ class LimitedFlatResponseFunction(ResponseFunction):
         dt: Union[float, torch.Tensor],
         duration: Union[float, torch.Tensor],
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        shape : Iterable of int
+            The topology of input action potential.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        
+        Returns
+        -------
+        None
+        
+        """
         super().__construct__(
             shape=shape,
             dt=dt,
@@ -310,10 +734,25 @@ class LimitedFlatResponseFunction(ResponseFunction):
         self,
         action_potential: torch.Tensor,
     ) -> torch.Tensor:
+        """
+        Simulate the module activity for a single step and returns the response.
+        
+        Arguments
+        ---------
+        action_potential : torch.Tensor
+            Input action potential.
+
+        Returns
+        -------
+        response: torch.Tensor
+            The response.
+        
+        """
         self._action_potential_history = torch.cat([action_potential.unsqueeze(0), self.action_potential_history])
-        self._action_potential_history = self.action_potential_history.scatter(
-            dim=0, index=self.duration.unsqueeze(0)+1, src=torch.zeros_like(self.duration).unsqueeze(0)
-        )
+        if self.duration.numel()>1:
+            self._action_potential_history = self.action_potential_history.scatter(
+                dim=0, index=self.duration.unsqueeze(0)+1, src=torch.zeros_like(self.duration).unsqueeze(0).float()
+            )
         self._action_potential_history = self.action_potential_history[:-1]
         return self.action_potential_history.sum(axis=0)
 
@@ -322,4 +761,12 @@ class LimitedFlatResponseFunction(ResponseFunction):
     def reset(
         self,
     ) -> None:
+        """
+        Refractor and reset the axon and related moduls.
+        
+        Returns
+        -------
+        None
+        
+        """
         self._action_potential_history.zero_()

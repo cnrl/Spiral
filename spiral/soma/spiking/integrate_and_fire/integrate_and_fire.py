@@ -59,7 +59,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         The resting potential of the membrane in millivolts.
     firing_threshold : torch.Tensor
         The firing threshold for membrane potential in millivolts.
-    dt: float or torch.Tensor, Protected
+    dt: torch.Tensor, Protected
         Time step in milliseconds.\
         Read more about protected properties in constant-properties-protector package documentation.
     axons: Dict[str, Axon]
@@ -84,10 +84,12 @@ class IntegrateAndFireSoma(SpikingSoma):
         Each module in a Spiral network needs a name to be uniquely accessible.
     shape : Iterable of int, Construction Requirement
         Defines the topology of somas in the population.\
-        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
         Read more about construction requirement in construction-requirements-integrator package documentation.
     batch : int, Construction Requirement
-        Determines the batch size.\
+        Determines the batch size. Should be same as network batch size.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connecting axon or dendrite, if you don't set it earlier and the organ has this information.\
         Read more about construction requirement in construction-requirements-integrator package documentation.
     tau : float or torch.Tensor, Optional, default: 20.0
         The time constant of membrane potential dynamics in milliseconds.
@@ -98,8 +100,9 @@ class IntegrateAndFireSoma(SpikingSoma):
     firing_threshold : float or torch.Tensor, Optional, default: -40.0
         The firing threshold for membrane potential in millivolts.
     dt : float or torch.Tensor, Construction Requirement
-        Time step in milliseconds.\
-        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connecting axon or dendrite, if you don't set it earlier and the organ has this information.\
         Read more about construction requirement in construction-requirements-integrator package documentation.
     analyzable: bool, Optional, default: False
         If it is `True`, it will record its behavior and provide you with functions for drawing plots.\

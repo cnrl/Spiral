@@ -1,4 +1,5 @@
 """
+These operators are defined to provide readable syntax when building and customizing Spiral networks.
 """
 
 

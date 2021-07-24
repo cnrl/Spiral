@@ -24,9 +24,8 @@ class Soma(torch.nn.Module, CRI, ABC):
     """
     Basic class for all types of soma.
 
-    There are several types of soma in this package: spiking soma, current driven soma and etc.\
-    Each of these types also has several subtype of soma: interneuron soma, sensory soma, neuromodulatory soma and etc.\
-    Each of these types and subtypes has a different purpose and behaves differently.\
+    There are two types of soma in this package: spiking soma and current driven soma.\
+    Each of these types has a different purpose and behaves differently.\
     But in the end, they are all types of neurons and have common features in their bodies,\
     including how they interact with axons and dendrites.\
     This abstract class implements these common behaviors.
@@ -42,7 +41,7 @@ class Soma(torch.nn.Module, CRI, ABC):
     batch : int, Protected
         Determines the batch size.\
         Read more about protected properties in constant-properties-protector package documentation.
-    dt: float or torch.Tensor, Protected
+    dt: torch.Tensor, Protected
         Time step in milliseconds.\
         Read more about protected properties in constant-properties-protector package documentation.
     axons: Dict[str, Axon]
@@ -61,14 +60,18 @@ class Soma(torch.nn.Module, CRI, ABC):
         Each module in a Spiral network needs a name to be uniquely accessible.
     shape : Iterable of int, Construction Requirement
         Defines the topology of somas in the population.\
-        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connecting axon or dendrite, if you don't set it earlier and the organ has this information.\
         Read more about construction requirement in construction-requirements-integrator package documentation.
     batch : int, Construction Requirement
-        Determines the batch size.\
+        Determines the batch size. Should be same as network batch size.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connecting axon or dendrite, if you don't set it earlier and the organ has this information.\
         Read more about construction requirement in construction-requirements-integrator package documentation.
     dt : float or torch.Tensor, Construction Requirement
-        Time step in milliseconds.\
-        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connecting axon or dendrite, if you don't set it earlier and the organ has this information.\
         Read more about construction requirement in construction-requirements-integrator package documentation.
     construction_permission : bool, Optional, default: True
         You can prevent the completeion of the construction by setting this parameter to `False`.\
@@ -107,6 +110,21 @@ class Soma(torch.nn.Module, CRI, ABC):
         self,
         organ: Union[Axon, Dendrite],
     ) -> None:
+        """
+        This function tries to send information, such as shape and batch,\
+        if any, that fit together in an interconnected network, to an organ\
+        connected to the soma.
+        
+        Arguments
+        ---------
+        organ : Axon or Dendrite
+            Attached organ that needs to be coordinated.
+        
+        Returns
+        -------
+        None
+        
+        """
         suggested_name = f"{self.name}_{organ.__class__.__name__}_{len(self.dendrites)+len(self.axons)}"
         for key,arg in {
             'name': suggested_name,
@@ -122,6 +140,21 @@ class Soma(torch.nn.Module, CRI, ABC):
         self,
         organ: Union[Axon, Dendrite],
     ) -> None:
+        """
+        This function tries to receive information, such as shape and batch,\
+        if any, that fit together in an interconnected network, from an organ\
+        connected to the soma, and set them for the soma.
+        
+        Arguments
+        ---------
+        organ : Axon or Dendrite
+            Attached organ that needs to be coordinated.
+        
+        Returns
+        -------
+        None
+        
+        """
         if self.is_constructed:
             return
         for key,arg in {
@@ -138,9 +171,8 @@ class Soma(torch.nn.Module, CRI, ABC):
         organ: Union[Axon, Dendrite],
     ) -> None:
         """
-        It coordinates the organ attached to this soma.\
-        `shape` and `dt` are parameters that need to be coordinated between interconnected organs.\
-        Read more about `meet_requirement` in construction-requirements-integrator package documentation.
+        This function examines ecxeptions and performs side effects for\
+        the final registration of an organ.
         
         Arguments
         ---------
@@ -296,6 +328,20 @@ class Soma(torch.nn.Module, CRI, ABC):
         self,
         name: str
     ) -> Union[Axon, Dendrite]:
+        """
+        Returns the registered organ (axon or dendrite) associated with the given name.
+        
+        Arguments
+        ---------
+        name : str
+            The name of asked organ.
+        
+        Returns
+        -------
+        organ : Axon or Dendrite
+            The asked organ.
+        
+        """
         if name in self.axons.keys():
             return self.axons[name]
         if name in self.dendrites.keys():

@@ -1,5 +1,5 @@
 from .connectivity_pattern import (
-    NotConnectivity,
+    InvertConnectivity,
     AndConnectivity,
     OrConnectivity,
     AutapseConnectivity,

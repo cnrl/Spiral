@@ -1,5 +1,8 @@
 """
-Module for connections between neural populations.
+Synapse, also called neuronal junction, the site of transmission of electric nerve\
+impulses between two nerve cells (neurons).\
+This modul will hold connections between axons and dendrites.\
+It also transmits neuromodulators to the connected dendrite.
 """
 
 
@@ -19,6 +22,76 @@ from spiral.connectivity_pattern.connectivity_pattern import ConnectivityPattern
 
 @typechecked
 class Synapse(torch.nn.Module, CRI):
+    """
+    Class for usual synapses.
+
+    The purpose of the synapse is to receive neurotransmitters from a connected axon,
+    neuromodulators from connected neuromodulatory axons,\
+    transfer them to dendrite by considering connectivities\
+
+    Properties
+    ----------
+    name : str, Protected
+        The name to be uniquely accessible in Spiral network.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    source : Iterable of int, Protected
+        The topology of connected axon terminals.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    target : Iterable of int, Protected
+        The topology of connected dendrite spines.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    batch : int, Protected
+        Determines the batch size.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dt: torch.Tensor, Protected
+        Time step in milliseconds.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    axon: Axon, Protected
+        Connected axon.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    dendrite: Dendrite, Protected
+        Connected dendrite.\
+        Read more about protected properties in constant-properties-protector package documentation.
+    neuromodulatory_axons : Dict[str, Axon]
+        Dictionary containing connected neuromodulatory axons.\
+        The keys in this dictionary are the names of the corresponding axons.
+    is_constructed : bool
+        Indicates the completion status of the construction.\
+        Read more about construction completion in construction-requirements-integrator package documentation.
+
+    Arguments
+    ---------
+    name : str, Construction Requirement
+        The name to be uniquely accessible in Spiral network.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connected axon and soma, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    source : Iterable of int, Construction Requirement
+        The topology of connected axon terminals. Should be same as (*shape, *terminal) of the connected axon.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connected axon, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    target : Iterable of int, Construction Requirement
+        The topology of connected dendrite spines. Should be same as spines shape of the connected dendrite.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connected dendrite, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    batch : int, Construction Requirement
+        Determines the batch size. Should be same as network batch size.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.\
+        It will be automatically set based on the connected axon or dendrite, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    dt : float or torch.Tensor, Construction Requirement
+        Time step in milliseconds. Should be same as network time step.\
+        It is necessary for construction, but you can determine it with a delay after the initial construction and complete the construction process.
+        It will be automatically set based on the connected axon or dendrite, if you don't set it earlier.\
+        Read more about construction requirement in construction-requirements-integrator package documentation.
+    construction_permission : bool, Optional, default: True
+        You can prevent the completeion of the construction by setting this parameter to `False`.\
+        After that, you can change it calling `set_construction_permission(True)`.\
+        It is useful when you are inheriting a module from it.\
+        Read more about `construction_permission` in construction-requirements-integrator package documentation.
+    """
     def __init__(
         self,
         name: str = None,
@@ -58,6 +131,20 @@ class Synapse(torch.nn.Module, CRI):
         self,
         organ: Axon,
     ) -> None:
+        """
+        This function examines ecxeptions and performs side effects for\
+        the final registration of an neuromodulatory axon.
+        
+        Arguments
+        ---------
+        organ : Axon
+            Attached organ that needs to be coordinated.
+        
+        Returns
+        -------
+        None
+        
+        """
         suggested_name = f"{self.name}_neuromodulatory_{organ.__class__.__name__}_{len(self.neuromodulatory_axons)}"
         for key,arg in {
             'name': suggested_name,
@@ -86,6 +173,21 @@ class Synapse(torch.nn.Module, CRI):
         self,
         organ: Union[Axon, Dendrite],
     ) -> None:
+        """
+        This function tries to send information, such as dt and batch,\
+        if any, that fit together in an interconnected network, to an organ\
+        connected to the synapse.
+        
+        Arguments
+        ---------
+        organ : Axon or Dendrite
+            Attached organ that needs to be coordinated.
+        
+        Returns
+        -------
+        None
+        
+        """
         organ_is_axon = issubclass(type(organ), Axon)
 
         if organ_is_axon:
@@ -119,6 +221,21 @@ class Synapse(torch.nn.Module, CRI):
         self,
         organ: Union[Axon, Dendrite],
     ) -> None:
+        """
+        This function tries to receive information, such as dt and batch,\
+        if any, that fit together in an interconnected network, from an organ\
+        connected to the synapse, and set them for the synapse.
+        
+        Arguments
+        ---------
+        organ : Axon or Dendrite
+            Attached organ that needs to be coordinated.
+        
+        Returns
+        -------
+        None
+        
+        """
         if self.is_constructed:
             return
         organ_is_axon = issubclass(type(organ), Axon)
@@ -163,6 +280,32 @@ class Synapse(torch.nn.Module, CRI):
         axon: Axon,
         dendrite: Dendrite,
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        name : str
+            The name to be uniquely accessible in Spiral network.
+        source : Iterable of int
+            The topology of connected axon terminals.
+        target : Iterable of int
+            The topology of connected dendrite spines.
+        batch : int
+            Determines the batch size.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        axon : Axon
+            The connected axon.
+        dendrite : Dendrite
+            The connected dendrite.
+        
+        Returns
+        -------
+        None
+        
+        """
         self._name = name
         self._source = (*source,)
         self._target = (*target,)
@@ -201,6 +344,20 @@ class Synapse(torch.nn.Module, CRI):
         self,
         axon: Axon,
     ) -> Synapse:
+        """
+        Attaches a neuromodulatory axon to the synapse.
+        
+        Arguments
+        ---------
+        axom : Axon
+            The attaching neuromodulatory axon.
+        
+        Returns
+        -------
+        self: Synapse
+            With the aim of making chains possible.
+        
+        """
         if self.is_constructed:
             self.__register_neuromodulatory_axon(axon)
         else:
@@ -212,6 +369,20 @@ class Synapse(torch.nn.Module, CRI):
         self,
         organ: Union[Axon, Dendrite],
     ) -> Synapse:
+        """
+        Connects an organ to the synapse.
+        
+        Arguments
+        ---------
+        organ : Axon or Dendrite
+            Connecting organ.
+        
+        Returns
+        -------
+        self: Soma
+            With the aim of making chains possible.
+        
+        """
         organ_is_axon = issubclass(type(organ), Axon)
         
         if organ_is_axon:
@@ -227,29 +398,59 @@ class Synapse(torch.nn.Module, CRI):
 
     def _integrate_neuromodulators(
         self,
-        direct_neuromodulators: torch.Tensor = torch.as_tensor(0.)
+        direct_neuromodulator: torch.Tensor = torch.as_tensor(0.)
     ) -> torch.Tensor:
-        neuromodulators = torch.zeros(*self.axon.shape, *self.axon.terminal)
-        neuromodulators += direct_neuromodulators
+        """
+        Calculates the sum of neuromodulators from neuromodulatory axons or direct inputs.
+        
+        Arguments
+        ---------
+        direct_input : torch.Tensor
+            Direct neuromodulatory input.
+        
+        Returns
+        -------
+        total_neuromodulator_current : torch.Tensor
+            The sum of neuromodulators from neuromodulatory axons or direct inputs.
+        
+        """
+        neuromodulator = torch.zeros(*self.axon.shape, *self.axon.terminal)
+        neuromodulator += direct_neuromodulator
         for axon in self.neuromodulatory_axons.values():
-            neuromodulators += axon.release()
-        return neuromodulators
+            neuromodulator += axon.release()
+        return neuromodulator
 
 
     @construction_required
     def forward(
         self,
         mask: torch.Tensor = torch.as_tensor(True),
-        direct_neuromodulators: torch.Tensor = torch.as_tensor(0.)
+        direct_neuromodulator: torch.Tensor = torch.as_tensor(0.)
     ) -> None:
-        neurotransmitters = self.axon.release()
-        neuromodulators = self._integrate_neuromodulators(direct_neuromodulators=direct_neuromodulators)
-        self.dendrite.forward(neurotransmitters=neurotransmitters, neuromodulators=neuromodulators)
+        """
+        Simulate the synapse activity for a single step.
+        
+        Returns
+        -------
+        None
+        
+        """
+        neurotransmitter = self.axon.release()
+        neuromodulator = self._integrate_neuromodulators(direct_neuromodulator=direct_neuromodulator)
+        self.dendrite.forward(neurotransmitter=neurotransmitter, neuromodulator=neuromodulator)
 
 
     def reset(
         self
     ) -> None:
+        """
+        Refractor and reset the somas and connected organs.
+        
+        Returns
+        -------
+        None
+        
+        """
         pass
 
 
@@ -258,10 +459,46 @@ class Synapse(torch.nn.Module, CRI):
 @typechecked
 @covering_around([Synapse])
 class DisconnectorSynapticCover(AOC):
+    """
+    Add-on class to add disconnectivity to synaptic connections.
+
+    This module adds disconnectivity, means that some dendrite spines will always receive\
+    empty inputs from some axon terminals.\
+    Read more about add-on classes in add-on-class package documentation.\
+    Because this is an add-on class, we will only introduce the properties and functions it adds.
+
+    Add-On Properties
+    -----------------
+    connectivity_pattern : ConnectivityPattern
+        Specifies which connections exist and which do not.\
+        This connectivity can change over time.\
+        Read more about ConnectivityPattern in Spiral.ConnectivityPattern module documentation.
+
+    Add-On Arguments
+    ----------------
+    connectivity_pattern : ConnectivityPattern, Necessary
+        Specifies which connections exist and which do not.
+        Read more about ConnectivityPattern in Spiral.ConnectivityPattern module documentation.
+    """
+
     def __post_init__(
         self,
         connectivity_pattern: ConnectivityPattern,
     ) -> None:
+        """
+        This function will be called after the original `__init__()` call\
+        initializes add-on properties.
+
+        Arguments
+        ---------
+        connectivity_pattern : ConnectivityPattern
+            Specifies which connections exist and which do not.
+
+        Returns
+        -------
+        None
+        
+        """
         self.connectivity_pattern = connectivity_pattern
 
 
@@ -275,6 +512,32 @@ class DisconnectorSynapticCover(AOC):
         axon: Axon,
         dendrite: Dendrite,
     ) -> None:
+        """
+        This function is related to the completion of the construction process.\
+        Read more about `__construct__` in construction-requirements-integrator package documentation.
+        
+        Arguments
+        ---------
+        name : str
+            The name to be uniquely accessible in Spiral network.
+        source : Iterable of int
+            The topology of connected axon terminals.
+        target : Iterable of int
+            The topology of connected dendrite spines.
+        batch : int
+            Determines the batch size.
+        dt : float or torch.Tensor
+            Time step in milliseconds.
+        axon : Axon
+            The connected axon.
+        dendrite : Dendrite
+            The connected dendrite.
+        
+        Returns
+        -------
+        None
+        
+        """
         self.__core.__construct__(
             self,
             name=name,
@@ -295,10 +558,18 @@ class DisconnectorSynapticCover(AOC):
     def forward(
         self,
         mask: torch.Tensor = torch.as_tensor(True),
-        direct_neuromodulators: torch.Tensor = torch.as_tensor(0.)
+        direct_neuromodulator: torch.Tensor = torch.as_tensor(0.)
     ) -> None:
+        """
+        Simulate the synapse activity for a single step.
+        
+        Returns
+        -------
+        None
+        
+        """
         self.__core.forward(
             self,
             mask=mask*self.connectivity_pattern(),
-            direct_neuromodulators=direct_neuromodulators,
+            direct_neuromodulator=direct_neuromodulator,
         )
