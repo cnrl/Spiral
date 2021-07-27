@@ -726,10 +726,10 @@ class STDP(SynapticPlasticity):
         postsynaptic_tag = self.postsynaptic_tagging(action_potential=action_potential)
         ltp_rate = self.ltp_rate(synaptic_weights=synaptic_weights.reshape(1, *self.source, 1, *self.target))
         ltd_rate = self.ltd_rate(synaptic_weights=synaptic_weights.reshape(1, *self.source, 1, *self.target))
-        ltp = ltp_rate * presynaptic_tag.reshape(self.batch, *self.source, *[1]*len(self.target)) * action_potential
-        ltd = ltd_rate * neurotransmitter.reshape(self.batch *self.source, *[1]*len(self.target)) * postsynaptic_tag
+        ltp = ltp_rate * presynaptic_tag.reshape(self.batch, *self.source, 1, *[1]*len(self.target)) * action_potential
+        ltd = ltd_rate * neurotransmitter.reshape(self.batch, *self.source, 1, *[1]*len(self.target)) * postsynaptic_tag
         dw = (ltp - ltd) * self.dt
-        return dw.mean([0, len(self.source)])
+        return dw.mean([0, len(self.source)+1])
 
 
     def reset(

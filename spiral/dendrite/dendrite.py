@@ -221,6 +221,9 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         self.plasticity_model.meet_requirement(dt=self.dt)
         self.plasticity_model.meet_requirement(maximum_weight=self.min)
         self.plasticity_model.meet_requirement(minimum_weight=self.max)
+        self.register_buffer('_neurotransmitter', torch.zeros(self.batch, *self.spine))
+        self.register_buffer('_neuromodulator', torch.zeros(self.batch, *self.spine))
+        self.register_buffer('_action_potential', torch.zeros(self.batch, *self.shape))
 
 
     def _keep_weight_limits(
@@ -304,7 +307,6 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         None
         
         """
-        self._action_potential = action_potential
         synaptic_weights_plasticity = self.plasticity_model(
             neurotransmitter=self.neurotransmitter,
             neuromodulator=self.neuromodulator,
@@ -313,6 +315,7 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         )
         if self.plasticity:
             self._update_synaptic_weights(synaptic_weights_plasticity)
+        self._action_potential = action_potential
 
 
     @abstractmethod
@@ -342,12 +345,9 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         None
         
         """
-        if hasattr(self, '_neurotransmitter'):
-            del self._neurotransmitter
-        if hasattr(self, '_neuromodulator'):
-            del self._neuromodulator
-        if hasattr(self, '_action_potential'):
-            del self._action_potential
+        self._neurotransmitter.zero_()
+        self._neuromodulator.zero_()
+        self._action_potential.zero_()
         self.plasticity_model.reset()
         if self.analyzable:
             self.monitor.reset()
