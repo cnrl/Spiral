@@ -119,8 +119,8 @@ class OneHotEncoder(SpikingSoma):
             The sum of currents from dendrites or direct inputs in milliamperes.
         
         """
-        i = torch.zeros(self.batch, *self._input_shape)
-        i += direct_input
+        i = torch.zeros(self.batch, *self._input_shape, device=self.dt.device)
+        i += direct_input.to(self.dt.device)
         return i
 
 

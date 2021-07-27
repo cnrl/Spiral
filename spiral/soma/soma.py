@@ -285,8 +285,8 @@ class Soma(torch.nn.Module, CRI, ABC):
             The sum of currents from dendrites or direct inputs in milliamperes.
         
         """
-        i = torch.zeros(self.batch, *self.shape)
-        i += direct_input
+        i = torch.zeros(self.batch, *self.shape, device=self.dt.device)
+        i += direct_input.to(self.dt.device)
         for dendrite in self.dendrites.values():
             i += dendrite.transmit_current()
         return i
