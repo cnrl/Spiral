@@ -275,7 +275,7 @@ class SpikingSoma(Soma, ABC):
         spikes = spikes.reshape(spikes.shape[0], -1)
         time_range = (0, spikes.shape[0])
         x,y = torch.where(spikes)
-        x = x*self.dt.to(x.device)
+        x = x*self.dt.to(spikes.device)
         axes.scatter(x, y, **kwargs)
         axes.set_ylabel('spike')
         axes.set_xlabel('time (ms)')

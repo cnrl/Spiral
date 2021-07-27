@@ -376,7 +376,7 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         """
         y = self.monitor['transmit_current'].reshape(self.monitor['transmit_current'].shape[0],-1)
         time_range = (0, y.shape[0])
-        x = torch.arange(*time_range)*self.dt.to(x.device)
+        x = torch.arange(*time_range)*self.dt.to(y.device)
         population_alpha = 1/y.shape[1]
         aggregated = y.mean(axis=1)
         axes.plot(x, aggregated, color='blue', **kwargs)
@@ -651,7 +651,7 @@ class LinearDendrite(Dendrite):
         """
         y = self.monitor['w'].reshape(self.monitor['w'].shape[0],-1)
         time_range = (0, y.shape[0])
-        x = torch.arange(*time_range)*self.dt.to(x.device)
+        x = torch.arange(*time_range)*self.dt.to(y.device)
         population_alpha = 1/y.shape[1]
         axes.plot(x, y, alpha=population_alpha)
         axes.set_ylabel('synaptic weights')
