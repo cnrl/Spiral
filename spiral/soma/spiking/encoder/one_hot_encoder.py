@@ -254,13 +254,13 @@ class Object2IndexReceiver(AOC):
         
         """
         if len(self._input_shape)>0:
-            for _ in range(input_dims-1):
+            for _ in range(len(self._input_shape)):
                 direct_input = [sub_sub_input for sub_input in direct_input for sub_sub_input in sub_input]
         if self.__unknown_exception:
             direct_input = [self.object2index[i] for i in direct_input]
         else:
             direct_input = [self.object2index.get(i, self.__default) for i in direct_input]
-        direct_input = torch.as_tensor(direct_input).reshape(self._input_shape)
+        direct_input = torch.as_tensor(direct_input).reshape(self.batch, *self._input_shape)
         self.__core.progress(
             self,
             direct_input=direct_input,
