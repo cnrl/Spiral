@@ -300,7 +300,7 @@ class IntegrateAndFireSoma(SpikingSoma):
         """
         y = self.monitor['potential'].reshape(self.monitor['potential'].shape[0],-1)
         time_range = (0, y.shape[0])
-        x = torch.arange(*time_range)*self.dt
+        x = torch.arange(*time_range)*self.dt.to(x.device)
         population_alpha = 1/y.shape[1]
         aggregated = y.mean(axis=1)
         axes.plot(x, aggregated, color='green', label='potential', **kwargs)
@@ -312,8 +312,8 @@ class IntegrateAndFireSoma(SpikingSoma):
         axes.set_ylabel('potential (mV)')
         axes.set_xlabel('time (ms)')
         axes.set_xlim(time_range)
-        diff = (self.firing_threshold-self.resting_potential).max()
-        axes.set_ylim((self.resting_potential.min()-diff/2, self.firing_threshold.max()+diff/2))
+        diff = (self.firing_threshold.to(x.device)-self.resting_potential.to(x.device)).max()
+        axes.set_ylim((self.resting_potential.to(x.device).min()-diff/2, self.firing_threshold.to(x.device).max()+diff/2))
         axes.legend()
 
 
@@ -721,7 +721,7 @@ class AdaptiveMembrane(AOC):
         """
         y = self.monitor['adaptation_current'].reshape(self.monitor['adaptation_current'].shape[0],-1)
         time_range = (0, y.shape[0])
-        x = torch.arange(*time_range)*self.dt
+        x = torch.arange(*time_range)*self.dt.to(x.device)
         population_alpha = 1/y.shape[1]
         aggregated = y.mean(axis=1)
         axes.plot(x, aggregated, color='red', **kwargs)
