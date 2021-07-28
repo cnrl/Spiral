@@ -185,6 +185,8 @@ class CompositeResponseFunction(ResponseFunction): #In order
             construction_permission=False,
         )
         self.response_functions = response_functions
+        for i,response_function in enumerate(response_functions):
+            self.add_module(str(i), response_function)
         self.set_construction_permission(construction_permission)
 
 
