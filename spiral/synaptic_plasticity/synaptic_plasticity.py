@@ -198,7 +198,7 @@ class SynapticPlasticity(torch.nn.Module, CRI):
 
 
 @typechecked
-class CompositeSynapticPlasticity(SynapticPlasticity): # don't care about order
+class CompositeSynapticPlasticity(SynapticPlasticity):
     """
     It will make a composition of the input synaptic plasticities.\
     Order of the input synaptic plasticities is not important.\
@@ -286,6 +286,8 @@ class CompositeSynapticPlasticity(SynapticPlasticity): # don't care about order
             construction_permission=False,
         )
         self.synaptic_plasticities = synaptic_plasticities
+        for i,synaptic_plasticity in enumerate(synaptic_plasticities):
+            self.add_module(str(i), synaptic_plasticity)
         self.set_construction_permission(construction_permission)
 
 
