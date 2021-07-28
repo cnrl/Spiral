@@ -284,9 +284,12 @@ class AggConnectivity(ConnectivityPattern, ABC):
             target=target,
             batch=batch,
             dt=dt,
-            construction_permission=construction_permission,
+            construction_permission=False,
         )
         self.connectivity_patterns = connectivity_patterns
+        for i,connectivity_pattern in enumerate(connectivity_patterns):
+            self.add_module(str(i), ConnectivityPattern)
+        self.set_construction_permission(construction_permission)
 
 
     def __construct__(
