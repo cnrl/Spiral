@@ -585,7 +585,7 @@ class LinearDendrite(Dendrite):
             initial_weights = initial_weights((*self.spine, *self.shape))
         initial_weights = torch.as_tensor(initial_weights)
         if initial_weights.numel()==1:
-            initial_weights = initial_weights.reshape(*self.spine, *self.shape)
+            initial_weights = torch.ones(*self.spine, *self.shape)*initial_weights
         if initial_weights.shape!=(*self.spine, *self.shape):
             raise Exception(f"`initial_weights` must be in shape {*self.spine, *self.shape}")
         self.register_buffer("_w", initial_weights)
