@@ -1,4 +1,4 @@
 from .synapse import (
-    Synapse,
+    FullyConnectedSynapse,
     DisconnectorSynapticCover
 )

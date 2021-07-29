@@ -605,8 +605,7 @@ class LinearDendrite(Dendrite):
             Output current.
         
         """
-        output = self.neurotransmitter.reshape(self.batch, *self.spine, *[1]*len(self.shape))
-        output = output * self.synaptic_weights
+        output = self.neurotransmitter * self.synaptic_weights.reshape(1, *self.spine, 1, *self.shape)
         output = output.sum(axis=list(range(len(self.spine)+1)))
         return output
 

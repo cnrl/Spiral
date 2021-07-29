@@ -21,7 +21,6 @@ from spiral.learning_rate.synaptic_plasticity_rate import SynapticPlasticityRate
 class SynapticPlasticity(torch.nn.Module, CRI, ABC):
     """
     Basic class for synaptic plasticities.\
-    This module will provide no-operation synaptic plasticity and always returns 0 as proper synaptic weight changes.\
     Since this is a base class, it receives different inputs for construction that it may not use all of them.\
     But its children will need them.
 
@@ -152,7 +151,6 @@ class SynapticPlasticity(torch.nn.Module, CRI, ABC):
 
 
     @abstractmethod
-    @construction_required
     def __call__(
         self,
         neurotransmitter: torch.Tensor,
@@ -627,6 +625,7 @@ class STDP(SynapticPlasticity):
         maximum_weight: Union[float, torch.Tensor] = None,
         minimum_weight: Union[float, torch.Tensor] = None,
         dt: Union[float, torch.Tensor] = None,
+        related_to_fair_synapse: bool = False,
         construction_permission: bool = True,
     ) -> None:
         super().__init__(
@@ -638,6 +637,7 @@ class STDP(SynapticPlasticity):
             dt=dt,
             construction_permission=False,
         )
+        self.__related_to_fair_synapse = related_to_fair_synapse
         self.presynaptic_tagging = presynaptic_tagging
         self.postsynaptic_tagging = postsynaptic_tagging
         self.ltp_rate = SynapticPlasticityRate(rate=0.01) if ltp_rate is None else ltp_rate
@@ -686,7 +686,11 @@ class STDP(SynapticPlasticity):
             minimum_weight=minimum_weight,
             dt=dt,
         )
-        self.presynaptic_tagging.meet_requirement(shape=(self.batch, *self.source))
+        self.presynaptic_tagging.meet_requirement(
+            shape=(self.batch, *self.source, self.batch, *self.target)
+            if not self.__related_to_fair_synapse else
+            (self.batch, *self.source, 1, *[1]*len(self.target))
+        )
         self.presynaptic_tagging.meet_requirement(dt=self.dt)
         self.postsynaptic_tagging.meet_requirement(shape=(self.batch, *self.target))
         self.postsynaptic_tagging.meet_requirement(dt=self.dt)
@@ -730,8 +734,8 @@ class STDP(SynapticPlasticity):
         postsynaptic_tag = self.postsynaptic_tagging(action_potential=action_potential)
         ltp_rate = self.ltp_rate(synaptic_weights=synaptic_weights.reshape(1, *self.source, 1, *self.target))
         ltd_rate = self.ltd_rate(synaptic_weights=synaptic_weights.reshape(1, *self.source, 1, *self.target))
-        ltp = ltp_rate * presynaptic_tag.reshape(self.batch, *self.source, 1, *[1]*len(self.target)) * action_potential
-        ltd = ltd_rate * neurotransmitter.reshape(self.batch, *self.source, 1, *[1]*len(self.target)) * postsynaptic_tag
+        ltp = ltp_rate * presynaptic_tag * action_potential
+        ltd = ltd_rate * neurotransmitter * postsynaptic_tag
         dw = (ltp - ltd) * self.dt
         return dw.mean([0, len(self.source)+1])
 

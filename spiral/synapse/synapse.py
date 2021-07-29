@@ -10,6 +10,7 @@ from __future__ import annotations
 import torch
 from typing import Union, Iterable
 from typeguard import typechecked
+from abc import ABC, abstractmethod
 from constant_properties_protector import CPP
 from construction_requirements_integrator import CRI, construction_required
 from add_on_class import AOC, covering_around
@@ -21,9 +22,9 @@ from spiral.connectivity_pattern.connectivity_pattern import ConnectivityPattern
 
 
 @typechecked
-class Synapse(torch.nn.Module, CRI):
+class Synapse(torch.nn.Module, CRI, ABC):
     """
-    Class for usual synapses.
+    Base class for synapses.
 
     The purpose of the synapse is to receive neurotransmitters from a connected axon,
     neuromodulators from connected neuromodulatory axons,\
@@ -414,14 +415,14 @@ class Synapse(torch.nn.Module, CRI):
             The sum of neuromodulators from neuromodulatory axons or direct inputs.
         
         """
-        neuromodulator = torch.zeros(*self.axon.shape, *self.axon.terminal)
+        neuromodulator = torch.zeros(self.batch, *self.axon.shape, *self.axon.terminal)
         neuromodulator += direct_neuromodulator
         for axon in self.neuromodulatory_axons.values():
             neuromodulator += axon.release()
         return neuromodulator
 
 
-    @construction_required
+    @abstractmethod
     def forward(
         self,
         mask: torch.Tensor = torch.as_tensor(True),
@@ -435,9 +436,7 @@ class Synapse(torch.nn.Module, CRI):
         None
         
         """
-        neurotransmitter = self.axon.release()
-        neuromodulator = self._integrate_neuromodulators(direct_neuromodulator=direct_neuromodulator)
-        self.dendrite.forward(neurotransmitter=neurotransmitter, neuromodulator=neuromodulator)
+        pass
 
 
     def reset(
@@ -457,7 +456,37 @@ class Synapse(torch.nn.Module, CRI):
 
 
 @typechecked
-@covering_around([Synapse])
+class FullyConnectedSynapse(Synapse):
+    """
+    A fully connected synapse will transmit the output of each axon terminal to each\
+    spine of the dendrite.
+    """
+
+    @construction_required
+    def forward(
+        self,
+        mask: torch.Tensor = torch.as_tensor(True),
+        direct_neuromodulator: torch.Tensor = torch.as_tensor(0.)
+    ) -> None:
+        """
+        Simulate the synapse activity for a single step.
+        
+        Returns
+        -------
+        None
+        
+        """
+        neurotransmitter = self.axon.release()\
+                            .reshape(self.batch, *self.source, 1, *[1]*len(self.target))
+        neuromodulator = self._integrate_neuromodulators(direct_neuromodulator=direct_neuromodulator)\
+                            .reshape(self.batch, *self.source, 1, *[1]*len(self.target))
+        self.dendrite.forward(neurotransmitter=neurotransmitter*mask, neuromodulator=neuromodulator*mask)
+
+
+
+
+@typechecked
+@covering_around([FullyConnectedSynapse])
 class DisconnectorSynapticCover(AOC):
     """
     Add-on class to add disconnectivity to synaptic connections.
