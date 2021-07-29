@@ -8,6 +8,7 @@ This module will determine and tell the dendrite proper synaptic weight changes.
 import torch
 from typing import Union, Iterable
 from typeguard import typechecked
+from abc import ABC, abstractmethod
 from constant_properties_protector import CPP
 from construction_requirements_integrator import CRI, construction_required
 from spiral.response_function.response_function import ResponseFunction
@@ -17,7 +18,7 @@ from spiral.learning_rate.synaptic_plasticity_rate import SynapticPlasticityRate
 
 
 @typechecked
-class SynapticPlasticity(torch.nn.Module, CRI):
+class SynapticPlasticity(torch.nn.Module, CRI, ABC):
     """
     Basic class for synaptic plasticities.\
     This module will provide no-operation synaptic plasticity and always returns 0 as proper synaptic weight changes.\
@@ -150,6 +151,7 @@ class SynapticPlasticity(torch.nn.Module, CRI):
         self.register_buffer("_dt", torch.as_tensor(dt))
 
 
+    @abstractmethod
     @construction_required
     def __call__(
         self,
@@ -178,7 +180,7 @@ class SynapticPlasticity(torch.nn.Module, CRI):
             The proper synaptic weight changes.
         
         """
-        return torch.as_tensor(0.)
+        pass
 
 
     def reset(

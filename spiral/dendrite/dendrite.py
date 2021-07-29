@@ -109,7 +109,7 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         Determines the maximum possible synaptic weight.
     minimum_weight : float or torch.Tensor, Optional, default: 0.
         Determines the minimum possible synaptic weight.
-    plasticity_model : SynapticPlasticity, Optional, default: SynapticPlasticity()
+    plasticity_model : SynapticPlasticity, Optional, default: None
         Determines how the synaptic plasticity is calculated.\
         Read more about synaptic plasticities in Spiral.SynapticPlasticity module documentation.
     plasticity : bool, Optional, default: True
@@ -145,9 +145,10 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         CPP.protect(self, 'neurotransmitter')
         CPP.protect(self, 'neuromodulator')
         CPP.protect(self, 'action_potential')
+        CPP.protect(self, 'plasticity_model')
         self.register_buffer('max', torch.as_tensor(maximum_weight))
         self.register_buffer('min', torch.as_tensor(minimum_weight))
-        self.plasticity_model = SynapticPlasticity() if plasticity_model is None else plasticity_model
+        self._plasticity_model = plasticity_model
         self.plasticity = plasticity
         Analyzer.__init__(self, analyzable)
         Analyzer.scout(self, state_calls={'transmit_current': self.transmit_current})
@@ -215,12 +216,13 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         self._spine = (*spine,)
         self._batch = batch
         self.register_buffer("_dt", torch.as_tensor(dt))
-        self.plasticity_model.meet_requirement(source=spine)
-        self.plasticity_model.meet_requirement(target=shape)
-        self.plasticity_model.meet_requirement(batch=batch)
-        self.plasticity_model.meet_requirement(dt=self.dt)
-        self.plasticity_model.meet_requirement(maximum_weight=self.min)
-        self.plasticity_model.meet_requirement(minimum_weight=self.max)
+        if self.plasticity_model is not None:
+            self._plasticity_model.meet_requirement(source=spine)
+            self._plasticity_model.meet_requirement(target=shape)
+            self._plasticity_model.meet_requirement(batch=batch)
+            self._plasticity_model.meet_requirement(dt=self.dt)
+            self._plasticity_model.meet_requirement(maximum_weight=self.min)
+            self._plasticity_model.meet_requirement(minimum_weight=self.max)
         self.register_buffer('_neurotransmitter', torch.zeros(self.batch, *self.spine))
         self.register_buffer('_neuromodulator', torch.zeros(self.batch, *self.spine))
         self.register_buffer('_action_potential', torch.zeros(self.batch, *self.shape))
@@ -307,14 +309,15 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         None
         
         """
-        synaptic_weights_plasticity = self.plasticity_model(
-            neurotransmitter=self.neurotransmitter,
-            neuromodulator=self.neuromodulator,
-            action_potential=self.action_potential,
-            synaptic_weights=self.synaptic_weights,
-        )
-        if self.plasticity:
-            self._update_synaptic_weights(synaptic_weights_plasticity)
+        if self.plasticity_model is not None:
+            synaptic_weights_plasticity = self.plasticity_model(
+                neurotransmitter=self.neurotransmitter,
+                neuromodulator=self.neuromodulator,
+                action_potential=self.action_potential,
+                synaptic_weights=self.synaptic_weights,
+            )
+            if self.plasticity:
+                self._update_synaptic_weights(synaptic_weights_plasticity)
         self._action_potential = action_potential
 
 
@@ -348,7 +351,8 @@ class Dendrite(torch.nn.Module, CRI, ABC):
         self._neurotransmitter.zero_()
         self._neuromodulator.zero_()
         self._action_potential.zero_()
-        self.plasticity_model.reset()
+        if self.plasticity_model is not None:
+            self.plasticity_model.reset()
         if self.analyzable:
             self.monitor.reset()
 
@@ -476,7 +480,7 @@ class LinearDendrite(Dendrite):
         Determines the maximum possible synaptic weight.
     minimum_weight : float or torch.Tensor, Optional, default: 0.
         Determines the minimum possible synaptic weight.
-    plasticity_model : SynapticPlasticity, Optional, default: SynapticPlasticity()
+    plasticity_model : SynapticPlasticity, Optional, default: None
         Determines how the synaptic plasticity is calculated.\
         Read more about synaptic plasticities in Spiral.SynapticPlasticity module documentation.
     plasticity : bool, Optional, default: True
