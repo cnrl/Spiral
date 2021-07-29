@@ -539,8 +539,7 @@ class FixedConnectivity(ConnectivityPattern, ABC):
             dt=dt,
         )
         self.is_constructed = True
-        self.connectivity = self._generate_connectivity()
-        self.connectivity = self._add_batch_dims(connectivity=self.connectivity)
+        self.register_buffer('connectivity', self._add_batch_dims(connectivity=self._generate_connectivity()))
 
 
     @abstractmethod
