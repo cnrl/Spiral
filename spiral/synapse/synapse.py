@@ -415,7 +415,7 @@ class Synapse(torch.nn.Module, CRI, ABC):
             The sum of neuromodulators from neuromodulatory axons or direct inputs.
         
         """
-        neuromodulator = torch.zeros(self.batch, *self.axon.shape, *self.axon.terminal)
+        neuromodulator = torch.zeros(self.batch, *self.axon.shape, *self.axon.terminal, device=self.dt.device)
         neuromodulator += direct_neuromodulator
         for axon in self.neuromodulatory_axons.values():
             neuromodulator += axon.release()
