@@ -458,7 +458,7 @@ class LeakyResponseFunction(ResponseFunction):
             The response.
         
         """
-        self._response += action_potential.float() - self.response * self.dt / self.tau
+        self._response = action_potential.float() + self.response * (1 - self.dt / self.tau)
         return self.response
 
 
@@ -613,7 +613,7 @@ class FlatResponseFunction(ResponseFunction):
             The response.
         
         """
-        self._response += action_potential
+        self._response = self.response + action_potential.float()
         return self.response
 
 
@@ -727,8 +727,8 @@ class LimitedFlatResponseFunction(ResponseFunction):
         self.register_buffer("_duration", (torch.as_tensor(duration)//self.dt).type(torch.int64))
         if len(self.duration.shape)!=0 and self.duration.shape!=self.shape:
             raise Exception(f"Wrong shape for response limited flat function duration. Expected {self.shape} or a single value but got {self.duration.shape}")
-        history_length = self.duration.max()+1
-        self.register_buffer("_action_potential_history", torch.zeros((history_length,*self.shape)))
+        self.__history_length = self.duration.max()+1
+        self.register_buffer("_action_potential_history", torch.zeros(0))
 
 
     @construction_required
@@ -750,12 +750,15 @@ class LimitedFlatResponseFunction(ResponseFunction):
             The response.
         
         """
-        self._action_potential_history = torch.cat([action_potential.unsqueeze(0), self.action_potential_history])
+        self._action_potential_history = torch.cat([action_potential.unsqueeze(0), self.action_potential_history, torch.zeros_like(action_potential).unsqueeze(0)])
         if self.duration.numel()>1:
             self._action_potential_history = self.action_potential_history.scatter(
-                dim=0, index=self.duration.unsqueeze(0)+1, src=torch.zeros_like(self.duration).unsqueeze(0).float()
+                dim=0,
+                index=torch.min(self.duration.unsqueeze(0)+1, torch.as_tensor(self._action_potential_history.shape[0]-1)),
+                src=torch.zeros_like(self.duration).unsqueeze(0).float(),
             )
         self._action_potential_history = self.action_potential_history[:-1]
+        self._action_potential_history = self.action_potential_history[:self.__history_length]
         return self.action_potential_history.sum(axis=0)
 
 

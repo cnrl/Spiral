@@ -625,7 +625,6 @@ class STDP(SynapticPlasticity):
         maximum_weight: Union[float, torch.Tensor] = None,
         minimum_weight: Union[float, torch.Tensor] = None,
         dt: Union[float, torch.Tensor] = None,
-        related_to_fair_synapse: bool = False,
         construction_permission: bool = True,
     ) -> None:
         super().__init__(
@@ -637,7 +636,6 @@ class STDP(SynapticPlasticity):
             dt=dt,
             construction_permission=False,
         )
-        self.__related_to_fair_synapse = related_to_fair_synapse
         self.presynaptic_tagging = presynaptic_tagging
         self.postsynaptic_tagging = postsynaptic_tagging
         self.ltp_rate = SynapticPlasticityRate(rate=0.01) if ltp_rate is None else ltp_rate
@@ -686,11 +684,7 @@ class STDP(SynapticPlasticity):
             minimum_weight=minimum_weight,
             dt=dt,
         )
-        self.presynaptic_tagging.meet_requirement(
-            shape=(self.batch, *self.source, self.batch, *self.target)
-            if not self.__related_to_fair_synapse else
-            (self.batch, *self.source, 1, *[1]*len(self.target))
-        )
+        self.presynaptic_tagging.meet_requirement(shape=(self.batch, *self.source, 1, *[1]*len(self.target)))
         self.presynaptic_tagging.meet_requirement(dt=self.dt)
         self.postsynaptic_tagging.meet_requirement(shape=(self.batch, *self.target))
         self.postsynaptic_tagging.meet_requirement(dt=self.dt)
