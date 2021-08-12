@@ -500,7 +500,7 @@ class LinearDendrite(Dendrite):
         shape: Iterable[int] = None,
         batch: int = None,
         spine: Iterable[int] = None,
-        initial_weights: Union[float, torch.Tensor, Callable] = torch.rand,
+        initial_weights: Union[float, torch.Tensor, Callable] = None,
         dt: float = None,
         maximum_weight: Union[float, torch.Tensor] = 1.,
         minimum_weight: Union[float, torch.Tensor] = 0.,
@@ -522,6 +522,8 @@ class LinearDendrite(Dendrite):
             analyzable=analyzable,
             construction_permission=False,
         )
+        if initial_weights is None:
+            initial_weights = torch.rand
         self.add_to_construction_requirements(initial_weights=initial_weights)
         CPP.protect(self, 'w')
         self.set_construction_permission(construction_permission)
