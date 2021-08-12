@@ -826,7 +826,7 @@ class ConstantSummationOfAxonsUtilizationsPrinciple(AOC):
         w = self.__core._keep_weight_limits(self, w)
         w -= self.min
         expected_sum = self.utilizations_sum.reshape(-1, *[1]*len(self.shape)) - self.min * torch.prod(torch.as_tensor(self.shape))
-        current_sum = w.sum(axis=list(range(len(self.spine),len(self.spine)+len(self.shape))))
+        current_sum = w.sum(axis=list(range(len(self.spine),len(self.spine)+len(self.shape)))).reshape(-1, *[1]*len(self.shape))
         w *= expected_sum/current_sum
         w += self.min
         return w
