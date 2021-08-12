@@ -20,6 +20,7 @@ from spiral.dendrite.dendrite import Dendrite
 @typechecked
 class OneHotEncoder(SpikingSoma):
     """
+    TODO
     """
     def __init__(
         self,
@@ -196,30 +197,21 @@ class OneHotEncoder(SpikingSoma):
 @covering_around([OneHotEncoder])
 class Object2IndexReceiver(AOC):
     """
-    """
+    TODO
 
+    Arguments
+    ---------
+    sharpness : float or torch.Tensor, Optional, default: 2.0
+        Determines the sharpness of the depolarisation process.
+    depolarization_threshold : float or torch.Tensor, Optional, default: -50.4
+        Determines the membrane potential threshold of the depolarisation process in millivolts.
+    """
     def __post_init__(
         self,
         objects: Union[Dict, Iterable],
         default: int = -1,
         unknown_exception: bool = True,
     ) -> None:
-        """
-        This function will be called after the original `__init__()` call\
-        initializes add-on properties.
-
-        Arguments
-        ---------
-        sharpness : float or torch.Tensor, Optional, default: 2.0
-            Determines the sharpness of the depolarisation process.
-        depolarization_threshold : float or torch.Tensor, Optional, default: -50.4
-            Determines the membrane potential threshold of the depolarisation process in millivolts.
-
-        Returns
-        -------
-        None
-        
-        """
         if not hasattr(objects, '__getitem__'):
             objects = {o:i for i,o in enumerate(objects)}
         self.object2index = objects

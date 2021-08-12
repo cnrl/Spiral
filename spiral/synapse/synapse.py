@@ -509,25 +509,10 @@ class DisconnectorSynapticCover(AOC):
         Specifies which connections exist and which do not.
         Read more about ConnectivityPattern in Spiral.ConnectivityPattern module documentation.
     """
-
     def __post_init__(
         self,
         connectivity_pattern: ConnectivityPattern,
     ) -> None:
-        """
-        This function will be called after the original `__init__()` call\
-        initializes add-on properties.
-
-        Arguments
-        ---------
-        connectivity_pattern : ConnectivityPattern
-            Specifies which connections exist and which do not.
-
-        Returns
-        -------
-        None
-        
-        """
         self.connectivity_pattern = connectivity_pattern
 
 

@@ -421,28 +421,11 @@ class ExponentialDepolaristicMembrane(AOC):
     depolarization_threshold : float or torch.Tensor, Optional, default: -50.4
         Determines the membrane potential threshold of the depolarisation process in millivolts.
     """
-
     def __post_init__(
         self,
         sharpness: Union[float, torch.Tensor] = 2.,
         depolarization_threshold: Union[float, torch.Tensor] = -50.4,
     ) -> None:
-        """
-        This function will be called after the original `__init__()` call\
-        initializes add-on properties.
-
-        Arguments
-        ---------
-        sharpness : float or torch.Tensor, Optional, default: 2.0
-            Determines the sharpness of the depolarisation process.
-        depolarization_threshold : float or torch.Tensor, Optional, default: -50.4
-            Determines the membrane potential threshold of the depolarisation process in millivolts.
-
-        Returns
-        -------
-        None
-        
-        """
         self.register_buffer("sharpness", torch.as_tensor(sharpness))
         self.register_buffer("depolarization_threshold", torch.as_tensor(depolarization_threshold))
 
@@ -542,31 +525,12 @@ class AdaptiveMembrane(AOC):
     tau_adaptation : float or torch.Tensor, Optional, default: 144.0
         Determines time constant of membrane adaptation current dynamics in milliseconds.
     """
-
     def __post_init__(
         self,
         subthreshold_adaptation: Union[float, torch.Tensor] = 4.,
         spike_triggered_adaptation: Union[float, torch.Tensor] = .0805,
         tau_adaptation: Union[float, torch.Tensor] = 144.,
     ) -> None:
-        """
-        This function will be called after the original `__init__()` call\
-        initializes add-on properties.
-
-        Arguments
-        ---------
-        subthreshold_adaptation : float or torch.Tensor, Optional, default: 4.0
-            Determines the degree of adaptability of the membrane to strong steady flow.
-        spike_triggered_adaptation : float or torch.Tensor, Optional, default: 0.0805
-            Determines the degree of adaptability of the membrane to frequent action potentials.
-        tau_adaptation : float or torch.Tensor, Optional, default: 144.0
-            Determines time constant of membrane adaptation current dynamics in milliseconds.
-
-        Returns
-        -------
-        None
-        
-        """
         self.register_buffer("subthreshold_adaptation", torch.as_tensor(subthreshold_adaptation))
         self.register_buffer("spike_triggered_adaptation", torch.as_tensor(spike_triggered_adaptation))
         self.register_buffer("tau_adaptation", torch.as_tensor(tau_adaptation))
