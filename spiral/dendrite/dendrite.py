@@ -13,6 +13,7 @@ from typeguard import typechecked
 from abc import ABC, abstractmethod
 from constant_properties_protector import CPP
 from construction_requirements_integrator import CRI, construction_required
+from add_on_class import AOC, covering_around
 from spiral.analysis import Analyzer, analysis_point, analytics
 from spiral.synaptic_plasticity.synaptic_plasticity import SynapticPlasticity
 
@@ -660,3 +661,57 @@ class LinearDendrite(Dendrite):
         axes.set_ylabel('synaptic weights')
         axes.set_xlabel('time (ms)')
         axes.set_xlim(time_range)
+
+
+
+
+@typechecked
+@covering_around([LinearDendrite])
+class ConstantSummationOfLinearCoefficientsPrinciple(AOC):
+    """
+    Add-on class to add constant-summation-of-linear-coefficients principle principle\
+    to a linear dendrite.
+
+    This module will modify synaptic weights of a giving linear dendrite to perform\
+    constant-summation-of-linear-coefficients principle.
+    Read more about add-on classes in add-on-class package documentation.
+
+    Add-On Properties
+    -----------------
+    coefficients_sum : torch.Tensor
+        The constant summation of the synaptic weights.
+
+    Arguments
+    ---------
+    coefficients_sum : float or torch.Tensor, Necessary
+        The constant summation of the synaptic weights.
+    """
+    def __post_init__(
+        self,
+        coefficients_sum: Union[float, torch.Tensor],
+    ) -> None:
+        if self.min.numel()>1 and self.min.shape!=self.shape:
+            raise Exception("ConstantSummationOfLinearCoefficientsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all spines of each target neuron.")
+        self.register_buffer("coefficients_sum", torch.as_tensor(coefficients_sum))
+
+
+    def _keep_weight_limits(
+        self,
+        w: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Returns synaptic weights to their allowable range.
+
+        Returns
+        -------
+        allowable_weights: torch.Tensor
+            Weights in allowable range.
+        
+        """
+        w = self.__core._keep_weight_limits(self, w)
+        w -= self.min
+        expected_sum = self.coefficients_sum - self.min * torch.prod(torch.as_tensor(self.spine))
+        current_sum = w.sum(axis=list(range(len(self.spine))))
+        w *= expected_sum/current_sum
+        w += self.min
+        return w
