@@ -88,7 +88,7 @@ class KWinnersTakeAllPrinciple(AOC):
             self.number_of_remaining_winners = self.number_of_winners
 
         if self.spike.sum()>self.number_of_remaining_winners:
-            new_spikes = torch.zeros_like(self.spike).rehspa(-1)
+            new_spikes = torch.zeros_like(self.spike).reshape(-1)
             new_spikes[
                 (self.kwinners_take_all_spare_evaluation_criteria(self) - float('inf')*(~self.spike))\
                     .reshape(-1).topk(self.number_of_remaining_winners).indices\
