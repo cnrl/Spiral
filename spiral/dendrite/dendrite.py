@@ -668,49 +668,90 @@ class LinearDendrite(Dendrite):
 
 
 @typechecked
+@covering_around([Dendrite])
+class ConstantSummationOfSynapticWeightsPrinciple(AOC):
+    """
+    Add-on class to add constant-summation-of-synaptic-weights principle\
+    to a dendrite.
+
+    This module will modify synaptic weights of a giving linear dendrite to perform\
+    constant-summation-of-synaptic-weights principle. Weights in this module will\
+    always have constant sum.\
+    Read more about add-on classes in add-on-class package documentation.
+
+    Add-On Properties
+    -----------------
+    weights_sum : torch.Tensor
+        The constant summation of the synaptic weights.
+
+    Arguments
+    ---------
+    weights_sum : float or torch.Tensor, Necessary
+        The constant summation of the synaptic weights.
+        Determines in which direction the sum should be constant.\
+    """
+    def __post_init__(
+        self,
+        weights_sum: Union[float, torch.Tensor],
+    ) -> None:
+        if self.min.numel()>1:
+            raise Exception("ConstantSummationOfSynapticWeightsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all connections.")
+        self.register_buffer("weights_sum", torch.as_tensor(weights_sum))
+
+
+    def _keep_weight_limits(
+        self,
+        w: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Returns synaptic weights to their allowable range.
+
+        Returns
+        -------
+        allowable_weights: torch.Tensor
+            Weights in allowable range.
+        
+        """
+        w = self.__core._keep_weight_limits(self, w)
+        w -= self.min
+        expected_sum = self.weights_sum - self.min * w.numel()
+        current_sum = w.sum()
+        w *= expected_sum/current_sum
+        w += self.min
+        return w
+
+
+
+
+@typechecked
 @covering_around([LinearDendrite])
 class ConstantSummationOfLinearCoefficientsPrinciple(AOC):
     """
-    Add-on class to add constant-summation-of-linear-coefficients principle principle\
+    Add-on class to add constant-summation-of-linear-coefficients principle\
     to a linear dendrite.
 
     This module will modify synaptic weights of a giving linear dendrite to perform\
-    constant-summation-of-linear-coefficients principle.
+    constant-summation-of-linear-coefficients principle. In this module,\
+    weights for each destination neuron will always have constant sum.\
     Read more about add-on classes in add-on-class package documentation.
 
     Add-On Properties
     -----------------
     coefficients_sum : torch.Tensor
-        The constant summation of the synaptic weights.
-    axis :
+        The constant summation of the synaptic weights for each destination neuron.
 
     Arguments
     ---------
     coefficients_sum : float or torch.Tensor, Necessary
-        The constant summation of the synaptic weights.
-    axis : ['spines','population','both'], Optional, default: 'both'
-        Determines in which direction the sum should be constant.\
-        'spines' means the weights for each destination neuron have the same sum.\
-        'population' means the weights for each source neuron have the same sum.\
-        'both' means the all weights in this module have the same sum.
+        The constant summation of the synaptic weights for each destination neuron.
     """
     def __post_init__(
         self,
         coefficients_sum: Union[float, torch.Tensor],
-        axis: str = 'both',
+        axis: str = None,
     ) -> None:
-        if axis not in ['spines','population','both']:
-            raise Exception("axis must be one of: ['spines','population','both'].")
-        self.axis = axis
-        if self.axis=='spines':
-            if self.min.numel()>1 and self.min.shape!=self.shape:
-                raise Exception("ConstantSummationOfLinearCoefficientsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all spines of each target neuron.")
-        if self.axis=='population':
-            if self.min.numel()>1 and self.min.shape!=(*self.spine, *[1]*len(self.shape)):
-                raise Exception("ConstantSummationOfLinearCoefficientsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all target neurons of each source neuron.")
-        if self.axis=='both':
-            if self.min.numel()>1:
-                raise Exception("ConstantSummationOfLinearCoefficientsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all connections.")
+        if self.min.numel()>1 and self.min.shape!=self.shape:
+            raise Exception("ConstantSummationOfLinearCoefficientsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all spines of each target neuron.")
         self.register_buffer("coefficients_sum", torch.as_tensor(coefficients_sum))
 
 
@@ -729,15 +770,63 @@ class ConstantSummationOfLinearCoefficientsPrinciple(AOC):
         """
         w = self.__core._keep_weight_limits(self, w)
         w -= self.min
-        if self.axis=='spines':
-            expected_sum = self.coefficients_sum - self.min * torch.prod(torch.as_tensor(self.spine))
-            current_sum = w.sum(axis=list(range(len(self.spine))))
-        if self.axis=='population':
-            expected_sum = self.coefficients_sum.reshape(-1, *[1]*len(self.shape)) - self.min * torch.prod(torch.as_tensor(self.shape))
-            current_sum = w.sum(axis=list(range(len(self.spine),len(self.spine)+len(self.shape))))
-        if self.axis=='both':
-            expected_sum = self.coefficients_sum - self.min * w.numel()
-            current_sum = w.sum()
+        expected_sum = self.coefficients_sum - self.min * torch.prod(torch.as_tensor(self.spine))
+        current_sum = w.sum(axis=list(range(len(self.spine))))
+        w *= expected_sum/current_sum
+        w += self.min
+        return w
+
+
+
+
+@typechecked
+@covering_around([LinearDendrite])
+class ConstantSummationOfAxonsUtilizationsPrinciple(AOC):
+    """
+    Add-on class to add constant-summation-of-axons-utilizations principle\
+    to a linear dendrite.
+
+    This module will modify synaptic weights of a giving linear dendrite to perform\
+    constant-summation-of-axons-utilizations principle. In this module,\
+    weights for each source neuron will always have constant sum.\
+    Read more about add-on classes in add-on-class package documentation.
+
+    Add-On Properties
+    -----------------
+    utilizations_sum : torch.Tensor
+        The constant summation of the synaptic weights for each source neuron.
+
+    Arguments
+    ---------
+    utilizations_sum : float or torch.Tensor, Necessary
+        The constant summation of the synaptic weights for each source neuron.
+    """
+    def __post_init__(
+        self,
+        utilizations_sum: Union[float, torch.Tensor],
+    ) -> None:
+        if self.min.numel()>1 and self.min.shape!=(*self.spine, *[1]*len(self.shape)):
+            raise Exception("ConstantSummationOfAxonsUtilizationsPrinciple can be applied just to a linear dendrite that has same minimum synaptic weights value for all target neurons of each source neuron.")
+        self.register_buffer("utilizations_sum", torch.as_tensor(utilizations_sum))
+
+
+    def _keep_weight_limits(
+        self,
+        w: torch.Tensor
+    ) -> torch.Tensor:
+        """
+        Returns synaptic weights to their allowable range.
+
+        Returns
+        -------
+        allowable_weights: torch.Tensor
+            Weights in allowable range.
+        
+        """
+        w = self.__core._keep_weight_limits(self, w)
+        w -= self.min
+        expected_sum = self.utilizations_sum.reshape(-1, *[1]*len(self.shape)) - self.min * torch.prod(torch.as_tensor(self.shape))
+        current_sum = w.sum(axis=list(range(len(self.spine),len(self.spine)+len(self.shape))))
         w *= expected_sum/current_sum
         w += self.min
         return w
