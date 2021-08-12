@@ -122,35 +122,6 @@ class ConnectivityPattern(torch.nn.Module, CRI, ABC):
         self.register_buffer("_dt", torch.as_tensor(dt))
 
 
-    @construction_required
-    def _add_batch_dims(
-        self,
-        connectivity: torch.Tensor,
-    ) -> torch.Tensor:
-        """
-        connectivity pattern should be same in all batches.\
-        Also, there should be no connection between the two batches.\
-        This function, taking into account the above,\
-        converts a pattern produced regardless of the batch size\
-        into a pattern that can be used with the given batch size.
-
-        Arguments
-        ---------
-        connectivity : torch.Tensor[bool]
-            The pattern produced regardless of the batch size.
-        
-        Returns
-        -------
-        connectivity: torch.Tensor[bool]
-            The pattern that can be used with the given batch size.
-        
-        """
-        output = torch.zeros(self.batch, *self.source, self.batch, *self.target)
-        for i in range(self.batch):
-            output[i, :, i, :] = connectivity
-        return output
-
-
     @abstractmethod
     @construction_required
     def __call__(
@@ -539,7 +510,7 @@ class FixedConnectivity(ConnectivityPattern, ABC):
             dt=dt,
         )
         self.is_constructed = True
-        self.register_buffer('connectivity', self._add_batch_dims(connectivity=self._generate_connectivity()))
+        self.register_buffer('connectivity', self._generate_connectivity())
 
 
     @abstractmethod
@@ -639,7 +610,7 @@ class AutapseConnectivity(FixedConnectivity):
             The output connectivity pattern.
         
         """
-        return torch.diag(torch.ones(torch.prod(torch.as_tensor(self.source)))).reshape(*self.source, *self.target).bool()
+        return torch.diag(torch.ones(torch.prod(torch.as_tensor(self.source)))).reshape(1, *self.source, 1, *self.target).bool()
 
 
 
@@ -737,7 +708,7 @@ class RandomConnectivity(FixedConnectivity):
             The output connectivity pattern.
         
         """
-        return torch.rand(*self.source, *self.target).uniform_() > self.rate
+        return torch.rand(1, *self.source, 1, *self.target).uniform_() > self.rate
 
 
 
@@ -767,7 +738,7 @@ class RandomFixedCouplingConnectivity(RandomConnectivity):
         
         """
         count = int(torch.prod(torch.as_tensor(*self.source, *self.target))*self.rate)
-        output = torch.rand(*self.source, *self.target)
+        output = torch.rand(1, *self.source, 1, *self.target)
         threshold = output.reshape(-1).sort()[0][-count]
         return (output >= threshold)
 
@@ -799,7 +770,7 @@ class RandomFixedPresynapticPartnersConnectivity(RandomConnectivity):
         
         """
         count = int(torch.prod(torch.as_tensor(self.source))*self.rate)
-        output = torch.rand(*self.source, *self.target)
+        output = torch.rand(1, *self.source, 1, *self.target)
         flatted = output.reshape(-1, *self.target)
         threshold = torch.topk(flatted, flatted.shape[0], dim=0, largest=False)[0][-count]
         return (output >= threshold)
