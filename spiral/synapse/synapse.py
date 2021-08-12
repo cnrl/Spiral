@@ -480,7 +480,7 @@ class FullyConnectedSynapse(Synapse):
                             .reshape(self.batch, *self.source, 1, *[1]*len(self.target))
         neuromodulator = self._integrate_neuromodulators(direct_neuromodulator=direct_neuromodulator)\
                             .reshape(self.batch, *self.source, 1, *[1]*len(self.target))
-        mask = mask * torch.ones(self.batch).diag().reshape(self.batch, *[1]*len(self.source), self.batch, *[1]*len(self.target))
+        mask = mask * torch.ones(self.batch, device=self.dt.device).diag().reshape(self.batch, *[1]*len(self.source), self.batch, *[1]*len(self.target))
         self.dendrite.forward(neurotransmitter=neurotransmitter*mask, neuromodulator=neuromodulator*mask)
 
 
