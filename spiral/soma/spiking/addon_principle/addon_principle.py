@@ -50,7 +50,7 @@ class KWinnersTakeAllPrinciple(AOC):
         kwinners_take_all_spare_evaluation_criteria: Callable = None,
     ) -> None:
         self.number_of_winners = number_of_winners
-        self.number_of_remaining_winners = 0
+        self.number_of_remaining_winners = []
         self.register_buffer("kwinners_take_all_principle_duration", torch.as_tensor(kwinners_take_all_principle_duration))
         if self.kwinners_take_all_principle_duration.numel() > 1:
             raise Exception("kwinners_take_all_principle_duration must be a single float value.")
@@ -85,16 +85,17 @@ class KWinnersTakeAllPrinciple(AOC):
         
         if self.remaining_kwinners_take_all_principle_duration<self.dt:
             self.remaining_kwinners_take_all_principle_duration = self.kwinners_take_all_principle_duration
-            self.number_of_remaining_winners = self.number_of_winners
+            self.number_of_remaining_winners = [self.number_of_winners]*self.batch
 
-        if self.spike.sum()>self.number_of_remaining_winners:
-            new_spikes = torch.zeros_like(self.spike).reshape(-1)
-            new_spikes[
-                (self.kwinners_take_all_spare_evaluation_criteria(self) - float('inf')*(~self.spike))\
-                    .reshape(-1).topk(self.number_of_remaining_winners).indices\
-            ] = True
-            self._spike = new_spikes.reshape(self.spike.shape)
-        self.number_of_remaining_winners -= self.spike.sum()
+        for b in range(self.batch):
+            if self.spike[b].sum()>self.number_of_remaining_winners[b]:
+                new_spikes = torch.zeros_like(self.spike[b]).reshape(-1)
+                new_spikes[
+                    (self.kwinners_take_all_spare_evaluation_criteria(self)[b] - float('inf')*(~self.spike[b]))\
+                        .reshape(-1).topk(self.number_of_remaining_winners[b]).indices\
+                ] = True
+                self._spike[b] = new_spikes.reshape(self.spike[b].shape)
+            self.number_of_remaining_winners[b] -= self.spike[b].sum()
         self.remaining_kwinners_take_all_principle_duration -= self.dt
         
 
