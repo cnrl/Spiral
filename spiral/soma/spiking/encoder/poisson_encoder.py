@@ -48,7 +48,6 @@ class PoissonEncoder(SpikingSoma):
         shape: Iterable[int],
         batch: int,
         dt: Union[float, torch.Tensor],
-        size: int,
     ) -> None:
         """
         This function is related to the completion of the construction process.\
