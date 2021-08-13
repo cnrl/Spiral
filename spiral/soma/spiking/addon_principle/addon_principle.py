@@ -176,7 +176,8 @@ class KRandomClampsPrinciple(AOC):
         self.__core.progress(
             self,
             direct_input=direct_input,
-            clamps=clamps+\
+            clamps=clamps if k_clamps<=0 else\
+                clamps +\
                 torch.zeros_like(self.spike)\
                     .reshape(self.batch, -1)\
                     .scatter(
