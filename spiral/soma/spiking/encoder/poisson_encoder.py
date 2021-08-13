@@ -79,7 +79,7 @@ class PoissonEncoder(SpikingSoma):
     def use(
         self,
         organ: Union[Axon, Dendrite]
-    ) -> OneHotEncoder:
+    ) -> PoissonEncoder:
         """
         Attaches an organ to the soma.
         
