@@ -27,7 +27,7 @@ class PoissonEncoder(SpikingSoma):
     def __init__(
         self,
         name: str,
-        rate: Union[int, torch.Tensor],
+        rate: Union[float, torch.Tensor],
         shape: Iterable[int] = None,
         batch: int = None,
         dt: Union[float, torch.Tensor] = None,
