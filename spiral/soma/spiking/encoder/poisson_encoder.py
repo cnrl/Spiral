@@ -68,7 +68,7 @@ class PoissonEncoder(SpikingSoma):
         
         """
         super().__construct__(
-            shape=(*shape, size),
+            shape=shape,
             batch=batch,
             dt=dt
         )
