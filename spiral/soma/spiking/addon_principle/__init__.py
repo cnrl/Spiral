@@ -1,3 +1,4 @@
 from .addon_principle import (
-    KWinnersTakeAllPrinciple
+    KWinnersTakeAllPrinciple,
+    KRandomClampsPrinciple
 )
