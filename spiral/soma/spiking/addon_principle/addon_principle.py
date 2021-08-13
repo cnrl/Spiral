@@ -5,7 +5,7 @@ activity of a given spiking soma.
 
 
 import torch
-from typing import Union, Callable
+from typing import Union, Callable, Iterable
 from typeguard import typechecked
 from construction_requirements_integrator import construction_required
 from add_on_class import AOC, covering_around
@@ -21,7 +21,7 @@ class KWinnersTakeAllPrinciple(AOC):
     Add-on class to add k-winners-take-all principle to a spiking soma.
 
     This module will modify output spikes of a giving spiking soma to perform\
-    k-winners-take-all principle.
+    k-winners-take-all principle.\
     Read more about add-on classes in add-on-class package documentation.
 
     Add-On Properties
@@ -113,3 +113,79 @@ class KWinnersTakeAllPrinciple(AOC):
         """
         self.remaining_kwinners_take_all_principle_duration.zero_()
         self.__core.reset(self)
+
+
+
+
+@typechecked
+@covering_around([SpikingSoma])
+class KRandomClampsPrinciple(AOC):
+    """
+    Add-on class to add k-clamps principle to a spiking soma.
+
+    This module will modify output spikes of a giving spiking soma to perform\
+    k-clamps principle.\
+    Read more about add-on classes in add-on-class package documentation.
+
+    Add-On Properties
+    -----------------
+    clamps_distribution : Callable[SpikingSoma]
+        A function that returns distribution of selecting clamps.
+
+    Arguments
+    ---------
+    clamps_distribution : Callable[SpikingSoma], Optional, default: lambda x: torch.ones_like(x.spike)/x.spike.numel().
+        A function that returns distribution of selecting clamps.
+    """
+    def __post_init__(
+        self,
+        clamps_distribution: Callable = None,
+    ) -> None:
+        if clamps_distribution is None:
+            clamps_distribution = lambda x: torch.ones_like(x.spike).float()
+        self.clamps_distribution = clamps_distribution
+
+
+    @construction_required
+    @analysis_point
+    def progress(
+        self,
+        direct_input: torch.Tensor = torch.as_tensor(0.),
+        clamps: torch.Tensor = torch.as_tensor(False),
+        unclamps: torch.Tensor = torch.as_tensor(False),
+        k_clamps: int = 0,
+    ) -> None:
+        """
+        Simulate the soma activity for a single step.
+
+        Arguments
+        ---------
+        inputs : torch.Tensor
+            Input current in milliamperes.
+        clamps : torch.Tensor[bool], Optional, default: torch.tensor(False)
+            Forcing neurons to fire.
+        unclamps : torch.Tensor[bool], Optional, default: torch.tensor(False)
+            Forcing neurons not to fire.
+        k_clamps : int, Optional, default: 0
+            Determines number of clamps producing by k-clamps principle in this step.
+        
+        Returns
+        -------
+        None
+        
+        """
+        self.__core.progress(
+            self,
+            direct_input=direct_input,
+            clamps=clamps+\
+                torch.zeros_like(self.spike)\
+                    .reshape(self.batch, -1)\
+                    .scatter(
+                        1,
+                        self.clamps_distribution(self)\
+                            .reshape(self.batch, -1)\
+                            .multinomial(k_clamps),
+                        True,
+                    ).reshape(self.spike.shape),
+            unclamps=unclamps,
+        )
