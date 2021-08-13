@@ -147,7 +147,6 @@ class KRandomClampsPrinciple(AOC):
 
 
     @construction_required
-    @analysis_point
     def progress(
         self,
         direct_input: torch.Tensor = torch.as_tensor(0.),
