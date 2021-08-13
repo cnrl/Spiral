@@ -38,7 +38,7 @@ class PoissonEncoder(SpikingSoma):
             shape=shape,
             batch=batch,
             dt=dt,
-            construction_permission=False,
+            construction_permission=construction_permission,
         )
         self.register_buffer("rate", torch.as_tensor(rate))
     
