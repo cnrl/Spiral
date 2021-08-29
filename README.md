@@ -4,7 +4,7 @@
 
 ***
 
-A python package for spiking neural network simulation using PyTorch on cuda or CPU. This package tries to bring its design as close as possible to biological observations of how the nervous system functions. We have a long way to go for a mature package which covers all needs you might have dealing with spiking neural networks, yet this package is still an infant child. Some of valuable simulations that this design claims can easily support, unlike other available tools, are:
+A python package for spiking neural network simulation using PyTorch on CUDA or CPU. This package tries to bring its design as close as possible to biological observations of how the nervous system functions. We have a long way to go for a mature package which covers all needs you might have dealing with spiking neural networks, yet this package is still an infant child. Some of valuable simulations that this design claims can easily support, unlike other available tools, are:
 * use of spiking and classical neurons in the same network,
 * simulating action potential response functions and
 * training in time latency (where implementation is ready but still empty).
