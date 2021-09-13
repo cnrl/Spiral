@@ -19,3 +19,5 @@ This design brings a great deal of re-usability so that structures that you defi
 This package still has a minimal core and needs to be developed. But it has put much effort into simplifying the modeling process. Providing a suitable object-oriented design and creating efficient infrastructures has dramatically simplified implementing different models and combining them with other ones.
 
 We are very welcome to receive assistance in the development of this toolkit. Also, if the features briefly mentioned are helpful to you but the development of this tool is still inefficient, we invite you to wait for the following versions.
+
+* **Note:** This repository has a complicated history that makes it so heavy. We will prune its history shortly, but by then, we recommend you clone it using `git clone --bare` to avoid cloning useless history.
