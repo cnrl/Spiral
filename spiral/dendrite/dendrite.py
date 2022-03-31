@@ -242,9 +242,7 @@ class Dendrite(torch.nn.Module, CRI, ABC):
             Weights in allowable range.
         
         """
-        w[w>self.max] = self.max
-        w[w<self.min] = self.min
-        return w
+        return w.clamp(min=self.min, max=self.max)
 
 
     @analysis_point
