@@ -131,3 +131,7 @@ dmypy.json
 # ipynbs
 *.ipynb
 !examples/*.ipynb
+
+# Editors
+.idea
+.vscode
