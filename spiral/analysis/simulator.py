@@ -4,12 +4,14 @@ Provides simulator to run things over time.
 
 
 from typing import Iterable, Dict, Callable, Union, Any
+from .analyzer import TimeAnalysis
 from typeguard import typechecked
 
 
 
 
 @typechecked
+@TimeAnalysis()
 class DictionaryItemsIterator:
     """
     An auxiliary data structure for iterating a dictionary of iteratables.
@@ -62,6 +64,7 @@ class DictionaryItemsIterator:
 
 
 @typechecked
+@TimeAnalysis()
 class Simulator:
     """
     An class to call a function over time.

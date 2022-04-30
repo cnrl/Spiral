@@ -6,6 +6,8 @@ Analyzer can make a module analyzable.
 from typing import Iterable, Dict, Callable
 from typeguard import typechecked
 from .monitor import Monitor
+from line_profiler import LineProfiler
+from functools import partial
 
 
 @typechecked
@@ -82,3 +84,46 @@ def analytics(function):
             raise Exception("The object is not analyzable!")
         return function(self, *args, **kwargs)
     return wrapper
+
+
+
+
+class TimeAnalysis:
+    """
+    TODO
+    """
+    _instance = None
+    def __new__(class_, *args, **kwargs):
+        if not isinstance(class_._instance, class_):
+            class_._instance = object.__new__(class_, *args, **kwargs)
+        return class_._instance
+
+
+    def __init__(self):
+        if 'enabled' not in self.__dict__:
+          self.enabled = False
+          self.line_profiler = LineProfiler()
+
+
+    def enable(self):
+        self.enabled = True
+
+
+    def disable(self):
+        self.enabled = False
+
+
+    def __call__(self, func):
+        if not self.enabled:
+            return func
+        if type(A) is type:
+            for attr in cls.__dict__:
+                if callable(getattr(cls, attr)) and not attr.endswith('__'):
+                    setattr(cls, attr, self(getattr(cls, attr)))
+        else:
+            self.line_profiler.add_function(func)
+            return partial(self.line_profiler.runcall, func)
+
+
+    def print(self):
+        self.line_profiler.print_stats()
